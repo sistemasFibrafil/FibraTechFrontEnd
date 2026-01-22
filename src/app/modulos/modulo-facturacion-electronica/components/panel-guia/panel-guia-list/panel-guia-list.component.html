@@ -1,0 +1,151 @@
+<div class="card card-w-title">
+  <h1><strong>{{titulo}}</strong></h1>
+
+  <!-- Filtros -->
+  <p-panel header="Opción de busqueda de {{titulo}}" [style]="{'margin-bottom':'20px'}" [toggleable]="true">
+    <form [formGroup]="modeloForm">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <p-calendar id="float-calendar-dat1" formControlName="dat1" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+        </div>
+        <div class="col-12 md:col-2">
+          <p-calendar id="float-calendar-dat2" formControlName="dat2" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+        </div>
+        <div class="col-12 md:col-2">
+          <p-dropdown id="float-input-objType" [options]="listObjType" class="p dropdown-item-text" placeholder="Seleccionar el tipo de documento" formControlName="objType" [required] optionLabel="label" [showClear]="false"></p-dropdown>
+        </div>
+        <div class="col-12 md:col-2">
+          <p-dropdown id="float-input-objType" [options]="listStatusSunat" class="p dropdown-item-text" placeholder="Seleccionar el estado" formControlName="statusSunat" [required] optionLabel="label" [showClear]="false"></p-dropdown>
+        </div>
+        <div class="col-12 md:col-2">
+          <input id="float-input-text1" type="text" placeholder="Buscar por serie o número" maxlength="20" size="50" formControlName="text1" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+        </div>
+        <div class="col-12 md:col-2">
+          <input id="float-input-text2" type="text" placeholder="Buscar por nombre de cliente" maxlength="100" size="50" formControlName="text2" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+        </div>
+      </div>
+    </form>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+
+  <!-- Grilla de Datos     -->
+  <p-panel header="Lista de {{titulo}}" [toggleable]="true">
+    <p-table
+      [value]="listGuia"
+      [columns]="columnas"
+      dataKey="docEntry"
+      editMode="row"
+      [rowHover]="true"
+      [paginator]="true"
+      [autoLayout]="true"
+      [responsive]="true"
+      [showCurrentPageReport]="true"
+      [rows]="globalConstants.sizePage"
+      styleClass="{{globalConstants.cStyleTableGridLines}}"
+      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+            <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            {{col.header}}
+          </th>
+          <th colspan="2" class="custom-header"></th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+        <tr class="ui-selectable-row">
+          <td class="custom-td-6">
+            <span class="p-column-title">Número SAP</span> {{modelo.docNum}}
+          </td>
+          <td class="custom-td-5">
+            <span class="p-column-title">Número</span> {{modelo.numeroDocumento}}
+          </td>
+          <td class="custom-td-6">
+            <span class="p-column-title">Fecha Emisión</span> {{modelo.fechaEmision | date: 'dd/MM/yyyy'}}
+          </td>
+          <td class="custom-td-6">
+            <span class="p-column-title">Fecha Entrega</span> {{modelo.fechaEntrega | date: 'dd/MM/yyyy'}}
+          </td>
+          <td class="custom-td-3">
+            <span class="p-column-title">RUC</span> {{modelo.clienteNumeroDocumento}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">Nombre Cliente</span> {{modelo.clienteNombre}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">Nombre Internacional</span> {{modelo.clienteNombreInter}}
+          </td>
+          <td class="custom-td-5">
+            <span [ngSwitch] = "modelo.codStatusSunat">
+              <span class="label" style="background:Blue"      *ngSwitchCase = "0">{{modelo.nomStatusSunat}}</span>
+              <span class="label" style="background:SkyBlue"   *ngSwitchCase = "1">{{modelo.nomStatusSunat}}</span>
+              <span class="label" style="background:green"     *ngSwitchCase = "2">{{modelo.nomStatusSunat}}</span>
+              <span class="label" style="background:red"       *ngSwitchCase = "3">{{modelo.nomStatusSunat}}</span>
+              <span class="label" style="background:OrangeRed" *ngSwitchCase = "4">{{modelo.nomStatusSunat}}</span>
+              <span class="label" *ngSwitchDefault></span>
+            </span>
+          </td>
+          <td class="custom-td-2">
+            <button [disabled]="buttonAcces.btnEnviar" pButton icon="{{globalConstants.icoEnviar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onToRowSelectEnviar(modelo)"></button>
+          </td>
+          <td class="custom-td-2">
+            <button [disabled]="buttonAcces.btnImprimir" pButton icon="{{globalConstants.icoImprimir}}" class="{{globalConstants.cStyleButtonWarning}}" (click)="onToRowSelectPrint(modelo)"></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="10">{{globalConstants.currentTableEmptyMessage}}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-panel>
+</div>
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Obteniendo Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Enviando Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog *ngIf="isDisplayGenerandoVisor" header="Generando visor" [(visible)]="isDisplayGenerandoVisor" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Generando visor del registro seleccionado...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog *ngIf="isDisplayVisor" header="PICKING LIST" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>

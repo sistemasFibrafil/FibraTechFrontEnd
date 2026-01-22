@@ -1,0 +1,3 @@
+<button *ngIf="!isMargenTop" pButton type="button" label="{{globalConstants.cSalir}}" icon="{{globalConstants.icoSalir}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="goSalir()"></button>
+
+<button *ngIf="isMargenTop" pButton type="button" label="{{globalConstants.cSalir}}" icon="{{globalConstants.icoSalir}}" class="fibratech-button {{globalConstants.cStyleButtonDanger}}" (click)="goSalir()"></button>

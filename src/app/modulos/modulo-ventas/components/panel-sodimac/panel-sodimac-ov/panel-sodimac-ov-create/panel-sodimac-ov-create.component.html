@@ -1,0 +1,169 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormCab1">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cardCode">Código de cliente </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <input id="float-input-cardCode" type="text" placeholder="Código de cliente" maxlength="100" size="50" formControlName="cardCode" autocomplete="off" pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cardName">Razón social o nombre </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cntctName">Persona de contacto </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-cntctName" type="text" placeholder="Persona de contacto" maxlength="100" size="50" formControlName="cntctName" autocomplete="off" pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-address">Dirección de destino </label>
+                <div class="p-inputgroup">
+                  <textarea id="float-area-address" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="1" pInputText></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormCab2">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-docNum">Número </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <app-modal-sodimac-ov-pendiente-sap [doEntry]="docEntry" (eventoAceptar)="onToOrdenVentaSelected($event)"></app-modal-sodimac-ov-pendiente-sap>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-numOrdenCompra">Número de OC </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <input id="float-input-numOrdenCompra" type="text" placeholder="Número de OC" maxlength="100" size="50" formControlName="numOrdenCompra" autocomplete="off" required pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-estado">Estado </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <p-dropdown id="float-input-estado" [options]="listEstado" class="ui dropdown-item-text" placeholder="Seleccionar el estado" formControlName="estado" optionLabel="label" [showClear]="true"></p-dropdown>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-docDate">Fecha de contabilización </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDate" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-docDueDate">Fecha de entrega </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDueDate" placeholder="Fecha de entrega" formControlName="docDueDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-taxDate">Fecha de documento </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-taxDate" placeholder="Fecha de documento" formControlName="taxDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card no-margin">
+          <div class="col-12 md:col-2">
+            <button pButton type="button" label="{{globalConstants.cImpExcel}}" icon="{{globalConstants.icoImpFile}}" (click)="onToImportExcel()"></button>
+          </div>
+
+          <p-table
+            [value]="detalle"
+            editMode="row"
+            [rowHover]="true"
+            [autoLayout]="true"
+            [responsive]="true"
+            [(selection)]="detalleSelected"
+            [showCurrentPageReport]="true"
+            styleClass="{{globalConstants.cStyleTableGridLines}}"
+            currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+            <!-- Header -->
+            <ng-template pTemplate="header" let-columns>
+              <tr>
+                <th class="custom-header">#</th>
+                <th class="custom-header">Código</th>
+                <th class="custom-header">Sku</th>
+                <th class="custom-header">Descripción</th>
+                <th class="custom-header">Descripción larga</th>
+                <th class="custom-header">Local</th>
+                <th class="custom-header">¿Oriente? <p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                <th class="custom-header">Cantidad</th>
+              </tr>
+            </ng-template>
+            <!-- body -->
+            <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+              <tr>
+                <td class="custom-td-2">
+                  <span class="p-column-title">Línea: </span>{{modelo.line1}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">Sku: </span> {{modelo.sku}}
+                </td>
+                <td class="p-fluid">
+                    <span class="p-column-title">Descripción: </span> {{modelo.dscription}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">Descripción larga: </span> {{modelo.dscriptionLarga}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">Local: </span> {{modelo.nomLocal}}
+                </td>
+                <td class="custom-td-2">
+                  <p-tableCheckbox [value]="modelo"></p-tableCheckbox>
+                </td>
+                <td class="custom-td-numero">
+                  <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="8">{{globalConstants.currentTableEmptyMessage}}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="detalle?.length <= 0" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-dialog header="Importar - {{titulo}} Detalle" *ngIf="isImport" [(visible)]="isImport" [modal]="true" [closable]="true" [autoZIndex] [style]="{width: '50vw'}">
+  <div>
+    <app-modal-file-import (eventoAceptar)="onToSelectedFile($event)" (eventoCancelar)="onToCancelImport($event)"></app-modal-file-import>
+  </div>
+</p-dialog>
+
+
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>

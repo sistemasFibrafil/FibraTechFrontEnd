@@ -1,0 +1,33 @@
+<div class="layout-topbar">
+  <div class="topbar-start">
+
+  <button #menubutton type="button" class="topbar-menubutton p-link p-trigger" (click)="onMenuButtonClick()">
+    <i class="pi pi-bars"></i>
+  </button>
+
+  <app-header-breadcrumb class="topbar-breadcrumb"></app-header-breadcrumb>
+
+  </div>
+
+  <div class="topbar-end">
+    <ul class="topbar-menu">
+      <!-- <li class="topbar-search">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <p-autoComplete [group]="true" [(ngModel)]="selectedItem" [suggestions]="filteredGroups" placeholder="Buscar menu" (onSelect) ="goSelectMenu()" class="w-12rem sm:w-full"(completeMethod)="filterGroupedMenu($event)" field="label">
+            <ng-template let-group pTemplate="group">
+              <div class="flex align-items-center">
+                <span>{{group.label}}</span>
+              </div>
+            </ng-template>
+          </p-autoComplete>
+        </span>
+      </li> -->
+      <li class="topbar-profile">
+        <button type="button" class="p-link" (click)="onProfileButtonClick()" pBadge style="font-size: 2rem" [value]="isBabge">
+          <img [src]="isUserImage | domSeguroImagenBase64" alt="Profile" />
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

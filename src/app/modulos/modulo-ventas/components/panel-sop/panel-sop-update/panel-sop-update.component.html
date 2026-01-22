@@ -1,0 +1,266 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12 md:col-12">
+        <div class="card no-margin">
+          <form [formGroup]="modeloForm">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-year">Año </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <p-dropdown id="float-input-year" [options]="listYear" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el año" formControlName="year" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['year'].errors && modeloForm.controls['year'].dirty">
+                  <p-message severity="error" text="El año es requerido." *ngIf="modeloForm.controls['year'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-month">Mes </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <p-dropdown id="float-input-month" [options]="listMonth" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el mes" formControlName="month" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['month'].errors && modeloForm.controls['month'].dirty">
+                  <p-message severity="error" text="El mes es requerido." *ngIf="modeloForm.controls['month'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-week">Semana </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <p-dropdown id="float-input-week" [options]="listWeek" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el semana" formControlName="week" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['week'].errors && modeloForm.controls['week'].dirty">
+                  <p-message severity="error" text="La semana es requerida." *ngIf="modeloForm.controls['week'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-persona-contacto">Nombre de S&OP </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <input id="float-input-name" type="text" placeholder="Nombre de S&OP" maxlength="100" size="50" formControlName="name" autocomplete="off" pInputText>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-comments">Comentarios </label>
+                <div class="p-inputgroup">
+                  <textarea id="float-area-comments" formControlName="comments" autocomplete="off" placeholder="Comentarios" maxlength="500" rows="2" pInputText></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card no-margin">
+          <p-table
+          [value]="detalle"
+          [scrollable]="true"
+          scrollDirection="both"
+          scrollHeight="700px"
+          [rowHover]="true"
+          [responsive]="true"
+          [autoLayout]="true"
+          selectionMode="single"
+          [showCurrentPageReport]="true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th style="width: 105px" pFrozenColumn></th>
+              <th style="width: 250px" pSortableColumn="cardName" class="custom-header">
+                Cliente
+                <p-sortIcon field="cardName"></p-sortIcon>
+                <p-columnFilter type="text" field="cardName" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 160px" pSortableColumn="nomTipDocumento" class="custom-header">
+                Tipo de documento
+                <p-sortIcon field="nomTipDocumento"></p-sortIcon>
+              </th>
+              <th style="width: 150px" pSortableColumn="docNum" class="custom-header">
+                Número de pedido
+                <p-sortIcon field="docNum"></p-sortIcon>
+                <p-columnFilter type="text" field="docNum" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 170px" pSortableColumn="docDate" class="custom-header">
+                Fecha de contabilización
+                <p-sortIcon field="docDate"></p-sortIcon>
+              </th>
+              <th style="width: 250px" pSortableColumn="itemCode" class="custom-header">
+                Código de artículo
+                <p-sortIcon field="itemCode"></p-sortIcon>
+                <p-columnFilter type="text" field="itemCode" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 350px" pSortableColumn="itemName" class="custom-header">
+                Nombre de artículo
+                <p-sortIcon field="itemName"></p-sortIcon>
+                <p-columnFilter type="text" field="itemName" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 150px" pSortableColumn="stock" class="custom-header">
+                Stock
+                <p-sortIcon field="stock"></p-sortIcon>
+              </th>
+              <th style="width: 150px" pSortableColumn="qtyEarring" class="custom-header">
+                Cantidad Pendiente
+                <p-sortIcon field="qtyEarring"></p-sortIcon>
+              </th>
+              <th style="width: 150px" pSortableColumn="kgEarring" class="custom-header">
+                Kg Pendiente
+                <p-sortIcon field="kgEarring"></p-sortIcon>
+              </th>
+              <th style="width: 150px" pSortableColumn="price" class="custom-header">
+                Precio
+                <p-sortIcon field="price"></p-sortIcon>
+              </th>
+              <th style="width: 150px" pSortableColumn="lineTotEarring" class="custom-header">
+                Importe pendiente
+                <p-sortIcon field="lineTotEarring"></p-sortIcon>
+              </th>
+              <th style="width: 200px" pSortableColumn="slpName" class="custom-header">
+                Vendedor
+                <p-sortIcon field="slpName"></p-sortIcon>
+                <p-columnFilter type="text" field="slpName" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 150px" pSortableColumn="nomOriCliente" class="custom-header">
+                Origen de cliente
+                <p-sortIcon field="nomOriCliente"></p-sortIcon>
+                <p-columnFilter type="text" field="nomOriCliente" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 200px" pSortableColumn="nomLinNegocio" class="custom-header">
+                Línea de negocio
+                <p-sortIcon field="nomLinNegocio"></p-sortIcon>
+                <p-columnFilter type="text" field="nomLinNegocio" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 200px" pSortableColumn="nomGpoArticulo" class="custom-header">
+                Grupo de artículo
+                <p-sortIcon field="nomGpoArticulo"></p-sortIcon>
+                <p-columnFilter type="text" field="nomGpoArticulo" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 200px" pSortableColumn="nomGpoArticulo" class="custom-header">
+                Grupo de artículo
+                <p-sortIcon field="nomConPago"></p-sortIcon>
+                <p-columnFilter type="text" field="nomConPago" display="menu" class="ml-auto"></p-columnFilter>
+              </th>
+              <th style="width: 150px" pSortableColumn="fecEntFinal" class="custom-header">
+                Fecha de entrega final
+                <p-sortIcon field="fecEntFinal"></p-sortIcon>
+              </th>
+              <th style="width: 150px" pSortableColumn="fecEntProdProceso" class="custom-header">
+                Fecha de entrega de PP
+                <p-sortIcon field="fecEntProdProceso"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+            <tr [pSelectableRow]="modelo">
+              <td style="width: 105px" pFrozenColumn>
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                <span class="p-column-title">Cliente: </span> {{modelo.cardName}}
+              </td>
+              <td style="width: 160px">
+                <span class="p-column-title">Tipo de documento: </span> {{modelo.nomTipDocumento}}
+              </td>
+              <td style="width: 150px">
+                <span class="p-column-title">Número de pedido: </span> {{modelo.docNum}}
+              </td>
+              <td style="width: 170px">
+                <span class="p-column-title">Fecha de contabilización: </span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                <span class="p-column-title">Código de artículo: </span> {{modelo.itemCode}}
+              </td>
+              <td style="width: 350px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                <span class="p-column-title">Nombre de artículo: </span> {{modelo.itemName}}
+              </td>
+              <td styleClass="input-number" style="width: 150px">
+                <span class="p-column-title">Stock: </span> {{modelo.stock | number: '.3':'en-EN'}}
+              </td>
+              <td style="width: 150px" pEditableColumn>
+                <span class="p-column-title">Cantidad Pendiente: </span>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <input id="cantidadPendiente" type="text"autocomplete="off" [(ngModel)]="modelo.qtyEarring" maxlength="9" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.qtyEarring)">
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{modelo.qtyEarring | number: '.3':'en-EN'}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td style="width: 150px" pEditableColumn>
+                <span class="p-column-title">Kg Pendiente: </span>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <input id="kgPendiente" type="text"autocomplete="off" [(ngModel)]="modelo.kgEarring" maxlength="9" (ngModelChange)="onChangekgEarring(ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.kgEarring)">
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{modelo.kgEarring | number: '.3':'en-EN'}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td style="width: 150px">
+                <span class="p-column-title">Precio: </span> {{modelo.price | number: '.3':'en-EN'}}
+              </td>
+              <td style="width: 150px">
+                <span class="p-column-title">Importe pendiente: </span> {{modelo.lineTotEarring | number: '.2':'en-EN'}}
+              </td>
+              <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                <span class="p-column-title">Vendedor: </span> {{modelo.slpName}}
+              </td>
+              <td style="width: 150px">
+                <span class="p-column-title">Origen de Cliente: </span> {{modelo.nomOriCliente}}
+              </td>
+              <td style="width: 200px">
+                <span class="p-column-title">Línea de negocio: </span> {{modelo.nomLinNegocio}}
+              </td>
+              <td style="width: 200px">
+                <span class="p-column-title">Grupo de artículo: </span> {{modelo.nomGpoArticulo}}
+              </td>
+              <td style="width: 200px">
+                <span class="p-column-title">Condición de Pago: </span> {{modelo.nomConPago}}
+              </td>
+              <td style="width: 150px" pEditableColumn>
+                <span class="p-column-title">Fecha de entrega final: </span>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <p-calendar id="fecEntFinal" [(ngModel)]="modelo.fecEntFinal" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" (ngModelChange)="onChangeFecEntFinal(ri)" ></p-calendar>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{modelo.fecEntFinal | date: 'dd/MM/yyyy'}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td style="width: 150px" pEditableColumn>
+                <span class="p-column-title">Fecha de entrega final: </span>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <p-calendar id="fecEntProdProceso" [(ngModel)]="modelo.fecEntProdProceso" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body" (ngModelChange)="onChangeFecProdProceso(ri)"></p-calendar>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{modelo.fecEntProdProceso | date: 'dd/MM/yyyy'}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="18">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="!modeloForm.valid|| detalle?.length <= 0" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-eliminar [isDisplay]="isDeleting"></app-panel-eliminar>
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

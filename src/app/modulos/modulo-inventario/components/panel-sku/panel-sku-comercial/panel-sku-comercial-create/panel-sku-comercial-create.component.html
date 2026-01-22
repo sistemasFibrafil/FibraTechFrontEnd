@@ -1,0 +1,272 @@
+<div class="card card-w-title">
+  <p-panel header="Crear {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <form [formGroup]="modeloForm">
+          <div class="col-12">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-number">N° Correlativo </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <input id="float-input-number" type="text" placeholder="N° Correlativo" maxlength="15" size="50" formControlName="u_Number" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloForm.controls['u_Number'].errors && modeloForm.controls['u_Number'].dirty">
+                  <p-message severity="error" text="El correlativo es requerido" *ngIf="modeloForm.controls['u_Number'].errors['required']"></p-message>
+                  <p-message severity="error" text="Debe tener 15 caractares" *ngIf="modeloForm.controls['u_Number'].errors['minlength'] || modeloForm.controls['u_Number'].errors['maxlength'] "></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-slpCode">Ejecutivo comercial </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <p-dropdown id="float-input-slpCode" [options]="oSlpList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione el ejecutivo comercial" formControlName="u_SlpCode" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['u_SlpCode'].errors && modeloForm.controls['u_SlpCode'].dirty">
+                  <p-message severity="error" text="El ejecutivo comercial es requerido" *ngIf="modeloForm.controls['u_SlpCode'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-status">Status </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <p-dropdown id="float-input-status" [options]="statusList" class="p dropdown-item-text" placeholder="Seleccione el status" formControlName="u_Status" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['u_Status'].errors && modeloForm.controls['u_Status'].dirty">
+                  <p-message severity="error" text="El status es requerido" *ngIf="modeloForm.controls['u_Status'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="field col-12 md:col-2 mb-2">
+                <label class="label-custom" for="float-input-docDate">Fecha </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDate" placeholder="Fecha" formControlName="u_DocDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloForm.controls['u_DocDate'].errors && modeloForm.controls['u_DocDate'].dirty">
+                  <p-message severity="error" text="La fecha es requerida." *ngIf="modeloForm.controls['u_DocDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-cardCode">Código de cliente </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <app-modal-socio-negocio [title]="'Cliente'" [cardCode]="cardCode" [cardType] = "'C'" [transType] = "'N,Y'" (eventoAceptar)="onSelectedSocioNegocio($event)"></app-modal-socio-negocio>
+              </div>
+              <div class="col-12 md:col-9">
+                <label class="label-custom" for="float-input-cardName">Nombre de cliente </label><span class="label" style="font-weight: bold; color:red">*</span>
+                <div class="p-inputgroup">
+                  <input id="float-input-cardName" type="text" placeholder="Nombre de cliente" maxlength="100" size="50" formControlName="u_CardName" autocomplete="off" required pInputText>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <p-fieldset legend="SKU" class="fieldset-custom">
+              <div class="col-12">
+                <p-fieldset legend="SKU BASE" class="fieldset-custom">
+                  <div class="p-formgrid grid">
+                    <div class="field col-12 md:col-2 mb-2">
+                      <label class="label-custom" for="float-input-itemCodeBase">Código de artículo </label>
+                      <app-modal-articulo [itemCode]="itemCode" [invntItem]="'Y'" [sellItem]="'Y'" [prchseItem]="'Y'" (eventoAceptar)="onSelectedArticulo($event)"></app-modal-articulo>
+                    </div>
+                    <div class="col-12 md:col-10">
+                      <label class="label-custom" for="float-input-itemNameBase">Descripción de artículo </label>
+                      <div class="p-inputgroup">
+                        <input id="float-input-itemNameBase" type="text" placeholder="Descripción de artículo" maxlength="100" size="50" formControlName="u_ItemNameBase" autocomplete="off" pInputText>
+                      </div>
+                    </div>
+                  </div>
+                </p-fieldset>
+              </div>
+              <div class="col-12">
+              <p-fieldset legend="SKU NUEVO" class="fieldset-custom">
+                <div class="p-formgrid grid">
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-itmsGrpCod">Grupos de artículo </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-itmsGrpCod" [options]="grupoList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione el grupo de artículo" formControlName="u_ItmsGrpCod" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_ItmsGrpCod'].errors && modeloForm.controls['u_ItmsGrpCod'].dirty">
+                      <p-message severity="error" text="El grupo de artículo es requerido" *ngIf="modeloForm.controls['u_ItmsGrpCod'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-itmsSGrpCod">Subgrupos de artículo </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-itmsSGrpCod" [options]="subGrupoList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione el subgrupo de artículo" formControlName="u_ItmsSGrpCod" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_ItmsSGrpCod'].errors && modeloForm.controls['u_ItmsSGrpCod'].dirty">
+                      <p-message severity="error" text="El subgrupo de artículo es requerido" *ngIf="modeloForm.controls['u_ItmsSGrpCod'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="field col-12 md:col-6 mb-2">
+                    <label class="label-custom" for="float-input-itemName">Descripción de artículo </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-itemName" type="text" placeholder="Ingrese la descripción del artículo" maxlength="100" size="50" formControlName="u_ItemName" autocomplete="off" required pInputText>
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_ItemName'].errors && modeloForm.controls['u_ItemName'].dirty">
+                      <p-message severity="error" text="La descripción del artículo es requerida" *ngIf="modeloForm.controls['u_ItemName'].errors['required']"></p-message>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-quantity">Cantidad </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-quantity" class="custom-td-numero" type="text" placeholder="Cantidad" maxlength="9" size="50" formControlName="u_Quantity" autocomplete="off" (blur)="blurQuantity()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_Quantity')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_Quantity'].errors && modeloForm.controls['u_Quantity'].dirty">
+                      <p-message severity="error" text="La cantidad es requerida" *ngIf="modeloForm.controls['u_Quantity'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-unitMsrCode">Unidades de medida </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-unitMsrCode" [options]="unidadMedidaList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione la unidad de medida" formControlName="u_UnitMsrCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_UnitMsrCode'].errors && modeloForm.controls['u_UnitMsrCode'].dirty">
+                      <p-message severity="error" text="La unidad de medida es requerido" *ngIf="modeloForm.controls['u_UnitMsrCode'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-wide">Ancho </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-wide" class="custom-td-numero" type="text" placeholder="Ancho" maxlength="9" size="50" formControlName="u_Wide" autocomplete="off" (blur)="blurWide()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_Wide')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_Wide'].errors && modeloForm.controls['u_Wide'].dirty">
+                      <p-message severity="error" text="El ancho es requerido" *ngIf="modeloForm.controls['u_Wide'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-unitCode">Unidades de medida </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-unitCode" [options]="largoAnchoList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione la unidad de medida" formControlName="u_UnitCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_UnitCode'].errors && modeloForm.controls['u_UnitCode'].dirty">
+                      <p-message severity="error" text="La unidad de medida es requerido" *ngIf="modeloForm.controls['u_UnitCode'].errors['required']"></p-message>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-long">Largo (mts) </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-long" class="custom-td-numero" type="text" placeholder="Largo (mts)" maxlength="9" size="50" formControlName="u_Long" autocomplete="off" (blur)="blurLong()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_Long')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_Long'].errors && modeloForm.controls['u_Long'].dirty">
+                      <p-message severity="error" text="El largo es requerido" *ngIf="modeloForm.controls['u_Long'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-grMtSq">GR/M2 </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-grMtSq" class="custom-td-numero" type="text" placeholder="GR/M2" maxlength="9" size="50" formControlName="u_GrMtSq" autocomplete="off" (blur)="blurGrMtSq()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_GrMtSq')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_GrMtSq'].errors && modeloForm.controls['u_GrMtSq'].dirty">
+                      <p-message severity="error" text="El GR/M2 es requerido" *ngIf="modeloForm.controls['u_GrMtSq'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-itemWeight">Peso ítem (kg) </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-itemWeight" class="custom-td-numero" type="text" placeholder="Peso ítem (Kg)" maxlength="9" size="50" formControlName="u_ItemWeight" autocomplete="off" (blur)="blurItemWeight()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_ItemWeight')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_ItemWeight'].errors && modeloForm.controls['u_ItemWeight'].dirty">
+                      <p-message severity="error" text="El peso ítem es requerido" *ngIf="modeloForm.controls['u_ItemWeight'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-colorCode">Colores </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-colorCode" [options]="colorList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione el color" formControlName="u_ColorCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_ColorCode'].errors && modeloForm.controls['u_ColorCode'].dirty">
+                      <p-message severity="error" text="El color es requerido" *ngIf="modeloForm.controls['u_ColorCode'].errors['required']"></p-message>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-laminate">¿Laminado? </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-laminate" [options]="valorList" class="p dropdown-item-text" placeholder="Seleccione el laminado" formControlName="u_Laminate" optionLabel="label" (onChange)="onChangeLaminado($event.value.value)"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_Laminate'].errors && modeloForm.controls['u_Laminate'].dirty">
+                      <p-message severity="error" text="El laminado es requerido" *ngIf="modeloForm.controls['u_Laminate'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-lamTypCode">Tipos de laminado </label>
+                    <p-dropdown id="float-input-lamTypCode" [options]="tipoLaminadoList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione el tipo de laminado" formControlName="u_LamTypCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_LamTypCode'].errors && modeloForm.controls['u_LamTypCode'].dirty">
+                      <p-message severity="error" text="El tipo de laminado es requerido" *ngIf="modeloForm.controls['u_LamTypCode'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-linner">¿Linner? </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-linner" [options]="valorList" class="p dropdown-item-text" placeholder="Seleccione el linner" formControlName="u_Linner" optionLabel="label" (onChange)="onChangeLinner($event.value.value)"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_Linner'].errors && modeloForm.controls['u_Linner'].dirty">
+                      <p-message severity="error" text="El linner es requerido" *ngIf="modeloForm.controls['u_Linner'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-linnWeight">Peso Linner </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-linnWeight" class="custom-td-numero" type="text" placeholder="Peso Linner" maxlength="9" size="50" formControlName="u_LinnWeight" autocomplete="off" (blur)="blurLinnWeight()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_LinnWeight')?.value,3)">
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-print">¿Impresión? </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-print" [options]="valorList" class="p dropdown-item-text" placeholder="Seleccione el impresión" formControlName="u_Print" optionLabel="label" (onChange)="onChangeImpresion($event.value.value)"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_Print'].errors && modeloForm.controls['u_Print'].dirty">
+                      <p-message severity="error" text="La impresión es requerido" *ngIf="modeloForm.controls['u_Print'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-printColCode">Colores de impresión </label>
+                    <p-dropdown id="float-input-printColCode" [options]="colorImpresionList" class="p dropdown-item-text" [filter]="true"placeholder="Seleccione el color de impresión" formControlName="u_PrintColCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_PrintColCode'].errors && modeloForm.controls['u_PrintColCode'].dirty">
+                      <p-message severity="error" text="El color de impresión es requerido" *ngIf="modeloForm.controls['u_PrintColCode'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-fuelle">¿Fuelle? </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-fuelle" [options]="valorList" class="p dropdown-item-text" placeholder="Seleccione el fuelle" formControlName="u_Fuelle" optionLabel="label"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_Fuelle'].errors && modeloForm.controls['u_Fuelle'].dirty">
+                      <p-message severity="error" text="El fuelle es requerido" *ngIf="modeloForm.controls['u_Fuelle'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-uvByMonCode">UV por mes (Tiempo de vida) </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <p-dropdown id="float-input-uvByMonCode" [options]="tiempoVidaList" class="p dropdown-item-text" [filter]="true" placeholder="Seleccione el UV por mes" formControlName="u_UvByMonCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['u_UvByMonCode'].errors && modeloForm.controls['u_UvByMonCode'].dirty">
+                      <p-message severity="error" text="El UV por mes es requerido" *ngIf="modeloForm.controls['u_UvByMonCode'].errors['required']"></p-message>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-prjMonVol">Volumenes proyectados mensuales </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-prjMonVol" class="custom-td-numero" type="text" placeholder="Volumenes proyectados mensuales" maxlength="9" size="50" formControlName="u_PrjMonVol" autocomplete="off" (blur)="blurPrjMonVol()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_PrjMonVol')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_PrjMonVol'].errors && modeloForm.controls['u_PrjMonVol'].dirty">
+                      <p-message severity="error" text="Los volumenes proyectados mensuales requerido" *ngIf="modeloForm.controls['u_PrjMonVol'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-price">Precio de venta x kg </label><span class="label" style="font-weight: bold; color:red">*</span>
+                    <div class="p-inputgroup">
+                      <input id="float-input-price" class="custom-td-numero" type="text" placeholder="Precio de venta x kg" maxlength="9" size="50" formControlName="u_Price" autocomplete="off" (blur)="blurPrice()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloForm.get('u_Price')?.value,3)">
+                    </div>
+                    <div *ngIf="modeloForm.controls['u_Price'].errors && modeloForm.controls['u_Price'].dirty">
+                      <p-message severity="error" text="El precio de venta x kg requerido" *ngIf="modeloForm.controls['u_Price'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="field col-12 md:col-6 mb-2">
+                    <label class="label-custom" for="float-input-observations">Observaciones </label>
+                    <div class="p-inputgroup">
+                      <textarea formControlName="u_Observations" autocomplete="off" placeholder="Ingrese las observaciones" maxlength="254" rows="2" pInputText></textarea>
+                    </div>
+                  </div>
+                </div>
+              </p-fieldset>
+              </div>
+            </p-fieldset>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="field col-12 md:col-2 mb-2">
+          <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="field col-12 md:col-2 mb-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

@@ -1,0 +1,138 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="startDate" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-4">
+            <p-multiSelect [options]="docStatusList" formControlName="docStatus" defaultLabel="Seleccione el estado" selectedItemsLabel="{0} regitros seleccionados"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-4">
+            <input id="float-input-searchText" type="text" placeholder="Buscar por número o guía" maxlength="100" size="50" formControlName="searchText" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+        </div>
+        <div class="col-12 md:col-4">
+          <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}" [toggleable]="true">
+        <p-table
+          [value]="modelo"
+          [columns]="columnas"
+          [rows]="rows"
+          [rowHover]="true"
+          [paginator]="true"
+          [autoLayout]="true"
+          selectionMode="single"
+          [resizableColumns]="true"
+          responsiveLayout="scroll"
+          [showCurrentPageReport]="true"
+          [rowsPerPageOptions]="rowsPerPageOptions"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th class="custom-header"></th>
+              <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+                <p-sortIcon field="{{col.field}}"></p-sortIcon>
+                {{col.header}}
+              </th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+            <tr class="p-selectable-row">
+              <td class="custom-td-2">
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td class="custom-td-10">
+                <span class="p-column-title">Número</span> {{modelo.docNum}}
+              </td>
+              <td class="custom-td-10">
+                <span class="p-column-title">Guía</span> {{modelo.u_BPP_MDSD}}-{{modelo.u_BPP_MDCD}}
+              </td>
+              <td class="custom-td-10">
+                <span class="p-column-title">Picking?</span>
+                <span class="label" style="background:#17a2b8" *ngIf="modelo?.u_FIB_FromPkg === 'Y'">Sí</span>
+                <span class="label" style="background:#dc3545" *ngIf="modelo?.u_FIB_FromPkg !== 'Y'">No</span>
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Fecha de contabilización</span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Fecha de traslado</span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">De alamcén</span> {{modelo.filler}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Alamcén destino</span> {{modelo.toWhsCode}}
+              </td>
+              <!-- <td class="p-fluid">
+                <span [ngSwitch] = "modelo.codStatusSunat">
+                  <span class="label" style="background:Blue"      *ngSwitchCase = "0">{{modelo.nomStatusSunat}}</span>
+                  <span class="label" style="background:SkyBlue"   *ngSwitchCase = "1">{{modelo.nomStatusSunat}}</span>
+                  <span class="label" style="background:green"     *ngSwitchCase = "2">{{modelo.nomStatusSunat}}</span>
+                  <span class="label" style="background:red"       *ngSwitchCase = "3">{{modelo.nomStatusSunat}}</span>
+                  <span class="label" style="background:OrangeRed" *ngSwitchCase = "4">{{modelo.nomStatusSunat}}</span>
+                  <span class="label" *ngSwitchDefault></span>
+                </span>
+              </td> -->
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+    </p-panel>
+</div>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-cerrar [isClosing] = "isClosing" ></app-panel-cerrar>
+
+
+<p-dialog *ngIf="isDisplayGenerandoVisor" header="Generando visor" [(visible)]="isDisplayGenerandoVisor" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Generando visor del registro seleccionado...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog *ngIf="isDisplayVisor" header="{{tituloVisor}}" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>

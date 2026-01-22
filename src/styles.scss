@@ -1,0 +1,355 @@
+/* You can add global styles to this file, and also import other style files */
+$gutter: 1rem; //for primeflex grid system
+
+/* Layout */
+@import "assets/layout/styles/layout/layout.scss";
+
+/* PrimeNG */
+@import "../node_modules/primeng/resources/primeng.min.css";
+@import "../node_modules/primeflex/primeflex.scss";
+@import "../node_modules/primeicons/primeicons.css";
+
+/* Code Highlight */
+@import "../node_modules/prismjs/themes/prism-coy.css";
+
+/* Quill Text Editor for p-editor */
+@import "../node_modules/quill/dist/quill.core.css";
+@import "../node_modules/quill/dist/quill.snow.css";
+.row-new-edit {
+    background-color: var(--primary-100) !important;
+}
+
+.row-distinct-edit {
+    color: red !important;
+}
+
+.custom-header {
+    text-align: center!important;
+}
+.custom-header-1 {
+  text-align: center!important;
+  width: 1em!important;
+}
+.custom-header-2 {
+  text-align: center!important;
+  width: 2em!important;
+}
+.custom-header-4 {
+  text-align: center!important;
+  width: 4em!important;
+}
+.custom-header-6 {
+  text-align: center!important;
+  width: 6em!important;
+}
+.custom-header-8 {
+  text-align: center!important;
+  width: 8em!important;
+}
+.custom-header-10 {
+  text-align: center!important;
+  width: 10em!important;
+}
+.custom-header-12 {
+  text-align: center!important;
+  width: 12em!important;
+}
+.custom-header-16 {
+  text-align: center!important;
+  width: 16em!important;
+}
+.custom-header-18 {
+  text-align: center!important;
+  width: 18em!important;
+}
+.custom-header-20 {
+  text-align: center!important;
+  width: 20em!important;
+}
+.custom-header-25 {
+  text-align: center!important;
+  width: 25em!important;
+}
+.custom-header-30 {
+  text-align: center!important;
+  width: 30em!important;
+}
+.custom-header-35 {
+  text-align: center!important;
+  width: 35em!important;
+}
+.custom-header-40 {
+  text-align: center!important;
+  width: 40em!important;
+}
+.custom-header-45 {
+  text-align: center!important;
+  width: 45em!important;
+}
+.custom-header-50 {
+  text-align: center!important;
+  width: 50em!important;
+}
+
+.row-total {
+    background-color: var(--primary-100) !important;
+    text-align: right!important;
+    font-weight: bold !important;
+}
+
+.custom-td-checkbox {
+    text-align: center!important;
+    width: 8em!important;
+}
+
+.custom-td-1 {
+  text-align: left!important;
+  width: 1em!important;
+}
+.custom-td-2 {
+    text-align: left!important;
+    width: 2em!important;
+}
+.custom-td-3 {
+    text-align: left !important;
+    width: 3em !important;
+}
+.custom-td-4 {
+    text-align: left !important;
+    width: 4em !important;
+}
+.custom-td-5 {
+    text-align: left !important;
+    width: 5em !important;
+}
+.custom-td-6 {
+    text-align: left!important;
+    width: 6em!important;
+}
+.custom-td-7 {
+    text-align: left!important;
+    width: 7em!important;
+}
+.custom-td-8 {
+    text-align: left!important;
+    width: 8em!important;
+}
+.custom-td-9 {
+    text-align: left!important;
+    width: 9em!important;
+}
+.custom-td-10 {
+    text-align: left!important;
+    width: 10em!important;
+}
+.custom-td-12 {
+    text-align: left!important;
+    width: 12em!important;
+}
+.custom-td-14 {
+  text-align: left!important;
+  width: 14em!important;
+}
+.custom-td-16 {
+  text-align: left!important;
+  width: 16em!important;
+}
+.custom-td-17 {
+  text-align: left!important;
+    width: 17em;
+}
+.custom-td-18 {
+  text-align: left!important;
+    width: 18em;
+}
+.custom-td-20 {
+  text-align: left!important;
+  width: 20em;
+}
+.custom-td-22 {
+  text-align: left!important;
+  width: 22em;
+}
+.custom-td-24 {
+  text-align: left!important;
+  width: 24em;
+}
+.custom-td-26 {
+  text-align: left!important;
+  width: 26em;
+}
+.custom-td-28 {
+  text-align: left!important;
+  width: 28em;
+}
+.custom-td-30 {
+  text-align: left!important;
+  width: 30em;
+}
+
+.custom-td-10-left {
+  text-align: left!important;
+  width: 10em!important;
+}
+.custom-td-12-left {
+    text-align: left!important;
+    width: 12em!important;
+}
+.custom-td-18-left {
+  text-align: left!important;
+    width: 18em;
+}
+.custom-td-20-left {
+  text-align: left!important;
+    width: 20em;
+}
+.custom-td-25-left {
+  text-align: left!important;
+    width: 25em;
+}
+.custom-td-30-left {
+  text-align: left!important;
+    width: 30em;
+}
+
+.custom-td-center {
+    text-align: center!important;
+    width: 10em!important;
+}
+
+.custom-td-description {
+    text-align: left!important;
+    width: 20em!important;
+}
+
+.custom-td-numero {
+    text-align: right!important;
+    width: 10em!important;
+}
+
+.fibratech-button {
+    .ui-splitbutton {
+        margin-top: 1.4em !important;
+    }
+    margin-top: 1.4em !important;
+}
+
+.fibratech-center-checkbox {
+    padding-top: 1.5em !important;
+}
+
+/* Estilos para el item del estado*/
+
+@mixin label-estado {
+  display: block;
+  text-align: center;
+  color: white;
+  font-weight: normal;
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+table {
+  .label {
+    @include label-estado();
+  }
+}
+
+/* Estilos para el item del estado*/
+.row-cerrado {
+  background-color: rgba(0, 0, 0, 0.15) !important;
+  color: #000 !important; /* asegura que el texto siempre sea blanco */
+}
+
+
+
+.label-bold {
+  font-weight: 600; /* o bold */
+}
+
+.field-numero {
+  text-align: right!important;
+}
+
+.resumen-totales input.p-inputtext{
+  font-weight: 700;
+}
+.resumen-totales input.p-inputtext::placeholder{
+  font-weight: 400;
+}
+
+@mixin text-color-readonly-control {
+    background-color: rgba(245, 245, 245, 1) !important;
+}
+
+.readonly-control {
+  @include text-color-readonly-control();
+  .p-inputtext {
+      @include text-color-readonly-control();
+  }
+  .p-dropdown {
+      @include text-color-readonly-control();
+  }
+  color: #495057;
+  cursor: not-allowed;
+  pointer-events: none; // si quieres bloquear clics
+}
+
+/* ✅ lo visible del dropdown */
+.readonly-control .p-dropdown,
+.readonly-control .p-dropdown,
+.readonly-control .p-dropdown .p-dropdown-label,
+.readonly-control .p-dropdown .p-dropdown-trigger {
+  //background-color: #f5f5f5 !important;
+  @include text-color-readonly-control();
+  .p-inputtext {
+      @include text-color-readonly-control();
+  }
+  .p-dropdown {
+      @include text-color-readonly-control();
+  }
+  color: #495057 !important;
+}
+
+@mixin text-color-mandatory {
+    background-color: rgba(250, 236, 220, 1) !important;
+}
+
+.field-mandatory {
+    @include text-color-mandatory();
+    .p-inputtext {
+        @include text-color-mandatory();
+    }
+    .p-dropdown {
+        @include text-color-mandatory();
+    }
+}
+
+.readonly-control-mandatory {
+  @include text-color-mandatory();
+  .p-inputtext {
+      @include text-color-mandatory();
+  }
+  .p-dropdown {
+      @include text-color-mandatory();
+  }
+  color: #495057;
+  cursor: not-allowed;
+  pointer-events: none; // si quieres bloquear clics
+}
+
+/* ✅ lo visible del dropdown */
+.readonly-control-mandatory .p-dropdown,
+.readonly-control-mandatory .p-dropdown,
+.readonly-control-mandatory .p-dropdown .p-dropdown-label,
+.readonly-control-mandatory .p-dropdown .p-dropdown-trigger {
+  //background-color: #f5f5f5 !important;
+  @include text-color-mandatory();
+  .p-inputtext {
+      @include text-color-mandatory();
+  }
+  .p-dropdown {
+      @include text-color-mandatory();
+  }
+  color: #495057 !important;
+}

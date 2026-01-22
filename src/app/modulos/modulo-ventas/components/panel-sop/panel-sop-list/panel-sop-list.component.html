@@ -1,0 +1,118 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de búsqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-dropdown id="float-input-year" [options]="listAnio" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el año" formControlName="year" [required] optionLabel="label" [showClear]="true" (onChange)="getListSemana()"></p-dropdown>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-dropdown id="float-input-month" [options]="listMes" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el mes" formControlName="month" [required] optionLabel="label" [showClear]="true" (onChange)="getListSemana()"></p-dropdown>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-dropdown id="float-input-week" [options]="listSemana" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el semana" formControlName="week" optionLabel="label" [showClear]="true"></p-dropdown>
+          </div>
+          <div class="col-12 md:col-6">
+            <input id="float-input-text1" type="text" placeholder="Buscar por nombre o comentarios" maxlength="100" size="50" formControlName="text1" autocomplete="off" pInputText (keyup.enter)="onClickSeach()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickSeach()"></button>
+        </div>
+        <div class="col-12 md:col-4">
+          <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}">
+        <p-table
+          [value] = "list"
+          [columns] = "columnas"
+          [paginator] = "true"
+          [rows] = "globalConstants.sizePage"
+          editMode="row"
+          dataKey="idSolicitudTraslado"
+          [autoLayout] = "true"
+          [responsive] = "true"
+          [showCurrentPageReport] = "true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+          [rowHover] = "true">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th class="custom-header"></th>
+              <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+                <p-sortIcon field="{{col.field}}"></p-sortIcon>
+                {{col.header}}
+              </th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+            <tr class="p-selectable-row">
+              <td class="custom-td-2">
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td class="custom-td-5">
+                <span class="p-column-title">Año</span> {{modelo.codYear}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Mes</span> {{modelo.namMonth}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Semana</span> {{modelo.namWeek}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Nombre</span> {{modelo.name}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Comentarios</span> {{modelo.comments}}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+    </p-panel>
+</div>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay]="isDeleting"></app-panel-eliminar>
+
+
+<p-dialog *ngIf="isDisplayGenerandoVisor" header="Generando visor" [(visible)]="isDisplayGenerandoVisor" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Generando visor del registro seleccionado...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog *ngIf="isDisplayVisor" header="FORMATO DE REGISTRO" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>

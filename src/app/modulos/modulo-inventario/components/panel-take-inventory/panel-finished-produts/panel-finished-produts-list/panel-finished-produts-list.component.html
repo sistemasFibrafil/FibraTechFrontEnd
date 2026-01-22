@@ -1,0 +1,190 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-3">
+            <p-calendar formControlName="rangeDates" placeholder="Seleccionar rango de fechas" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true" selectionMode="range" [readonlyInput]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-3">
+            <p-multiSelect id="float-input-usuario" [options]="usuarioList" formControlName="usuario" [filter]="true" optionLabel="label" optionValue="value" defaultLabel="Seleccione usuario(es)" selectedItemsLabel="{0} regitros seleccionados" [showClear]="true" class="p dropdown-item-text"></p-multiSelect>
+            <div *ngIf="modeloForm.controls['usuario'].errors && modeloForm.controls['usuario'].dirty">
+              <p-message severity="error" text="Usuario es requerido." *ngIf="modeloForm.controls['usuario'].errors['required']"></p-message>
+            </div>
+          </div>
+          <div class="col-12 md:col-3">
+            <p-multiSelect id="float-input-warehouse" [options]="warehouseList" formControlName="warehouse" [filter]="true" optionLabel="label" optionValue="value" defaultLabel="Seleccione almacén(es)" selectedItemsLabel="{0} almacenes seleccionados" [showClear]="true" class="p dropdown-item-text"></p-multiSelect>
+            <div *ngIf="modeloForm.controls['warehouse'].errors && modeloForm.controls['warehouse'].dirty">
+              <p-message severity="error" text="Almacén es requerido." *ngIf="modeloForm.controls['warehouse'].errors['required']"></p-message>
+            </div>
+          </div>
+          <div class="col-12 md:col-3">
+            <input id="float-input-item" type="text" placeholder="Buscar el artículo" maxlength="100" size="50" formControlName="item" autocomplete="off" pInputText (keyup.enter)="onClickSearch()">
+          </div>
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickSearch()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <p-splitButton [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExpExcel}}" [model] = "opciones2" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+          </div>
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </form>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}" [toggleable]="true">
+      <p-table
+        [value]="modelo"
+        [columns]="columnas"
+        editMode="row"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [(selection)]="modeloCopyToSelected"
+        [rows]="globalConstants.sizePage"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th class="custom-header"></th>
+            <th class="custom-header"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+            <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+              <p-sortIcon field="{{col.field}}"></p-sortIcon> {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+          <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo.u_Status === 'C'}">
+            <td class="custom-td-2">
+              <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onToItemSelected(modelo)" appendTo = "body">
+              </p-splitButton>
+            </td>
+            <td class="custom-td-2">
+              <p-tableCheckbox [value]="modelo"></p-tableCheckbox>
+            </td>
+            <td>
+              <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+            </td>
+            <td>
+              <span class="p-column-title">Descripcion: </span> {{modelo.dscription}}
+            </td>
+            <td>
+              <span class="p-column-title">Almacén: </span> {{modelo.whsCode}}
+            </td>
+            <td>
+              <span class="p-column-title">UM: </span> {{modelo.unitMsr}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Físico: </span> {{modelo.onHandPhy | number: '.3':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Sistema: </span> {{modelo.onHandSys | number: '.3':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Diferencia: </span> {{modelo.difference | number: '.3':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Peso (Kg) : </span> {{modelo.weightKg | number: '.3':'en-EN'}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length + 2">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-3">
+            <p-splitButton [disabled]='modeloCopyToSelected?.length <= 0' label="Copiar a" icon="pi pi-copy" [model] = "opciones3" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+</div>
+
+
+
+<p-dialog *ngIf="isVisualizar" header="Código de barra" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <p-panel id="modal" header="Opciones de búsqueda" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+    <form [formGroup]="modeloFormModal">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <div class="p-inputgroup">
+            <input id="float-input-codeBar" type="text" placeholder="Buscar por código de barra" maxlength="100" size="50" formControlName="codeBar" autocomplete="off" pInputText (keyup.enter)="onClickSearchModal()">
+          </div>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickSearchModal()"></button>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+  <p-panel header="Lista de códigos de barras" [toggleable]="true">
+    <p-table
+    [value]="modeloModal"
+    [columns]="columnasModal"
+    [rowHover]="true"
+    [autoLayout]="true"
+    selectionMode="single"
+    [resizableColumns]="true"
+    responsiveLayout="scroll"
+    [showCurrentPageReport]="true"
+    styleClass="{{globalConstants.cStyleTableGridLines}}"
+    currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+            <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            {{col.header}}
+          </th>
+          <th class="custom-header"></th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo let-editing="editing">
+        <tr class="p-selectable-row">
+          <td class="p-fluid">
+            <span class="p-column-title">Barcode: </span> {{modelo.codeBar}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Cantidad: </span> {{modelo.productionDate | date: 'dd/MM/yyyy'}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Peso: </span> {{modelo.weightKg | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-2">
+            <button pButton [disabled]="buttonAcces.btnEliminar" icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onClickSelectedDeleteRow(modelo)"></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickClose()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay]="isDeleting" ></app-panel-eliminar>

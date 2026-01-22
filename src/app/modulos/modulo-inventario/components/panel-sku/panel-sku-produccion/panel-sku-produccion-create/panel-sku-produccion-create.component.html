@@ -1,0 +1,299 @@
+<div class="card card-w-title">
+  <p-panel header="Crear {{titulo}}">
+    <div class="col-12">
+      <p-fieldset legend="SKU Comercial" class="fieldset-custom">
+        <form [formGroup]="modeloFormDatCom">
+          <div class="p-formgrid grid">
+            <div class="col-12 md:col-2">
+              <label class="label-custom" for="float-input-number">N° Correlativo </label><span class="label" style="font-weight: bold; color:red">*</span>
+              <app-modal-sku-comercial [u_Number]="number" (eventoAceptar)="onSelectedSKC($event)"></app-modal-sku-comercial>
+            </div>
+            <div class="col-12 md:col-2">
+              <label class="label-custom" for="float-input-itemCode">Código del artículo </label><span class="label" style="font-weight: bold; color:red">*</span>
+              <div class="p-inputgroup">
+                <input id="float-input-itemCode" type="text" placeholder="Ingrese el código del artículo" maxlength="50" size="50" formControlName="u_ItemCode" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloFormDatCom.controls['u_ItemCode'].errors && modeloFormDatCom.controls['u_ItemCode'].dirty">
+                <p-message severity="error" text="El código del artículo es requerido" *ngIf="modeloFormDatCom.controls['u_ItemCode'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-8">
+              <label class="label-custom" for="float-input-itemName">Descripción de artículo </label><span class="label" style="font-weight: bold; color:red">*</span>
+              <div class="p-inputgroup">
+                <input id="float-input-itemName" type="text" placeholder="Descripción de artículo" maxlength="100" size="50" formControlName="u_ItemName" autocomplete="off" pInputText>
+              </div>
+            </div>
+            <div class="col-12 md:col-2">
+              <label class="label-custom" for="float-input-cardCode">Código del cliente </label><span class="label" style="font-weight: bold; color:red">*</span>
+              <div class="p-inputgroup">
+                <input id="float-input-cardCode" type="text" placeholder="Código del cliente" maxlength="50" size="50" formControlName="u_CardCode" autocomplete="off" pInputText>
+              </div>
+            </div>
+            <div class="col-12 md:col-10">
+              <label class="label-custom" for="float-input-cardName">Nombre del cliente </label><span class="label" style="font-weight: bold; color:red">*</span>
+              <div class="p-inputgroup">
+                <input id="float-input-cardName" type="text" placeholder="Nombre del cliente" maxlength="100" size="50" formControlName="u_CardName" autocomplete="off" pInputText>
+              </div>
+            </div>
+          </div>
+        </form>
+      </p-fieldset>
+    </div>
+    <div class="col-12">
+      <p-fieldset legend="SKU Producción" class="fieldset-custom">
+        <p-tabView styleClass="tabview-custom">
+          <p-tabPanel>
+            <ng-template pTemplate = "header">
+              <i class="pi pi-circle-fill"></i>
+              <span>&nbsp;Datos de producción&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloFormDatPrd">
+              <div class="p-formgrid grid">
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-prdStrDate">Fecha de inicio </label><span class="label" style="font-weight: bold; color:red">*</span>
+                  <div class="p-inputgroup">
+                    <p-calendar id="float-calendar-prdStrDate" placeholder="Fecha de inicio" formControlName="u_PrdStrDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  </div>
+                  <div *ngIf="modeloFormDatPrd.controls['u_PrdStrDate'].errors && modeloFormDatPrd.controls['u_PrdStrDate'].dirty">
+                    <p-message severity="error" text="La fecha de inicio es requerida." *ngIf="modeloFormDatPrd.controls['u_PrdStrDate'].errors['required']"></p-message>
+                  </div>
+                </div>
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-prdEndDate">Fecha de término </label><span class="label" style="font-weight: bold; color:red">*</span>
+                  <div class="p-inputgroup">
+                    <p-calendar id="float-calendar-prdEndDate" placeholder="Fecha de término" formControlName="u_PrdEndDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  </div>
+                  <div *ngIf="modeloFormDatPrd.controls['u_PrdEndDate'].errors && modeloFormDatPrd.controls['u_PrdEndDate'].dirty">
+                    <p-message severity="error" text="La fecha de término es requerida." *ngIf="modeloFormDatPrd.controls['u_PrdEndDate'].errors['required']"></p-message>
+                  </div>
+                </div>
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-prdEndHour">Hora de término </label><span class="label" style="font-weight: bold; color:red">*</span>
+                  <div class="p-inputgroup">
+                    <p-calendar id="float-calendar-prdEndHour" placeholder="Hora de término" formControlName="u_PrdEndHour" [showButtonBar]="true" dateFormat="HH:mm" hourFormat="12" [showIcon]="true" [timeOnly]="true"></p-calendar>
+                  </div>
+                  <div *ngIf="modeloFormDatPrd.controls['u_PrdEndHour'].errors && modeloFormDatPrd.controls['u_PrdEndHour'].dirty">
+                    <p-message severity="error" text="La hora de término es requerida." *ngIf="modeloFormDatPrd.controls['u_PrdEndHour'].errors['required']"></p-message>
+                  </div>
+                </div>
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-rollWeight">Peso del rollo </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-rollWeight" class="custom-td-numero" type="text" placeholder="Peso del rollo" maxlength="9" size="50" formControlName="u_RollWeight" autocomplete="off" (blur)="blurRollWeight()" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event, modeloFormDatPrd.get('u_RollWeight')?.value)">
+                  </div>
+                </div>
+              </div>
+              <div class="p-formgrid grid">
+                <div class="col-12 md:col-6">
+                  <label class="label-custom" for="float-input-prdForDetail">Formulación detallada</label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_PrdForDetail" autocomplete="off" placeholder="Incluir con sus códigos SAP" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+                <div class="col-12 md:col-6">
+                  <label class="label-custom" for="float-input-prdPresBale">Presentación - Fardo </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_PrdPresBale" autocomplete="off" placeholder="Ingrese la presentación - fardo" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <p-table
+              [value]="detalle"
+              [columns]="columns"
+              dataKey="line"
+              editMode="row"
+              [rowHover]="true"
+              [autoLayout]="true"
+              [responsive]="true"
+              [showCurrentPageReport]="true"
+              styleClass="{{globalConstants.cStyleTableGridLines}}"
+              currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+              <!-- Header -->
+              <ng-template pTemplate="header" let-columns>
+                <tr>
+                  <th class="custom-header"></th>
+                  <th *ngFor="let col of columns" class="custom-header">
+                    {{col.header}}
+                  </th>
+                </tr>
+              </ng-template>
+              <!-- body -->
+              <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+                <tr>
+                  <td class="custom-td-2">
+                    <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                    </p-splitButton>
+                  </td>
+                  <td class="p-fluid">
+                    <span class="p-column-title">PROCESO: </span><i class="pi pi-search" (click)="onOpenProceso(ri)"></i> {{modelo.u_ProcessName}}
+                  </td>
+                  <td class="custom-td-numero" pEditableColumn>
+                    <span class="p-column-title">% DE SCRAP: </span>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input id="percentage1" type="text"autocomplete="off" [(ngModel)]="modelo.u_Percentage1" maxlength="9" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.u_Percentage1)">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{modelo.u_Percentage1 | number: '.3':'en-EN'}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td class="p-fluid">
+                    <span class="p-column-title">CÓDIGO: </span><i class="pi pi-search" (click)="onOpenArticulo(ri)"></i> {{modelo.u_ItemCode}}
+                  </td>
+                  <td class="p-fluid">
+                    <span class="p-column-title">DESCRIPCIÓN: </span> {{modelo.u_ItemName}}
+                  </td>
+                  <td class="custom-td-numero" pEditableColumn>
+                    <span class="p-column-title">% DE SCRAP: </span>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input id="porcentaje2" type="text"autocomplete="off" [(ngModel)]="modelo.u_Percentage2" maxlength="9" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.u_Percentage2)">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{modelo.u_Percentage2 | number: '.3':'en-EN'}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="6">{{globalConstants.currentTableEmptyMessage}}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-tabPanel>
+
+          <p-tabPanel>
+            <ng-template pTemplate = "header">
+              <i class="pi pi-circle-fill"></i>
+              <span>&nbsp;Factibilidad calidad&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloFormFacCal">
+              <div class="p-formgrid grid">
+                <div class="col-12 md:col-6">
+                  <label class="label-custom" for="float-input-feaQuaInd">La materia prima cumple con las especificaciones técnicas, sí o no.  </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_FeaQuaInd" autocomplete="off" placeholder="Si o no" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+                <div class="col-12 md:col-6">
+                  <label class="label-custom" for="float-input-feaQuaInd">La insumo prima cumple con las especificaciones técnicas, sí o no.  </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_FeaQuaInd" autocomplete="off" placeholder="Sí o no" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+                <div class="col-12 md:col-6">
+                  <label class="label-custom" for="float-input-feaQuaJus">Justificar porque no es factible </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_FeaQuaJus" autocomplete="off" placeholder="Ingrese la justificación del porque no es factible" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+
+          <p-tabPanel>
+            <ng-template pTemplate = "header">
+              <i class="pi pi-circle-fill"></i>
+              <span>&nbsp;Factibilidad producción&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloFormFacPrd">
+              <div class="p-formgrid grid">
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-prdFeaYes">Si </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_PrdFeaYes" autocomplete="off" placeholder="Si" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-prdFeaNo">No </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_PrdFeaNo" autocomplete="off" placeholder="No" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-prdFeaObs">Observaciones </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_PrdFeaObs" autocomplete="off" placeholder="Ingrese las observaciones" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+
+          <p-tabPanel>
+            <ng-template pTemplate = "header">
+              <i class="pi pi-circle-fill"></i>
+              <span>&nbsp;Costeo detallado&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloFormCostDet">
+              <div class="p-formgrid grid">
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-cosStrDate">Fecha de inicio </label>
+                  <div class="p-inputgroup">
+                    <p-calendar id="float-calendar-cosStrDate" placeholder="Fecha de inicio" formControlName="u_CosStrDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  </div>
+                </div>
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-cosEndDate">Fecha de término </label>
+                  <div class="p-inputgroup">
+                    <p-calendar id="float-calendar-cosEndDate" placeholder="Fecha de término" formControlName="u_CosEndDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  </div>
+                </div>
+                <div class="col-12 md:col-2">
+                  <label class="label-custom" for="float-input-cosEndHour">Hora de término </label>
+                  <div class="p-inputgroup">
+                    <p-calendar id="float-calendar-cosEndHour" placeholder="Hora de término" formControlName="u_CosEndHour" [showButtonBar]="true" dateFormat="HH:mm" hourFormat="12" [showIcon]="true" [timeOnly]="true"></p-calendar>
+                  </div>
+                </div>
+              </div>
+              <div class="p-formgrid grid">
+                <div class="col-12 md:col-12">
+                  <label class="label-custom" for="float-input-cosDetail">Costeo detallado </label>
+                  <div class="p-inputgroup">
+                    <textarea formControlName="u_CosDetail" autocomplete="off" placeholder="Ingrese el costeo detallado" maxlength="254" rows="2" pInputText></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+        </p-tabView>
+      </p-fieldset>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="submit" [disabled]="!modeloFormDatCom.valid || !modeloFormDatPrd.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-dialog *ngIf="isVisualizarProceso" header="Proceso" [(visible)]="isVisualizarProceso" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-proceso (eventoAceptar)="onSelectedProceso($event)"></app-busqueda-proceso>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseProceso()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+<p-dialog *ngIf="isVisualizarArticulo" header="Artículo" [(visible)]="isVisualizarArticulo" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+  <app-busqueda-articulo [invntItem] = "'Y'" (eventoAceptar)="onSelectedArticulo($event)"></app-busqueda-articulo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseArticulo()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

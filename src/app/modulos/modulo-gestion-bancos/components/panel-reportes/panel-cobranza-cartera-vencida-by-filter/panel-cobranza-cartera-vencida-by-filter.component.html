@@ -1,0 +1,250 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{subtitulo}}" [style]="{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="courtDate" placeholder="Seleccionar fecha corte" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="businessPartnerGroupSapList" [(ngModel)]="businessPartnerGroupSelected" formControlName="msBusinessPartnerGroup" defaultLabel="Seleccione Grupo de Cliente" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-8">
+            <input id="float-input-customer" type="text" placeholder="Buscar por código o nombre de cliente" maxlength="100" size="50" formControlName="customer" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" pButton type="button" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExcel}}" (click)="onToExcel()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{subtitulo}}">
+      <p-table
+        [value]="reporteList"
+        [scrollable]="true"
+        scrollDirection="both"
+        scrollHeight="500px"
+        [autoLayout]="true"
+        [responsive]="true"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+        [rowHover]="true">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th style="width: 200px" pFrozenColumn pSortableColumn="cardCode" class="custom-header">
+              <p-sortIcon field="cardCode"></p-sortIcon>
+              Código de Cliente
+            </th>
+            <th style="width: 250px" pFrozenColumn pSortableColumn="cardName" class="custom-header">
+              <p-sortIcon field="cardName"></p-sortIcon>
+              Nombre de Cliente
+            </th>
+            <th style="width: 200px" pSortableColumn="cardName" class="custom-header">
+              <p-sortIcon field="cardName"></p-sortIcon>
+              Grupo de Cliente
+            </th>
+            <th style="width: 180px" pSortableColumn="creditLine" class="custom-header">
+              <p-sortIcon field="creditLine"></p-sortIcon>
+              Línea de Crédito
+            </th>
+            <th style="width: 200px" pSortableColumn="slpName" class="custom-header">
+              <p-sortIcon field="slpName"></p-sortIcon>
+              Vendedor
+            </th>
+            <th style="width: 200px" pSortableColumn="numeroAsiento" class="custom-header">
+              <p-sortIcon field="numeroAsiento"></p-sortIcon>
+              Número de Asiento
+            </th>
+            <th style="width: 170px" pSortableColumn="numeroSAP" class="custom-header">
+              <p-sortIcon field="numeroSAP"></p-sortIcon>
+              Número de SAP
+            </th>
+            <th style="width: 200px" pSortableColumn="tipoDocumento" class="custom-header">
+              <p-sortIcon field="tipoDocumento"></p-sortIcon>
+              Tipo de Documento
+            </th>
+            <th style="width: 220px" pSortableColumn="numeroDocumento" class="custom-header">
+              <p-sortIcon field="numeroDocumento"></p-sortIcon>
+              Número de Documento
+            </th>
+            <th style="width: 220px" pSortableColumn="docDate" class="custom-header">
+              <p-sortIcon field="docDate"></p-sortIcon>
+              Fecha de Contabilización
+            </th>
+            <th style="width: 170px" pSortableColumn="taxDate" class="custom-header">
+              <p-sortIcon field="taxDate"></p-sortIcon>
+              Fecha de Emisión
+            </th>
+            <th style="width: 220px" pSortableColumn="dueDate" class="custom-header">
+              <p-sortIcon field="dueDate"></p-sortIcon>
+              Fecha de Vencimiento
+            </th>
+            <th style="width: 300px" pSortableColumn="comments" class="custom-header">
+              <p-sortIcon field="comments"></p-sortIcon>
+              Comentarios
+            </th>
+            <th style="width: 150px" pSortableColumn="segment_0" class="custom-header">
+              <p-sortIcon field="segment_0"></p-sortIcon>
+              Segmento 0
+            </th>
+            <th style="width: 200px" pSortableColumn="condicionPago" class="custom-header">
+              <p-sortIcon field="condicionPago"></p-sortIcon>
+              Condicion de Pago
+            </th>
+            <th style="width: 120px" pSortableColumn="moneda" class="custom-header">
+              <p-sortIcon field="moneda"></p-sortIcon>
+              Moneda
+            </th>
+            <th style="width: 150px" pSortableColumn="saldoSOL" class="custom-header">
+              <p-sortIcon field="saldoSOL"></p-sortIcon>
+              Saldo SOL
+            </th>
+            <th style="width: 150px" pSortableColumn="saldoUSD" class="custom-header">
+              <p-sortIcon field="saldoUSD"></p-sortIcon>
+              Saldo USD
+            </th>
+            <th style="width: 150px" pSortableColumn="saldoSYS" class="custom-header">
+              <p-sortIcon field="saldoSYS"></p-sortIcon>
+              Saldo SYS
+            </th>
+            <th style="width: 150px" pSortableColumn="de_0_15_Dias" class="custom-header">
+              <p-sortIcon field="de_0_15_Dias"></p-sortIcon>
+              0-15 días
+            </th>
+            <th style="width: 150px" pSortableColumn="de_16_30_Dias" class="custom-header">
+              <p-sortIcon field="de_16_30_Dias"></p-sortIcon>
+              16-30 días
+            </th>
+            <th style="width: 150px" pSortableColumn="de_31_60_Dias" class="custom-header">
+              <p-sortIcon field="de_31_60_Dias"></p-sortIcon>
+              31-60 días
+            </th>
+            <th style="width: 150px" pSortableColumn="mas_60_Dias" class="custom-header">
+              <p-sortIcon field="mas_60_Dias"></p-sortIcon>
+              +60 días
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate="body" let-modelo>
+          <tr class="ui-selectable-row">
+            <td style="width: 200px" pFrozenColumn>
+              <span class="p-column-title">Código de Cliente</span> {{modelo.cardCode}}
+            </td>
+            <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden" pFrozenColumn>
+              <span class="p-column-title">Nombre de Cliente</span> {{modelo.cardName}}
+            </td>
+            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Grupo de Cliente</span> {{modelo.groupName}}
+            </td>
+            <td  style="width: 180px">
+              <span class="p-column-title">Línea Crédito</span> {{modelo.creditLine | number: '.2':'en-EN'}}
+            </td>
+            <td  style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Vendedor</span> {{modelo.slpName}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">Número de Asiento</span> {{modelo.numeroAsiento}}
+            </td>
+            <td  style="width: 170px">
+              <span class="p-column-title">Número de SAP</span> {{modelo.numeroSAP}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">Tipo de Documento</span> {{modelo.tipoDocumento}}
+            </td>
+            <td style="width: 220px">
+              <span class="p-column-title">Número de Documento</span> {{modelo.numeroDocumento}}
+            </td>
+            <td style="width: 220px">
+              <span class="p-column-title">Fecha de Contabilización</span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 170px">
+              <span class="p-column-title">Fecha de Emisión</span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 220px">
+              <span class="p-column-title">Fecha de Vencimiento</span> {{modelo.dueDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 300px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Comentarios</span> {{modelo.comments}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Segmento 0</span> {{modelo.segment_0}}
+            </td>
+            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Condicion de Pago</span> {{modelo.condicionPago}}
+            </td>
+            <td style="width: 120px">
+              <span class="p-column-title">Moneda</span> {{modelo.moneda}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Saldo SOL</span> {{modelo.saldoSOL | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Saldo USD</span> {{modelo.saldoUSD | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Saldo SYS</span> {{modelo.saldoSYS | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">0-15 días</span> {{modelo.de_0_15_Dias | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">16-30 días</span> {{modelo.de_16_30_Dias | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">31-60 días</span> {{modelo.de_31_60_Dias | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">+60 días</span> {{modelo.mas_60_Dias | number: '.2':'en-EN'}}
+            </td>
+          </tr>
+        </ng-template>
+        <!-- emptymessage -->
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td style="width: 4250px" colspan="23">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+        <!-- footer -->
+        <ng-template pTemplate="footer" *ngIf="registro == true">
+          <tr>
+              <td style="width: 3200px" colspan="16">Total</td>
+              <td style="width: 150px">{{saldoSOL | number: '.2':'en-EN'}}</td>
+              <td style="width: 150px">{{saldoUSD | number: '.2':'en-EN'}}</td>
+              <td style="width: 150px">{{saldoSYS | number: '.2':'en-EN'}}</td>
+              <td style="width: 150px">{{de_0_15_Dias | number: '.2':'en-EN'}}</td>
+              <td style="width: 150px">{{de_16_30_Dias | number: '.2':'en-EN'}}</td>
+              <td style="width: 150px">{{de_31_60_Dias | number: '.2':'en-EN'}}</td>
+              <td style="width: 150px">{{mas_60_Dias | number: '.2':'en-EN'}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+</div>
+
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Obteniendo Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>

@@ -1,0 +1,105 @@
+<div class="card card-w-title">
+
+  <p-panel header="Registrar">
+    <form [formGroup]="modeloForm">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-3">
+          <label class="label-custom" for="float-input-warehouse">Almacén </label>
+          <p-dropdown id="float-input-warehouse" class="field-mandatory" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="warehouse" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeWarehouse()"></p-dropdown>
+          <div *ngIf="modeloForm.controls['warehouse'].errors && modeloForm.controls['warehouse'].dirty">
+            <p-message severity="error" text="Almacén es requerido." *ngIf="modeloForm.controls['warehouse'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-9">
+          <label class="label-custom" for="float-input-codeBar">Código de barras </label>
+          <div class="p-inputgroup">
+            <input #codeBarInput id="float-input-codeBar" class="field-mandatory" type="text" placeholder="Ingrese código de barras" maxlength="100" size="50" formControlName="codeBar" autocomplete="off" required pInputText (keydown.enter)="onClickSave()">
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <p-table
+      [value]="modeloList"
+      [columns]="columnas"
+      editMode="row"
+      dataKey="docEntry"
+      [rowHover]="true"
+      [autoLayout]="true"
+      [resizableColumns]="true"
+      responsiveLayout="scroll"
+      [showCurrentPageReport]="true"
+      styleClass="{{globalConstants.cStyleTableGridLines}}"
+      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">{{col.header}}</th>
+          <th colspan="2" class="custom-header">Acciones</th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+        <tr [pEditableRow]="modelo">
+          <td>
+            <span class="p-column-title">Código: </span> {{modelo.u_ItemCode}}
+          </td>
+          <td>
+            <span class="p-column-title">Descripción: </span> {{modelo.u_Dscription}}
+          </td>
+          <td>
+            <span class="p-column-title">Almacén: </span> {{modelo.u_WhsCode}}
+          </td>
+          <td>
+            <span class="p-column-title">UM: </span> {{modelo.u_UnitMsr}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Físico: </span>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input id="onHandPhy" class="custom-td-numero" type="text" autocomplete="off" [(ngModel)]="modelo.u_OnHandPhy" maxlength="19" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.u_OnHandPhy)">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{modelo.u_OnHandPhy | number: '.3':'en-EN'}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Sistema: </span> {{modelo.u_OnHandSys | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Diferencia: </span> {{modelo.u_Difference | number: '.3':'en-EN'}}
+          </td>
+          <td [ngClass]="editing ? 'custom-td-9' : 'custom-td-2'">
+            <button [disabled]="buttonAcces.btnEditar" *ngIf="!editing" pButton type="button" pInitEditableRow icon="{{globalConstants.icoEditar}}" (click)="onRowEditInit(modelo)"></button>
+            <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="{{globalConstants.icoGrabar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onRowEditSave(modelo)"></button>
+            <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="{{globalConstants.icoCancelar}}" class="{{globalConstants.cStyleButtonDanger}}" style="margin-left: .5em" (click)="onRowEditCancel(modelo, ri)"></button>
+          </td>
+          <td class="custom-td-2">
+            <button [disabled]="buttonAcces.btnEliminar" pButton icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onRowSelectDelete(modelo)"></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-toast position="top-right"></p-toast>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

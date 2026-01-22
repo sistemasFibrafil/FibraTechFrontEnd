@@ -1,0 +1,277 @@
+<p-panel header="Registro de {{titulo}}">
+    <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+            <div class="col-12">
+                <p-fieldset legend="Aplicación">
+                    <div class="grid p-fluid">
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-apli-servidor">Servidor: </label>
+                            <div class="p-inputgroup">
+                                <span class="ui-inputgroup-addon"><i class="fa fa-cog"></i></span>
+                                <input id="float-input-apli-servidor" type="text" placeholder="Servidor" size="100" formControlName="aplicacionServidor" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['aplicacionServidor'].errors && modeloForm.controls['aplicacionServidor'].dirty">
+                                <p-message severity="error" text="Servidor es requerido" *ngIf="modeloForm.controls['aplicacionServidor'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['aplicacionServidor'].errors['minlength'] || modeloForm.controls['aplicacionServidor'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-apli-database">Base de Datos: </label>
+                            <div class="p-inputgroup">
+                                <span class="ui-inputgroup-addon"><i class="fa fa-database"></i></span>
+                                <input id="float-input-apli-database" type="text" placeholder="Base Datos" size="100" formControlName="aplicacionBaseDatos" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['aplicacionBaseDatos'].errors && modeloForm.controls['aplicacionBaseDatos'].dirty">
+                                <p-message severity="error" text="Base Datos es requerido" *ngIf="modeloForm.controls['aplicacionBaseDatos'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['aplicacionBaseDatos'].errors['minlength'] || modeloForm.controls['aplicacionBaseDatos'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-apli-usuario">Usuario: </label>
+                            <div class="p-inputgroup">
+                                <span class="ui-inputgroup-addon"><i class="fa fa-user"></i></span>
+                                <input id="float-input-apli-usuario" type="text" placeholder="Usuario" size="100" formControlName="aplicacionUsuario" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['aplicacionUsuario'].errors && modeloForm.controls['aplicacionUsuario'].dirty">
+                                <p-message severity="error" text="Usuario es requerido" *ngIf="modeloForm.controls['aplicacionUsuario'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['aplicacionUsuario'].errors['minlength'] || modeloForm.controls['aplicacionUsuario'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-apli-password">Contraseña: </label>
+                            <div class="p-inputgroup">
+                                <span class="ui-inputgroup-addon"><i class="fa fa-key"></i></span>
+                                <input id="float-input-apli-password" type="password" placeholder="Contraseña" size="20" formControlName="aplicacionPasswordOriginal" required pPassword>
+                            </div>
+                            <div *ngIf="modeloForm.controls['aplicacionPasswordOriginal'].errors && modeloForm.controls['aplicacionPasswordOriginal'].dirty">
+                                <p-message severity="error" text="Contraseña es requerido" *ngIf="modeloForm.controls['aplicacionPasswordOriginal'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['aplicacionPasswordOriginal'].errors['minlength'] || modeloForm.controls['aplicacionPasswordOriginal'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                    </div>
+                </p-fieldset>
+            </div>
+            <br>
+            <div class="col-12">
+                <p-fieldset legend="SAP">
+                  <div class="col-12">
+                    <p-fieldset legend="BASE DE DATOS">
+                      <div class="grid p-fluid">
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sap-servidor">Servidor: </label>
+                          <div class="p-inputgroup">
+                            <span class="ui-inputgroup-addon"><i class="fa fa-cog"></i></span>
+                            <input id="float-input-sap-servidor" type="text" placeholder="Servidor" size="100" formControlName="sapServidor" required pInputText>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sapServidor'].errors && modeloForm.controls['sapServidor'].dirty">
+                            <p-message severity="error" text="Servidor es requerido" *ngIf="modeloForm.controls['sapServidor'].errors['required']"></p-message>
+                            <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sapServidor'].errors['minlength'] || modeloForm.controls['sapServidor'].errors['maxlength'] "></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-sap-puerto">Puesto: </label>
+                            <div class="p-inputgroup">
+                                <span class="ui-inputgroup-addon"><i class="fa fa-cog"></i></span>
+                                <input id="float-input-sap-puerto" type="text" placeholder="Puerto" size="100" formControlName="sapPuerto" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sapPuerto'].errors && modeloForm.controls['sapPuerto'].dirty">
+                                <p-message severity="error" text="Puerto es requerido" *ngIf="modeloForm.controls['sapPuerto'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 1 y max. de 5 caractares" *ngIf="modeloForm.controls['sapPuerto'].errors['minlength'] || modeloForm.controls['sapPuerto'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sap-version">Versión SAP: </label>
+                          <p-dropdown id="float-input-sap-version" [options]="listSapVersion" class="ui dropdown-item-text" placeholder="" formControlName="sapVersion" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                          <div *ngIf="modeloForm.controls['sapVersion'].errors && modeloForm.controls['sapVersion'].dirty">
+                              <p-message severity="error" text="Versión SAP es requerido" *ngIf="modeloForm.controls['sapVersion'].errors['required']"></p-message>
+                          </div>
+                      </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-sap-database">Base de Datos: </label>
+                            <p-dropdown id="float-input-sap-database" [options]="listSapBaseDatos" class="ui dropdown-item-text" placeholder="" formControlName="sapBaseDatos" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                            <div *ngIf="modeloForm.controls['sapBaseDatos'].errors && modeloForm.controls['sapBaseDatos'].dirty">
+                                <p-message severity="error" text="Base de Datos es requerido" *ngIf="modeloForm.controls['sapBaseDatos'].errors['required']"></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-sap-usuario">Usuario: </label>
+                            <div class="p-inputgroup">
+                                <span class="ui-inputgroup-addon"><i class="fa fa-user"></i></span>
+                                <input id="float-input-sap-usuario" type="text" placeholder="Usuario" size="100" formControlName="sapUsuario" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sapUsuario'].errors && modeloForm.controls['sapUsuario'].dirty">
+                                <p-message severity="error" text="Usuario es requerido" *ngIf="modeloForm.controls['sapUsuario'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sapUsuario'].errors['minlength'] || modeloForm.controls['sapUsuario'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sap-password">Contraseña: </label>
+                          <div class="p-inputgroup">
+                            <span class="ui-inputgroup-addon"><i class="fa fa-key"></i></span>
+                            <input id="float-input-sap-password" type="password" placeholder="Contraseña" size="20" formControlName="sapPasswordOriginal" required pPassword>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sapPasswordOriginal'].errors && modeloForm.controls['sapPasswordOriginal'].dirty">
+                            <p-message severity="error" text="Contraseña es requerido" *ngIf="modeloForm.controls['sapPasswordOriginal'].errors['required']"></p-message>
+                            <p-message severity="error" text="Tener un min. de 5 y max. de 20 caractares" *ngIf="modeloForm.controls['sapPasswordOriginal'].errors['minlength'] || modeloForm.controls['sapPasswordOriginal'].errors['maxlength'] "></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sap-tecnologia">Tecnología SAP: </label>
+                          <p-dropdown id="float-input-sap-tecnologia" [options]="listSunatTecnologiaSap" class="ui dropdown-item-text" placeholder="" formControlName="sunatTecnologia" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                          <div *ngIf="modeloForm.controls['sunatTecnologia'].errors && modeloForm.controls['sunatTecnologia'].dirty">
+                            <p-message severity="error" text="Tecnología SAP es requerido" *ngIf="modeloForm.controls['sunatTecnologia'].errors['required']"></p-message>
+                          </div>
+                        </div>
+                      </div>
+                    </p-fieldset>
+                    <br>
+                    <p-fieldset legend="USUARIO INDIRECTA">
+                      <div class="grid p-fluid">
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sap-usuario-indirecta">Usuario: </label>
+                          <div class="p-inputgroup">
+                              <span class="ui-inputgroup-addon"><i class="fa fa-user"></i></span>
+                              <input id="float-input-sap-usuario-indirecta" type="text" placeholder="Usuario" size="100" formControlName="sapUsuarioIndirecta" required pInputText>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sapUsuarioIndirecta'].errors && modeloForm.controls['sapUsuarioIndirecta'].dirty">
+                              <p-message severity="error" text="Usuario es requerido" *ngIf="modeloForm.controls['sapUsuarioIndirecta'].errors['required']"></p-message>
+                              <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['sapUsuarioIndirecta'].errors['minlength'] || modeloForm.controls['sapUsuarioIndirecta'].errors['maxlength'] "></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sap-password-indirecta">Contraseña: </label>
+                          <div class="p-inputgroup">
+                              <span class="ui-inputgroup-addon"><i class="fa fa-key"></i></span>
+                              <input id="float-input-sap-password-indirecta" type="password" placeholder="Contraseña" size="20" formControlName="sapPasswordIndirecta" required pPassword>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sapPasswordIndirecta'].errors && modeloForm.controls['sapPasswordIndirecta'].dirty">
+                              <p-message severity="error" text="Contraseña es requerido" *ngIf="modeloForm.controls['sapPasswordIndirecta'].errors['required']"></p-message>
+                              <p-message severity="error" text="Tener un min. de 5 y max. de 20 caractares" *ngIf="modeloForm.controls['sapPasswordIndirecta'].errors['minlength'] || modeloForm.controls['sapPasswordIndirecta'].errors['maxlength'] "></p-message>
+                          </div>
+                        </div>
+                      </div>
+                    </p-fieldset>
+                    <br>
+                    <p-fieldset legend="SUNAT">
+                      <div class="grid p-fluid">
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sunat-api-rest-consulta">Api Res Consulta: </label>
+                          <div class="p-inputgroup">
+                            <span class="ui-inputgroup-addon"><i class="fa fa-user"></i></span>
+                            <input id="float-input-sunat-api-rest-consulta" type="text" placeholder="Api Res Consulta" size="100" formControlName="sunatApiResConsulta" required pInputText>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sunatApiResConsulta'].errors && modeloForm.controls['sunatApiResConsulta'].dirty">
+                            <p-message severity="error" text="Api Rest Consulta es requerido" *ngIf="modeloForm.controls['sunatApiResConsulta'].errors['required']"></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sunat-correo">Correo de Envío: </label>
+                          <div class="p-inputgroup">
+                            <span class="ui-inputgroup-addon"><i class="fa fa-user"></i></span>
+                            <input id="float-input-sunat-correo" type="text" placeholder="Correo" size="100" formControlName="sunatCorreo" required pInputText>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sunatCorreo'].errors && modeloForm.controls['sunatCorreo'].dirty">
+                            <p-message severity="error" text="Correo de Envío es requerido" *ngIf="modeloForm.controls['sunatCorreo'].errors['required']"></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sunat-password">Contraseña: </label>
+                          <div class="p-inputgroup">
+                            <span class="ui-inputgroup-addon"><i class="fa fa-key"></i></span>
+                            <input id="float-input-sunat-password" type="password" placeholder="Contraseña" size="20" formControlName="sunatPassword" required pPassword>
+                          </div>
+                          <div *ngIf="modeloForm.controls['sunatPassword'].errors && modeloForm.controls['sunatPassword'].dirty">
+                            <p-message severity="error" text="Contraseña es requerido" *ngIf="modeloForm.controls['sunatPassword'].errors['required']"></p-message>
+                            <p-message severity="error" text="Tener un min. de 5 y max. de 20 caractares" *ngIf="modeloForm.controls['sunatPassword'].errors['minlength'] || modeloForm.controls['sunatPassword'].errors['maxlength'] "></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sunat-proveedor-correo">Proveedor de Correo: </label>
+                          <p-dropdown id="float-input-sunat-proveedor-correo" [options]="listSunatProveedorCorrreo" class="ui dropdown-item-text" placeholder="" formControlName="sunatProveedorCorreo" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                          <div *ngIf="modeloForm.controls['sunatProveedorCorreo'].errors && modeloForm.controls['sunatProveedorCorreo'].dirty">
+                            <p-message severity="error" text="Proveedor de Correo es requerido" *ngIf="modeloForm.controls['sunatProveedorCorreo'].errors['required']"></p-message>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-sunat-tipo-seguridad">Tipo de Seguridad: </label>
+                          <p-dropdown id="float-input-sunat-tipo-seguridad" [options]="listSunatTipoSeguridad" class="ui dropdown-item-text" placeholder="" formControlName="sunatTipoSeguridad" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                          <div *ngIf="modeloForm.controls['sunatTipoSeguridad'].errors && modeloForm.controls['sunatTipoSeguridad'].dirty">
+                            <p-message severity="error" text="Tipo de Seguridad es requerido" *ngIf="modeloForm.controls['sunatTipoSeguridad'].errors['required']"></p-message>
+                          </div>
+                        </div>
+                      </div>
+                    </p-fieldset>
+                    <br>
+                    <p-fieldset legend="FINZAS">
+                      <div class="grid p-fluid">
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-finanzas-aplicar-gastos">Aplicar Gastos - CC/ER: </label>
+                          <p-dropdown id="float-input-finanzas-aplicar-gastos" [options]="listSunatTipoSeguridad" class="ui dropdown-item-text" placeholder="" formControlName="finanzasAplicarGastos" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                          <div *ngIf="modeloForm.controls['finanzasAplicarGastos'].errors && modeloForm.controls['finanzasAplicarGastos'].dirty">
+                            <p-message severity="error" text="Aplicar Gastos - CC/ER es requerido" *ngIf="modeloForm.controls['finanzasAplicarGastos'].errors['required']"></p-message>
+                          </div>
+                        </div>
+                        <p-fieldset legend="DATOS POR DEFECTO">
+                          <div class="grid p-fluid">
+                            <div class="col-12 md:col-7">
+                              <p-checkbox label="Aplica fondo tope x Sede" [binary]="true" class="fibratech-center-checkbox" formControlName="flgAplicaFondoTopeSede" [readonly]="true"></p-checkbox>
+                            </div>
+                            <div class="col-12 md:col-1">
+                              <input id="float-input-finanzas-dim01" type="text" placeholder="Dim01" size="100" formControlName="finanzasDim01" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-1">
+                              <input id="float-input-finanzas-dim02" type="text" placeholder="Dim02" size="100" formControlName="finanzasDim02" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-1">
+                              <input id="float-input-finanzas-dim03" type="text" placeholder="Dim03" size="100" formControlName="finanzasDim03" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-1">
+                              <input id="float-input-finanzas-dim04" type="text" placeholder="Dim04" size="100" formControlName="finanzasDim04" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-1">
+                              <input id="float-input-finanzas-dim05" type="text" placeholder="Dim05" size="100" formControlName="finanzasDim05" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-7">
+                              <p-checkbox label="Maneja actividad de operación de flujo de caja" [binary]="true" class="fibratech-center-checkbox" formControlName="flgManejaActividadOperacion" [readonly]="true"></p-checkbox>
+                            </div>
+                            <div class="col-12 md:col-5">
+                              <p-dropdown id="float-input-finanzas-actividad-operacion" [options]="listSunatTipoSeguridad" class="ui dropdown-item-text" placeholder="Actividad de Operación" formControlName="finanzasActividadOperacion" [required] optionLabel="label" [showClear]="true" [readonly]="true"></p-dropdown>
+                            </div>
+                            <div class="col-12 md:col-7">
+                              <p-checkbox label="Los montos incluyen impuestos" [binary]="true" class="fibratech-center-checkbox" formControlName="flgMontosIncluyenImpuestos" [readonly]="true"></p-checkbox>
+                            </div>
+                            <div class="col-12 md:col-5">
+                              <input id="float-input-finanzas-comentario general" type="text" placeholder="Comentario general" size="100" formControlName="finanzasComentarioGeneral" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-7">
+                              <p-checkbox label="Se integra al BPS SYPSOFT" [binary]="true" class="fibratech-center-checkbox" formControlName="flgIntegraBpsSypsoft" [readonly]="true"></p-checkbox>
+                            </div>
+                            <div class="col-12 md:col-2">
+                              <br>
+                              <label class="label-custom" for="float-input-tope-viatico-maximo-dia">Tope viáticos máximo x día S/: </label>
+                            </div>
+                            <div class="col-12 md:col-3">
+                              <input id="float-input-tope-viatico-maximo-dia" type="text" placeholder="Usuario" size="100" formControlName="finanzasTopeViaticoMaximoDia" required pInputText [readOnly]="true">
+                            </div>
+                            <div class="col-12 md:col-12">
+                              <p-checkbox label="Maneja tabla de gastos - servicios" [binary]="true" class="fibratech-center-checkbox" formControlName="flgManejaTablaGastosServicios" [readonly]="true"></p-checkbox>
+                            </div>
+                          </div>
+                        </p-fieldset>
+                      </div>
+                    </p-fieldset>
+                  </div>
+                </p-fieldset>
+            </div>
+        </div>
+    </form>
+    <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+            <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+    </div>
+</p-panel>

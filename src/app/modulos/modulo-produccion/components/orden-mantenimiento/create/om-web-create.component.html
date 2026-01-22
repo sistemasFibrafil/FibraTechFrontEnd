@@ -1,0 +1,95 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <form [formGroup]="modeloForm">
+          <div class="p-formgrid grid">
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-fecha-inicio">Fecha Inicio: </label>
+              <p-calendar id="float-input-fecha-inicio" formControlName="fecInicio" placeholder="Seleccione Fecha Inicio" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-hora-inicio">Hora Inicio: </label>
+              <p-calendar id="float-input-hora-inicio" formControlName="horaInicio" placeholder="Seleccione Hora Inicio" [showTime]="true"  [timeOnly]="true" inputId="timeonly" [showIcon]="true" hourFormat="12"></p-calendar>
+            </div>
+            <div class="col-12 md:col-6"></div>
+
+
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-tipo-servicio">Tipo de Servicio: </label>
+              <p-dropdown id="float-input-tipo-servicio" [options]="tipoServicioWebList" class="ui dropdown-item-text" placeholder="Seleccione Tipo de Servicio" formControlName="tipoServicio" [required] optionLabel="nomTipoServicio" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['tipoServicio'].errors && modeloForm.controls['tipoServicio'].dirty">
+                <p-message severity="error" text="Tipo de Servicio es requerido" *ngIf="modeloForm.controls['tipoServicio'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-area-solicitante">Área solicitante: </label>
+              <p-dropdown id="float-input-area-solicitante" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Seleccione Área Solicitante" formControlName="areaSolicitante" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['areaSolicitante'].errors && modeloForm.controls['areaSolicitante'].dirty">
+                <p-message severity="error" text="Área Solicitante es requerido" *ngIf="modeloForm.controls['areaSolicitante'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-maquina">Máquina: </label>
+              <p-dropdown id="float-input-maquina" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Seleccione Máquina" formControlName="maquina" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['maquina'].errors && modeloForm.controls['maquina'].dirty">
+                <p-message severity="error" text="Máquina es requerido" *ngIf="modeloForm.controls['maquina'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-parte">Parte: </label>
+              <p-dropdown id="float-input-parte" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Seleccione Parte" formControlName="parte" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['parte'].errors && modeloForm.controls['parte'].dirty">
+                <p-message severity="error" text="Parte es requerido" *ngIf="modeloForm.controls['parte'].errors['required']"></p-message>
+              </div>
+            </div>
+
+            <div class="col-12 md:col-12">
+              <label class="label-custom" for="float-input-sub-parte">SubParte: </label>
+              <textarea id="float-input-sub-parte" formControlName="subParte" pInputTextarea placeholder="SubParte"  [rows]="2" [cols]="30" maxlength="1000" [autoResize]="true"></textarea>
+            </div>
+            <div class="col-12 md:col-12">
+              <label class="label-custom" for="float-input-detalle-otros">Detalle Otros: </label>
+              <textarea id="float-input-detalle-otros" formControlName="detalleOtros" pInputTextarea placeholder="Detalle Otros"  [rows]="2" [cols]="30" maxlength="1000" [autoResize]="true"></textarea>
+            </div>
+
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-sede">Sede: </label>
+              <p-dropdown id="float-input-sede" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Seleccione Sede" formControlName="sede" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['sede'].errors && modeloForm.controls['sede'].dirty">
+                <p-message severity="error" text="Sede es requerido" *ngIf="modeloForm.controls['sede'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-puesto-solicitante">Puesto del Solicitante: </label>
+              <p-dropdown id="float-input-puesto-solicitante" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Seleccione Puesto del Solicitante" formControlName="puestoSolicitante" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['puestoSolicitante'].errors && modeloForm.controls['puestoSolicitante'].dirty">
+                <p-message severity="error" text="Puesto del Solicitante es requerido" *ngIf="modeloForm.controls['puestoSolicitante'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-solicitante">Solicitante: </label>
+              <p-dropdown id="float-input-solicitante" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Seleccione Solicitante" formControlName="solicitante" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['solicitante'].errors && modeloForm.controls['solicitante'].dirty">
+                <p-message severity="error" text="Solicitante es requerido" *ngIf="modeloForm.controls['solicitante'].errors['required']"></p-message>
+              </div>
+            </div>
+
+
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>

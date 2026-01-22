@@ -1,0 +1,63 @@
+//Colores
+$color-h1: black;
+$color-h2: black;
+$sombra: 0 3px 6px rgba(0, 0, 0, .16);
+$fondo-box: white;
+$borde: 8px;
+.version {
+    color: white;
+    font-weight: 700;
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 50;
+    color: white;
+}
+
+.footer {
+    color: white;
+    z-index: 2;
+    left: 10px;
+    bottom: 10px;
+    font-size: 12px;
+    position: fixed;
+    padding: 10px;
+    font-weight: 700;
+}
+
+$size-load: 20px;
+.loading-btn {
+    width: $size-load;
+    height: $size-load;
+    background-color: transparent;
+    border-radius: 50%;
+    border-top: 3px solid #FF660D;
+    border-right: 3px solid #FF660D;
+    border-bottom: 3px solid #FF660D;
+    border-left: 3px solid transparent;
+    display: block;
+    position: absolute;
+    top: 9px;
+    right: 5px;
+    animation: rotate .8s linear infinite;
+    @media (min-width: 768px) {
+        border-top: 3px solid #fff;
+        border-right: 3px solid #fff;
+        border-bottom: 3px solid #fff;
+        right: 19px;
+    }
+}
+
+.active-loader {
+    button {
+        >span {
+            position: relative;
+            right: 10px;
+            @media (min-width: 768px) {
+                right: 0;
+            }
+        }
+    }
+}
+
+

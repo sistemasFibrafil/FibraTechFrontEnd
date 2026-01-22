@@ -1,0 +1,69 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="{{titulo}}" [style]="{'margin-bottom':'20px'}">
+        <div class="grid p-fluid">
+            <div class="col-12 md:col-2">
+                <input type="text" pInputText placeholder="Id-Codigo" size="20" [(ngModel)]="descripcionId" />
+            </div>
+            <div class="col-12 md:col-2">
+                <input type="text" pInputText placeholder="Tabla" size="50" [(ngModel)]="descripcionTabla" />
+            </div>
+            <div class="col-12 md:col-2">
+                <input type="text" pInputText placeholder="Campo" size="50" [(ngModel)]="descripcionCampo" />
+            </div>
+            <div class="col-12 md:col-4"></div>
+            <div class="col-12 md:col-2">
+                <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()" class="btn btn-block"></button>
+            </div>
+        </div>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}">
+        <p-table [value]="listModelo" [columns]="columnas" [paginator]="true" [rows]="globalConstants.sizePage" dataKey="Correlativo" editMode="row" [autoLayout]="true" [responsive]="true">
+            <!-- Header -->
+            <ng-template pTemplate="header" let-columns>
+                <tr>
+                    <th *ngFor="let col of columns">
+                        {{col.header}}
+                    </th>
+                </tr>
+            </ng-template>
+            <!-- body -->
+            <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+                <tr>
+                    <td class="custom-td-2">
+                        <span class="p-column-title">Correlativo</span> {{modelo.correlativo}}
+                    </td>
+                    <td class="custom-td-2">
+                        <span class="p-column-title">Id</span> {{modelo.idTransaccional}}
+                    </td>
+                    <td class="custom-td-2">
+                        <span class="p-column-title">Usuario</span> {{modelo.usuario}}
+                    </td>
+                    <td class="p-fluid">
+                        <span class="p-column-title">Tabla</span> {{modelo.tabla}}
+                    </td>
+                    <td class="p-fluid">
+                        <span class="p-column-title">Campo</span> {{modelo.campo}}
+                    </td>
+                    <td class="custom-td-fecha">
+                        <span class="p-column-title">FecHora</span> {{modelo.fecHora | date:'dd/MM/yyyy HH:mm'}}
+                    </td>
+                    <td class="custom-td-2">
+                        <span class="p-column-title">Accion</span> {{modelo.accion}}
+                    </td>
+                    <td class="p-fluid">
+                        <span class="p-column-title">ValorAntiguo</span> {{modelo.valorAntiguo}}
+                    </td>
+                    <td class="p-fluid">
+                        <span class="p-column-title">ValorNuevo</span> {{modelo.valorNuevo}}
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </p-panel>
+</div>

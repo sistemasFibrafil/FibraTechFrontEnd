@@ -1,0 +1,171 @@
+.dashboard-icon {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  opacity: 0.9;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-sizing: content-box;
+  transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard .overview-box:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Estilos específicos para los íconos según el tipo */
+/* Primera fila - Indigo */
+.overview-box-1 .dashboard-icon,
+.overview-box-2 .dashboard-icon,
+.overview-box-3 .dashboard-icon,
+.overview-box-4 .dashboard-icon {
+    background-color: rgba(99, 102, 241, 0.2);
+    color: rgba(99, 102, 241, 1);
+}
+
+/* Segunda fila - Esmeralda */
+.overview-box-5 .dashboard-icon,
+.overview-box-6 .dashboard-icon,
+.overview-box-7 .dashboard-icon,
+.overview-box-8 .dashboard-icon {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: rgba(16, 185, 129, 1);
+}
+
+/* Tercera fila - Azul */
+.overview-box-9 .dashboard-icon,
+.overview-box-10 .dashboard-icon,
+.overview-box-11 .dashboard-icon,
+.overview-box-12 .dashboard-icon {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: rgba(59, 130, 246, 1);
+}
+
+/* Cuarta fila - Ámbar */
+.overview-box-13 .dashboard-icon,
+.overview-box-14 .dashboard-icon,
+.overview-box-15 .dashboard-icon,
+.overview-box-16 .dashboard-icon {
+    background-color: rgba(251, 191, 36, 0.2);
+    color: rgba(251, 191, 36, 1);
+}
+
+/* Quinta fila - Rose */
+.overview-box-17 .dashboard-icon,
+.overview-box-18 .dashboard-icon,
+.overview-box-19 .dashboard-icon,
+.overview-box-20 .dashboard-icon {
+    background-color: rgba(244, 63, 94, 0.2);
+    color: rgba(244, 63, 94, 1);
+}
+
+.frame {
+    text-align: center;
+    margin: 0;
+    background: linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%);
+    padding: 0.5rem;
+    min-height: auto;
+}
+
+.frame .grid {
+    margin-bottom: 0.25rem !important;
+}
+
+.dashboard .overview-box {
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    min-height: 120px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+}
+
+.dashboard .overview-box:hover {
+    transform: translateY(-5px); /* Efecto de elevación al pasar el ratón */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard .overview-box h1 {
+    font-size: 0.875rem;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    color: #334155;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dashboard .overview-box .overview-value {
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: #1E293B;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+}
+
+.dashboard .overview-box img {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%; /* Las imágenes cubren el 100% del ancho */
+    height: auto; /* Altura automática para mantener la proporción */
+    opacity: 0.6; /* Un poco transparente para no opacar el texto */
+    z-index: 1; /* Detrás del texto */
+    pointer-events: none; /* No interactuable */
+}
+
+/* Reajustar el texto para que esté por encima del SVG */
+.dashboard .overview-box h1,
+.dashboard .overview-box .overview-value {
+    position: relative;
+    z-index: 2; /* Asegura que el texto esté por encima de la imagen */
+}
+
+/* Color unificado para todos los cuadros */
+.dashboard .overview-box {
+    background: rgba(255, 255, 255, 0.9);
+    color: #334155;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(203, 213, 225, 0.4);
+    box-shadow: 0 4px 20px rgba(148, 163, 184, 0.1);
+}
+
+/* Fondo circular para los íconos */
+.dashboard-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0.6rem;
+  border-radius: 12px;
+  box-sizing: content-box;
+  color: #FFFFFF;
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+}
+@media screen and (max-width: 40em) {
+    :host ::ng-deep .frame {
+        text-align: center;
+        margin: 0em 0;
+    }
+    .dashboard .overview-box img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover; /* Ajusta la imagen para cubrir el área en pantallas pequeñas */
+    }
+}

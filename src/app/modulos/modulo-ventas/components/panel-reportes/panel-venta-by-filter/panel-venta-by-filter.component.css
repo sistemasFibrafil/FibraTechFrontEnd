@@ -1,0 +1,30 @@
+/* CABECERA */
+:host ::ng-deep .p-datatable-thead > tr > th
+{
+  display: block !important;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+/* CUERPO*/
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(14),  /* cantidad */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(15),  /* pesoItem */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(16),  /* pesoPromedioKg */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(17),  /* peso */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(18),  /* rolloVendido */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(19),  /* kgVendido */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(20),  /* toneladaVendida */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(22),  /* tipoCambio */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(23),  /* precio */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(24),  /* precioKg */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(25),  /* costoSOL */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(26),  /* costoUSD */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(27),  /* totalCostoItemSOL */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(28),  /* totalCostoItemUSD */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(29),  /* totalItemSOL */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(30)   /* totalItemUSD */
+{
+  display: block !important;
+  text-align: right !important;
+  white-space: nowrap;
+}

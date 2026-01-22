@@ -1,0 +1,107 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{subtitulo}}" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-checkbox [ngStyle]="{'padding-top': '10px'}" id="float-input-excluir-activo" label="Excluir inactivos" [binary]="true" formControlName="excluirInactivo"></p-checkbox>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-checkbox [ngStyle]="{'padding-top': '10px'}" id="float-input-excluir-sin-stock" label="Excluir sin stock" [binary]="true" formControlName="excluirSinStock"></p-checkbox>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="almacenList" formControlName="warehouse" defaultLabel="Seleccione Almacén" selectedItemsLabel="{0} registros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickSearch()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" pButton type="button" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExcel}}" (click)="onToExcel()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </form>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+  <p-panel header="Lista de {{titulo}}" [toggleable]="true">
+    <p-table
+      [value]="list"
+      [columns]="columnas"
+      [rows]="rows"
+      [rowHover]="true"
+      [paginator]="true"
+      [autoLayout]="true"
+      selectionMode="single"
+      [resizableColumns]="true"
+      responsiveLayout="scroll"
+      [showCurrentPageReport]="true"
+      [rowsPerPageOptions]="rowsPerPageOptions"
+      styleClass="{{globalConstants.cStyleTableGridLines}}"
+      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+      <ng-template pTemplate="caption">
+        <div class="flex justify-content-end">
+          <input pInputText type="text" class="w-20rem" placeholder="Buscar por código o descripción" [(ngModel)]="filtroTexto" (input)="onFiltroTexto(filtroTexto)"/>
+        </div>
+      </ng-template>
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+            <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            {{col.header}}
+          </th>
+          <th colspan="1" class="custom-header"></th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+        <tr [pSelectableRow]="modelo">
+          <td class="p-fluid">{{modelo.itemCode}}</td>
+          <td class="p-fluid">{{modelo.itemName}}</td>
+          <td class="custom-td-5">{{modelo.invntryUom}}</td>
+          <td class="custom-td-numero">{{modelo.onHand | number: '.2':'en-EN'}}</td>
+          <td class="custom-td-numero">{{modelo.isCommited | number: '.2':'en-EN'}}</td>
+          <td class="custom-td-numero">{{modelo.onOrder | number: '.2':'en-EN'}}</td>
+          <td class="custom-td-numero">
+            <span class="label"
+              [ngClass]="{'label-success': modelo.available > 0,'label-danger' : modelo.available <= 0}">{{ modelo.available | number: '.2':'en-EN' }}
+            </span>
+          </td>
+          <td class="custom-td-numero">{{modelo.pesoKg | number: '.2':'en-EN'}}</td>
+          <td class="custom-td-numero">{{modelo.pesoPromedioKg | number: '.2':'en-EN'}}</td>
+          <td class="custom-td-5">{{modelo.fecProduccion | date: 'dd/MM/yyyy'}}
+          </td>
+          <td class="custom-td-2">
+            <button [disabled]="buttonAcces.btnVer" pButton icon="{{globalConstants.icoVizualizar}}" class="{{globalConstants.cStyleButtonPrimary}}" (click)="onToRowSelectView(modelo)"></button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="11">{{globalConstants.currentTableEmptyMessage}}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-panel>
+</div>
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Obteniendo Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarAlmacen" header="Almacén" [(visible)]="isVisualizarAlmacen" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+  <app-busqueda-almacen-by-articulo-stock [whsCode]="whsCode" [itemCode]="itemCode"></app-busqueda-almacen-by-articulo-stock>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickAlmacenClose()"></p-button>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,263 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="startDate" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-dropdown id="float-input-objType" [options]="objTypeList" class="p dropdown-item-text" placeholder="Seleccionar el tipo de documento" formControlName="objType" [required] optionLabel="label" [showClear]="false"></p-dropdown>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="docStatusList" formControlName="docStatus" defaultLabel="Seleccione el estado" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-4">
+            <input id="float-input-searchText" type="text" placeholder="Buscar por número" maxlength="100" size="50" formControlName="searchText" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnLiberar" pButton type="button" label="{{globalConstants.cLiberar}}" icon="{{globalConstants.icoLiberar}}" (click)="onClickRelease()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}" [toggleable]="true">
+      <p-table
+        [value]="modelo"
+        [columns]="columnas"
+        [rows]="rows"
+        editMode="row"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [(selection)]="pickingSelected"
+        [rowSelectable]="isRowSelectable"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th class="custom-header"></th>
+            <th class="custom-header"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+            <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+              <p-sortIcon field="{{col.field}}"></p-sortIcon> {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+          <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo.u_Status === 'C'}">
+            <td class="custom-td-2">
+              <p-splitButton icon="pi pi-cog" [model] = "opciones1" (onDropdownClick) = "onClickRowSelected(modelo)" appendTo = "body">
+              </p-splitButton>
+            </td>
+            <td class="custom-td-2">
+              <p-tableCheckbox [disabled]="isOutOfStock(modelo)" [value]="modelo"></p-tableCheckbox>
+            </td>
+            <td class="custom-td-center">
+              {{modelo.u_BaseNum}}
+            </td>
+            <td class="custom-td-center">
+              {{modelo.u_DocDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="custom-td-center">
+              {{modelo.u_DocDueDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="custom-td-center">
+              {{modelo.u_BaseLine + 1 }}
+            </td>
+            <td>
+              {{modelo.u_ItemCode}}
+            </td>
+            <td>
+              {{modelo.u_Dscription}}
+            </td>
+            <td>
+              {{modelo.u_UnitMsr}}
+            </td>
+            <td class="custom-td-numero">
+              {{modelo.u_Quantity | number: '.3':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              {{modelo.u_WeightKg | number: '.3':'en-EN'}}
+                </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="11">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-3 ">
+            <p-splitButton [disabled]='pickingSelected?.length <= 0' label="Copiar a" icon="pi pi-copy" [model] = "opciones2" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+</div>
+
+
+<p-dialog *ngIf="isVisualizar" header="Códgos de barra" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <p-panel id="modal" header="Opciones de búsqueda" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+    <form [formGroup]="modeloFormBusqueda">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <div class="p-inputgroup">
+            <input id="float-input-u_CodeBar" type="text" placeholder="Buscar por código de barras" maxlength="100" size="50" formControlName="u_CodeBar" autocomplete="off" pInputText (keyup.enter)="onClickBuscarModal()">
+          </div>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscarModal()"></button>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+  <p-panel header="Lista de códigos de barra" [toggleable]="true">
+    <p-table
+    [value]="modeloModal"
+    [columns]="columnasModal"
+    [rowHover]="true"
+    [autoLayout]="true"
+    selectionMode="single"
+    [resizableColumns]="true"
+    responsiveLayout="scroll"
+    [showCurrentPageReport]="true"
+    styleClass="{{globalConstants.cStyleTableGridLines}}"
+    currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+            <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            {{col.header}}
+          </th>
+          <th class="custom-header"></th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo let-editing="editing">
+        <tr class="p-selectable-row">
+          <td class="p-fluid">
+            {{modelo.u_ItemCode}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.u_CodeBar}}
+          </td>
+          <td class="custom-td-5">
+            <span class="label" style="background:green" *ngIf="modelo.u_IsReleased === 'N'">No</span>
+            <span class="label" style="background:red"   *ngIf="modelo.u_IsReleased === 'Y'">Sí</span>
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.u_Quantity | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.u_WeightKg | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-2">
+            <button pButton [disabled]="modelo.u_Status === 'O'? false : true" icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onClickRowDelete(modelo)"></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseModel()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+<p-dialog *ngIf="isAddItemNotPicking" header="Solicitudes de traslado" [(visible)]="isAddItemNotPicking" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+  <p-panel header="Lista de solicitudes de traslado" [toggleable]="true">
+    <p-pickList
+    [source]="sourceNotPicking"
+    [target]="targetNotPicking"
+    sourceHeader="Seleccionar"
+    targetHeader="Seleccionado"
+    [dragdrop]="true"
+    [responsive]="true"
+    [sourceStyle]="{ height: '30rem' }"
+    [targetStyle]="{ height: '30rem' }"
+    [showSourceControls]="false"
+    [showTargetControls]="false"
+    filterBy="u_BaseNum,u_ItemCode,u_Dscription"
+    sourceFilterPlaceholder="Buscar por número o artículo"
+    targetFilterPlaceholder="Buscar por número o artículo"
+    breakpoint="1400px">
+    <ng-template let-product pTemplate="item">
+      <div class="grid p-2 align-items-start">
+        <div class="col-12 md:col-3 flex flex-column gap-2">
+          <span class="font-bold">
+            {{ product.u_BaseNum }}
+          </span>
+          <div class="flex align-items-start gap-2">
+            <i class="pi pi-calendar text-sm"></i>
+            <span>
+              {{ product.u_DocDate | date: 'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+        <div class="col-12 md:col-6 flex flex-column gap-2">
+          <span class="font-bold">
+            {{ product.u_ItemCode }}
+          </span>
+          <div class="flex align-items-start gap-2">
+            <i class="pi pi-align-left text-sm"></i>
+            <span>
+              {{ product.u_Dscription }}
+            </span>
+          </div>
+        </div>
+        <div class="col-12 md:col-3 flex flex-column align-items-start gap-2">
+          <span class="font-bold">
+            {{ product.u_UnitMsr }}
+          </span>
+          <div class="flex align-items-start gap-2">
+            <i class="pi pi-box text-sm"></i>
+            <span>
+              {{ product.u_Quantity | number: '.3':'en-EN'}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+    </p-pickList>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cAceptar}}" icon="{{globalConstants.icoAceptar}}" (onClick)="onClickAceptAddItemNotPincking()"></p-button>
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseAddItemNotPincking()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay] = "isDeleting" ></app-panel-eliminar>

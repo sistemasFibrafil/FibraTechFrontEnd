@@ -1,0 +1,26 @@
+/* CABECERA */
+:host ::ng-deep .p-datatable-thead > tr > th
+{
+  display: block !important;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+/* CUERPO */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(11),  /* CANTIDAD */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(12),  /* ANCHO (CM) */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(13),  /* LARGO (TMS) */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(14),  /* GR/M2 */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(15),  /* PESO ITEM (GR) */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(20),  /* PESO LINNER */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(24),  /* VOLÚMENES PROYECTADOS MENSUALES */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(25)   /* PRECIO VENTA X KG $ (NO INCLUYE IGV) PRECIO VENTA X ROLLOS $ (NO INCLUYE IGV) */
+{
+  display: block !important;
+
+   /* convierto en flex para alinear */
+  display: flex !important;
+  justify-content: flex-end;   /* derecha */
+  text-align: right !important;
+  white-space: nowrap;
+}

@@ -1,0 +1,88 @@
+<div class="card card-w-title">
+
+  <p-panel header="Registrar">
+    <form [formGroup]="modeloForm">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-3">
+          <label class="label-custom" for="float-input-warehouse">Almacén </label>
+          <p-dropdown id="float-input-warehouse" class="field-mandatory" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="warehouse" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeWarehouse()"></p-dropdown>
+          <div *ngIf="modeloForm.controls['warehouse'].errors && modeloForm.controls['warehouse'].dirty">
+            <p-message severity="error" text="Almacén es requerido." *ngIf="modeloForm.controls['warehouse'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-9">
+          <label class="label-custom" for="float-input-codeBar">Código de barras </label>
+          <div class="p-inputgroup">
+            <input #codeBarInput id="float-input-codeBar" class="field-mandatory" type="text" placeholder="Ingrese código de barras" maxlength="100" size="50" formControlName="codeBar" autocomplete="off" required pInputText (keydown.enter)="onClickSave()">
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <p-table
+      [value]="modelo"
+      [columns]="columnas"
+      [rowHover]="true"
+      [autoLayout]="true"
+      selectionMode="single"
+      [resizableColumns]="true"
+      responsiveLayout="scroll"
+      [showCurrentPageReport]="true"
+      styleClass="{{globalConstants.cStyleTableGridLines}}"
+      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+      <!-- Cabecera -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+            {{col.header}}
+          </th>
+        </tr>
+      </ng-template>
+      <!-- Cuerpo -->
+      <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+        <tr class="p-selectable-row">
+          <td>
+            <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+          </td>
+          <td>
+            <span class="p-column-title">Descripción: </span> {{modelo.dscription}}
+          </td>
+          <td>
+            <span class="p-column-title">Almacén: </span> {{modelo.whsCode}}
+          </td>
+          <td>
+            <span class="p-column-title">UM: </span> {{modelo.unitMsr}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Peso (Kg): </span> {{modelo.weightKg | number: '.3':'en-EN'}}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length">{{globalConstants.currentTableEmptyMessage}}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-toast position="top-right"></p-toast>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
+<!-- modal de guardado eliminado: la UI ahora usa el estado determinista `isSaving` sin modal -->
+<app-panel-eliminar [isDisplay]="isDeleting" ></app-panel-eliminar>

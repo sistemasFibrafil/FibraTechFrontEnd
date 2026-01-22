@@ -1,0 +1,36 @@
+/* CABECERA */
+:host ::ng-deep .p-datatable-thead > tr > th
+{
+  display: block !important;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+/* CUERPO */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(4),  /* Línea de Crédito */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(17),  /* Saldo SOL */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(18),  /* Saldo USD */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(19),  /* Saldo SYS */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(20),  /* 0-15 días */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(21),  /* 16-30 días */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(22),  /* 31-60 días */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(23)   /* +60 días */
+{
+  display: block !important;
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+/* PIE */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(2),  /* Saldo SOL */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(3),  /* Saldo USD */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(4),  /* Saldo SYS */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(5),  /* 0-15 días */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(6),  /* 16-30 días */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(7),  /* 31-60 días */
+:host ::ng-deep .p-datatable-tfoot > tr > td:nth-child(8)   /* +60 días */
+{
+  display: block !important;
+  text-align: right !important;
+  white-space: nowrap;
+}

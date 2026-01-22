@@ -1,0 +1,110 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{subtitulo}}" [style]="{'padd-bottom':'100px', 'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="grupoArticuloList" [(ngModel)]="grupoArticuloSelected" formControlName="msGrupo" defaultLabel="Seleccione Grupo" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="subGrupoArticuloList" [(ngModel)]="subGrupoArticuloSelected" formControlName="msSubGrupo" defaultLabel="Seleccione SubGrupo" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="subGrupoArticulo2List" [(ngModel)]="subGrupoArticulo2Selected" formControlName="msSubGrupo2" defaultLabel="Seleccione SubGrupo 2" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="estadoArticuloList" [(ngModel)]="estadoArticuloSelected" formControlName="msEstadoArticulo" defaultLabel="Seleccione Estado" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" pButton type="button" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExcel}}" (click)="onToExcel()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+  <p-panel header="Lista de {{titulo}}">
+    <p-table
+      [value]="reporteList"
+      [columns]="columnas"
+      [paginator]="true"
+      [rows]="globalConstants.sizePage"
+      dataKey="docEntry"
+      editMode="row"
+      [autoLayout]="true"
+      [responsive]="true"
+      styleClass="{{globalConstants.cStyleTableGridLines}}"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+      [rowHover]="true">
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+            <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            {{col.header}}
+          </th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+        <tr class="ui-selectable-row">
+          <td class="p-fluid">
+            <span class="p-column-title">Código de artículo</span> {{modelo.itemCode}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">Nombre de artículo</span> {{modelo.itemName}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">Grupo</span> {{modelo.nomGrupo}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">SubGrupo</span> {{modelo.nomSubGrupo}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">SubGrupo 2</span> {{modelo.nomSubGrupo2}}
+          </td>
+          <td class="p-fluid">
+            <span class="p-column-title">Estado</span> {{modelo.nomEstado}}
+          </td>
+          <td class="custom-td-2">
+            <span class="p-column-title">UM</span> {{modelo.unidadVenta}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Peso Item</span> {{modelo.pesoItem | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            <span class="p-column-title">Peso Promedio Kg</span> {{modelo.pesoPromedioKg | number: '.2':'en-EN'}}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9">{{globalConstants.currentTableEmptyMessage}}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-panel>
+</div>
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Obteniendo Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>

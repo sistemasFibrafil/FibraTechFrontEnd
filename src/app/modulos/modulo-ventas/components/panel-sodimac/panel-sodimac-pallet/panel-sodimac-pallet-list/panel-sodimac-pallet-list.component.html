@@ -1,0 +1,117 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="dat1" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="dat2" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-8">
+            <input id="float-input-text1" type="text" placeholder="Buscar por número o nombre de cliente" maxlength="100" size="50" formControlName="text1" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnBuscar" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+        </div>
+        <div class="col-12 md:col-4">
+          <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onToCreate()"></button>
+        </div>
+        <div class="col-12 md:col-4">
+          <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}">
+        <p-table
+          [value] = "list"
+          [columns] = "columnas"
+          [paginator] = "true"
+          [rows] = "globalConstants.sizePage"
+          [autoLayout] = "true"
+          [responsive] = "true"
+          [showCurrentPageReport] = "true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+          [rowHover] = "true">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th class="custom-header">Acciones</th>
+              <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+                <p-sortIcon field="{{col.field}}"></p-sortIcon>
+                {{col.header}}
+              </th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+            <tr class="ui-selectable-row">
+              <td class="custom-td-2">
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onToItemSelected(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td class="custom-td-5">
+                <span class="p-column-title">Número</span> {{modelo.docNum}}
+              </td>
+              <td class="custom-td-6">
+                <span class="p-column-title">Número de SAP</span> {{modelo.numOrdenCompra}}
+              </td>
+              <td class="custom-td-8">
+                <span class="p-column-title">Fecha de contabilización</span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="custom-td-7">
+                <span class="p-column-title">Fecha de entrega</span> {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="custom-td-7">
+                <span class="p-column-title">Fecha de documento</span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Código de cliente</span> {{modelo.cardCode}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Nombre de cliente</span> {{modelo.cardName}}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="9">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+    </p-panel>
+</div>
+
+<p-dialog *ngIf="isDisplayGenerandoVisor" header="Generando visor" [(visible)]="isDisplayGenerandoVisor" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Generando visor del registro seleccionado...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog *ngIf="isDisplayVisor" header="LPN" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay] = "isDeleting" ></app-panel-eliminar>

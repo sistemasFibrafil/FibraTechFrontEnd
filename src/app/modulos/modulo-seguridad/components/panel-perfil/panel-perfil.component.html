@@ -1,0 +1,102 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style]="{'margin-bottom':'20px'}" [toggleable]="true">
+        <div class="grid p-fluid">
+            <div class="col-12 md:col-6">
+                <input type="text" pInputText placeholder="Ingresar descripcion" size="100" [(ngModel)]="descripcionFind" />
+            </div>
+            <div class="col-12 md:col-2">
+                <button [disabled]="buttonAcces.btnBuscar" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()" class="btn btn-block"></button>
+            </div>
+            <div class="col-12 md:col-2">
+                <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onToCreate()"></button>
+            </div>
+            <div class="col-12 md:col-2">
+                <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+            </div>
+        </div>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}" [toggleable]="true">
+        <p-table #dt
+          [value]="listModelo"
+          [columns]="columnas"
+          [paginator]="true"
+          [rows]="globalConstants.sizePage"
+          dataKey="idPerfil"
+          editMode="row"
+          [autoLayout]="true"
+          [responsive]="true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+                <p-sortIcon field="{{col.field}}"></p-sortIcon>
+                {{col.header}}
+              </th>
+              <th colspan="2" class="custom-header">Acciones</th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+            <tr [pEditableRow]="modelo">
+              <td class="custom-td-4">
+                <span class="p-column-title">Codigo</span> {{modelo.idPerfil}}
+              </td>
+              <td class="p-fluid">
+                <span class="p-column-title">Descripción</span>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <span class="p-float-label">
+                      <input id="float-input" type="text" pInputText [(ngModel)]="modelo.descripcionPerfil" size="100">
+                    </span>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{modelo.descripcionPerfil}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td class="custom-td-checkbox">
+                <span class="p-column-title">Activo</span>
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <span class="p-float-label">
+                      <p-checkbox [(ngModel)]="modelo.activo" [binary]="true"></p-checkbox>
+                    </span>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    <p-checkbox [(ngModel)]="modelo.activo" [binary]="true" [disabled]="true"></p-checkbox>
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td [ngClass]="editing ? 'custom-td-9' : 'custom-td-2'">
+                <button [disabled]="buttonAcces.btnEditar" *ngIf="!editing" pButton type="button" pInitEditableRow icon="{{globalConstants.icoEditar}}" (click)="onRowEditInit(modelo)"></button>
+                <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="{{globalConstants.icoGrabar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onRowEditSave(modelo)"></button>
+                <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="{{globalConstants.icoCancelar}}" class="{{globalConstants.cStyleButtonDanger}}" style="margin-left: .5em" (click)="onRowEditCancel(modelo, ri)"></button>
+              </td>
+              <td class="custom-td-2">
+                <button [disabled]="buttonAcces.btnEliminar" pButton icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onToRowSelectDelete(modelo)"></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+          </p-table>
+          <p-footer>
+            <div class="grid p-fluid">
+              <div class="col-12 md:col-3">
+                <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onToCreate()"></button>
+              </div>
+            </div>
+          </p-footer>
+    </p-panel>
+</div>

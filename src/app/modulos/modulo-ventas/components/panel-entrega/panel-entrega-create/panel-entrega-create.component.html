@@ -1,0 +1,565 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormCab1">
+            <div class="p-fluid p-formgrid grid">
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cardCode">Código de cliente: </label>
+                <app-modal-socio-negocio [title]="'Clientes'" [cardCode]="cardCode" [cardType] = "'C'" [transType] = "'N,Y'" (eventoAceptar)="onToSelectedCliente($event)"></app-modal-socio-negocio>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-licTradNum">RUC: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-licTradNum" type="text" placeholder="RUC" maxlength="15" size="50" formControlName="licTradNum" autocomplete="off" required pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cardName">Razón social o nombre: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" required pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-moneda">Moneda: </label>
+                <p-dropdown id="float-input-moneda" [options]="listMoneda" class="ui dropdown-item-text" placeholder="Seleccione la Moneda" formControlName="docCur" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormCab1.controls['docCur'].errors && modeloFormCab1.controls['docCur'].dirty">
+                  <p-message severity="error" text="La moneda es requerido." *ngIf="modeloFormCab1.controls['docCur'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-tipo-cambio">Tipo de cambio: </label>
+                <div class="p-inputgroup">
+                  <p-inputNumber id="float-input-tipo-cambio" placeholder="Tipo de cambio" formControlName="docRate" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="3" [maxFractionDigits]="3"></p-inputNumber>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormCab2">
+            <div class="p-fluid p-formgrid grid">
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-serieSap">Serie de SAP: </label>
+                <p-dropdown id="float-input-serieSap" [options]="listSerSap" class="ui dropdown-item-text" placeholder="Seleccione la Serie SAP" formControlName="serieSap" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeSerieSap($event)"></p-dropdown>
+                <div *ngIf="modeloFormCab2.controls['serieSap'].errors && modeloFormCab2.controls['serieSap'].dirty">
+                  <p-message severity="error" text="La serie SAP es requerida." *ngIf="modeloFormCab2.controls['serieSap'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-docNum">Número de SAP: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-docNum" type="text" placeholder="Número de SAP" maxlength="50" size="50" formControlName="docNum" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloFormCab2.controls['docNum'].errors && modeloFormCab2.controls['docNum'].dirty">
+                  <p-message severity="error" text="El número SAP es requerido." *ngIf="modeloFormCab2.controls['docNum'].errors['required']"></p-message>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-serie-sunat">Serie de SUNAT: </label>
+                <p-dropdown id="float-input-serie-sunat" [options]="listSerSunat" class="ui dropdown-item-text" placeholder="Seleccione la Serie SUNAT" formControlName="serSunat" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeSerie($event)"></p-dropdown>
+                <div *ngIf="modeloFormCab2.controls['serSunat'].errors && modeloFormCab2.controls['serSunat'].dirty">
+                  <p-message severity="error" text="La serie SUNAT es requerida." *ngIf="modeloFormCab2.controls['serSunat'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-numero-sunat">Número de SUNAT: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-numero-sunat" type="text" placeholder="Serie de SUNAT" maxlength="50" size="50" formControlName="numSunat" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloFormCab2.controls['numSunat'].errors && modeloFormCab2.controls['numeroSunat'].dirty">
+                  <p-message severity="error" text="El número SUNAT es requerida." *ngIf="modeloFormCab2.controls['numSunat'].errors['required']"></p-message>
+                </div>
+              </div>
+
+
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-estado">Estado: </label>
+                <p-dropdown id="float-input-estado" [options]="listEstado" class="ui dropdown-item-text" placeholder="Seleccione el Estado" formControlName="estado" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormCab2.controls['estado'].errors && modeloFormCab2.controls['estado'].dirty">
+                  <p-message severity="error" text="El estado es requerido." *ngIf="modeloFormCab2.controls['estado'].errors['required']"></p-message>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-docDate">Fecha de contabilización: </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDate" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormCab2.controls['docDate'].errors && modeloFormCab2.controls['docDate'].dirty">
+                  <p-message severity="error" text="La fecha de contabilización es requerido." *ngIf="modeloFormCab2.controls['docDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-docDueDate">Fecha de entrega: </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDueDate" placeholder="Fecha de entrega" formControlName="docDueDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormCab2.controls['docDueDate'].errors && modeloFormCab2.controls['docDueDate'].dirty">
+                  <p-message severity="error" text="La fecha de entrega es requerido." *ngIf="modeloFormCab2.controls['docDueDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-taxDate">Fecha de documento: </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-taxDate" placeholder="Fecha de documento" formControlName="taxDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormCab2.controls['taxDate'].errors && modeloFormCab2.controls['taxDate'].dirty">
+                  <p-message severity="error" text="La fecha de documento es requerido." *ngIf="modeloFormCab2.controls['taxDate'].errors['required']"></p-message>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-12">
+        <div class="card no-margin">
+          <p-tabView styleClass="tabview-custom">
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Contenido&nbsp;</span>
+              </ng-template>
+              <p-table
+                [value]="listItem"
+                [columns]="columnas"
+                dataKey="cardCode"
+                editMode="row"
+                [autoLayout]="true"
+                [responsive]="true"
+                [showCurrentPageReport]="true"
+                styleClass="{{globalConstants.cStyleTableGridLines}}"
+                currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+                [rowHover]="true">
+                <!-- Header -->
+                <ng-template pTemplate="header" let-columns>
+                  <tr>
+                    <th *ngFor="let col of columns" class="custom-header">
+                      {{col.header}}
+                    </th>
+                  </tr>
+                </ng-template>
+                <!-- body -->
+                <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
+                  <tr class="ui-selectable-row">
+                    <td class="p-fluid">
+                      <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+                    </td>
+                    <td class="p-fluid">
+                        <span class="p-column-title">Descripción: </span> {{modelo.dscription}}
+                    </td>
+                    <td class="custom-td-5">
+                      <span class="p-column-title">Almacén: </span> {{modelo.whsCode}}
+                    </td>
+                    <td class="custom-td-3">
+                      <span class="p-column-title">UM: </span> {{modelo.unitMsr}}
+                    </td>
+                    <td class="custom-td-numero">
+                      <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
+                    </td>
+                    <td class="custom-td-numero">
+                      <span class="p-column-title">Peso: </span> {{modelo.peso | number: '.3':'en-EN'}}
+                    </td>
+                    <td class="custom-td-3">
+                      <span class="p-column-title">Impuesto: </span> {{modelo.taxCode}}
+                    </td>
+                    <td class="custom-td-3">
+                      <span class="p-column-title">moneda: </span> {{modelo.currency}}
+                    </td>
+                    <td class="custom-td-numero">
+                      <span class="p-column-title">Precio: </span> {{modelo.price | number: '.3':'en-EN'}}
+                    </td>
+                    <td class="custom-td-numero">
+                      <span class="p-column-title">Total: </span> {{modelo.total | number: '.2':'en-EN'}}
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="11">{{globalConstants.currentTableEmptyMessage}}</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </p-tabPanel>
+
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Logística&nbsp;</span>
+              </ng-template>
+              <form [formGroup]="modeloFormLog">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-shipToCode">Destino de entrega: </label>
+                    <!-- <app-modal-socio-negocio-direccion [cardCode]="cardCode" [address]="shipToCode" (eventoAceptar)="onToDireccionEntregaSelecionado($event)"></app-modal-socio-negocio-direccion> -->
+                  </div>
+                  <div class="col-12 md:col-9">
+                    <label class="label-custom" for="float-input-address2">Dirección de entrega: </label>
+                    <div class="p-inputgroup">
+                      <textarea id="float-input-address2" placeholder="Dirección de entrega" maxlength="254" rows="2" formControlName="address2" autocomplete="off" required pInputTextarea></textarea>
+                    </div>
+                    <div *ngIf="modeloFormLog.controls['address2'].errors && modeloFormLog.controls['address2'].dirty">
+                      <p-message severity="error" text="El dirección de entrega es requerido." *ngIf="modeloFormLog.controls['address2'].errors['required']"></p-message>
+                    </div>
+                  </div>
+
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-payToCode">Destino de factura: </label>
+                    <!-- <app-modal-socio-negocio-direccion [cardCode]="cardCode" [address]="payToCode" (eventoAceptar)="onToDireccionFacturaSelecionado($event)"></app-modal-socio-negocio-direccion> -->
+                  </div>
+                  <div class="col-12 md:col-9">
+                    <label class="label-custom" for="float-input-address">Dirección de factura: </label>
+                    <div class="p-inputgroup">
+                      <textarea id="float-input-address" placeholder="Dirección de factura" maxlength="254" rows="2" formControlName="address" required pInputTextarea></textarea>
+                    </div>
+                    <div *ngIf="modeloFormLog.controls['address'].errors && modeloFormLog.controls['address'].dirty">
+                      <p-message severity="error" text="La dirección de factura es requerido." *ngIf="modeloFormLog.controls['address'].errors['required']"></p-message>
+                    </div>
+                  </div>
+
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-motivo-traslado">Motivo de traslado: </label>
+                    <p-dropdown id="float-input-motivo-traslado" [options]="listMotivoTraslado" class="ui dropdown-item-text" placeholder="Seleccione el motivo de traslado" formControlName="motTraslado" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormLog.controls['motTraslado'].errors && modeloFormLog.controls['motTraslado'].dirty">
+                      <p-message severity="error" text="El motivo de traslado es requerido." *ngIf="modeloFormLog.controls['motTraslado'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-9">
+                    <label class="label-custom" for="float-input-otro-motivo-traslado">Otro motivo de traslado: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-otro-motivo-traslado" type="text" placeholder="Otro motivo de traslado" maxlength="50" size="50" formControlName="otrMotTraslado" autocomplete="off" required pInputText>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </p-tabPanel>
+
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Finanzas&nbsp;</span>
+              </ng-template>
+              <form [formGroup]="modeloFormFin">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-12">
+                    <label class="label-custom" for="float-input-condicion-pago">Condiciones de pago: </label>
+                    <p-dropdown id="float-input-condicion-pago" [options]="listCondicionPago" class="ui dropdown-item-text" placeholder="Seleccione las condiciones de pago" formControlName="condicionPago" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormFin.controls['condicionPago'].errors && modeloFormFin.controls['condicionPago'].dirty">
+                      <p-message severity="error" text="Las condiciones de pago es requerida." *ngIf="modeloFormFin.controls['condicionPago'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </p-tabPanel>
+
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Exportación&nbsp;</span>
+              </ng-template>
+              <form [formGroup]="modeloFormExp">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-ruc-destino-interernacional">RUC de destino internacional: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-ruc-destino-interernacional" type="text" placeholder="RUC de destino internacional" maxlength="15" size="50" formControlName="rucDesInternacional" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-destino-guia-interernacional">Destino de guía internacional: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-destino-guia-interernacional" type="text" placeholder="Destino de guía internacional" maxlength="100" size="50" formControlName="desGuiaInternacional" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-dir-destino-interernacional">Dirección de destino internacional: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-dir-destino-interernacional" type="text" placeholder="Dirección de destino internacional" maxlength="100" size="50" formControlName="dirDesInternacional" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-numero-contenedor">Número de contenedor: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-numero-contenedor" type="text" placeholder="Número de contenedor" maxlength="15" size="50" formControlName="numContenedor" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-numero-precinto01">Número de precinto 01: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-numero-precinto01" type="text" placeholder="Número de precinto 01" maxlength="20" size="50" formControlName="numPrecinto01" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-numero-precinto02">Número de precinto 02: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-numero-precinto02" type="text" placeholder="Número de precinto 02" maxlength="100" size="50" formControlName="numPrecinto02" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-numero-precinto03">Número de precinto 03: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-numero-precinto03" type="text" placeholder="Número de precinto 03" maxlength="20" size="50" formControlName="numPrecinto03" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-numero-precinto04">Número de precinto 04: </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-numero-precinto04" type="text" placeholder="Número de precinto 04" maxlength="20" size="50" formControlName="numPrecinto04" autocomplete="off" pInputText>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </p-tabPanel>
+
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Agencia&nbsp;</span>
+              </ng-template>
+              <form [formGroup]="modeloFormAge">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12">
+                    <p-fieldset legend="Transportista 2">
+                      <div class="p-fluid p-formgrid grid">
+                        <div class="col-12 md:col-12">
+                          <div class="field-checkbox">
+                            <p-checkbox id="float-input-man-transportista" [binary]="true" formControlName="manTransportista2" (onChange)="onChangeTransportista2($event)"></p-checkbox>
+                            <label class="label-custom" for="float-input-man-transportista">Manual</label>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-4" *ngIf="manTransportista2">
+                          <label class="label-custom" for="float-input-cod-transportista2">Código: </label>
+                          <app-modal-socio-negocio [title]="'Transportistas'" [cardCode]="u_BPP_MDCT" [cardType] = "'C,S'" [transType] = "'Y'" (eventoAceptar)="onToSelectedAgencia($event)"></app-modal-socio-negocio>
+                        </div>
+                        <div [ngClass]="manTransportista2 === true ? 'col-12 md:col-4' : 'col-12 md:col-6'">
+                          <label class="label-custom" for="float-input-ruc-transportista2">RUC: </label>
+                          <div class="p-inputgroup">
+                            <input id="float-input-ruc-transportista2" type="text" placeholder="RUC" maxlength="15" size="50" formControlName="rucTransportista2" autocomplete="off" pInputText>
+                          </div>
+                        </div>
+                        <div [ngClass]="manTransportista2 === true ? 'col-12 md:col-4' : 'col-12 md:col-6'">
+                          <label class="label-custom" for="float-input-nom-transportista2">Razón social o nombre: </label>
+                          <div class="p-inputgroup">
+                            <input id="float-input-nom-transportista2" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="u_BPP_MDNT2" autocomplete="off" pInputText>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-12">
+                          <label class="label-custom" for="float-input-dir-transportista2">Dirección: </label>
+                          <div class="p-inputgroup">
+                            <textarea id="float-input-dir-transportista2" placeholder="Dirección" maxlength="100" rows="2" formControlName="dirTransportista2" pInputText></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </p-fieldset>
+                  </div>
+                </div>
+              </form>
+            </p-tabPanel>
+
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Transportista&nbsp;</span>
+              </ng-template>
+              <form [formGroup]="modeloFormTra">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-12">
+                    <label class="label-custom" for="float-input-tipTransporte">Tipo de transporte: </label>
+                    <p-dropdown id="float-input-tipTransporte" [options]="listTipoTransporte" class="ui dropdown-item-text" placeholder="Seleccione el tipo de transporte" formControlName="tipTransporte" optionLabel="label" [showClear]="true"></p-dropdown>
+                  </div>
+
+                  <div class="col-12">
+                    <p-fieldset legend="Transportista 1">
+                      <div class="p-fluid p-formgrid grid">
+                        <div class="col-12 md:col-12">
+                          <div class="field-checkbox">
+                            <p-checkbox id="float-input-man-transportista" [binary]="true" formControlName="manTransportista1" (onChange)="onChangeTransportista1($event)"></p-checkbox>
+                            <label class="label-custom" for="float-input-man-transportista">Manual</label>
+                          </div>
+                        </div>
+                        <div class="col-12 md:col-3" *ngIf="manTransportista1">
+                          <label class="label-custom" for="float-input-cod-transportista1">Código: </label>
+                          <app-modal-socio-negocio [title]="'Transportistas'" [cardCode]="codTransportista" [cardType] = "'C,S'" [transType] = "'Y'" (eventoAceptar)="onToSelectedTransportista($event)"></app-modal-socio-negocio>
+                        </div>
+                        <div [ngClass]="manTransportista1 === true ? 'col-12 md:col-3' : 'col-12 md:col-4'">
+                          <label class="label-custom" for="float-input-tip-doc-Ide-transportista1">Tipo de documento: </label>
+                          <p-dropdown id="float-input-tip-doc-Ide-transportista1" [options]="listTipDocIdeTransportista" class="ui dropdown-item-text" placeholder="Seleccione el tipo de documento" formControlName="tipDocIdeTransportista1" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                        </div>
+                        <div [ngClass]="manTransportista1 === true ? 'col-12 md:col-3' : 'col-12 md:col-4'">
+                          <label class="label-custom" for="float-input-ruc-transportista1">RUC: </label>
+                          <div class="p-inputgroup">
+                            <input id="float-input-ruc-transportista1" type="text" placeholder="RUC" maxlength="15" size="50" formControlName="rucTransportista1" autocomplete="off" pInputText>
+                          </div>
+                        </div>
+                        <div [ngClass]="manTransportista1 === true ? 'col-12 md:col-3' : 'col-12 md:col-4'">
+                          <label class="label-custom" for="float-input-nom-transportista1">Razón social o nombre: </label>
+                          <div class="p-inputgroup">
+                            <input id="float-input-nom-transportista1" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="u_BPP_MDNT1" autocomplete="off" pInputText>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <p-fieldset legend="Vehículo">
+                          <div class="p-fluid p-formgrid grid">
+                            <div class="col-12 md:col-12" *ngIf="manTransportista1">
+                              <label class="label-custom" for="float-input-numero-placa1">Número de placa: </label>
+                              <app-modal-vehiculo-sap [codTransportista]="codTransportista" [numPlaca]="numPlaca1" (eventoAceptar)="onToVehiculoSelecionado($event)"></app-modal-vehiculo-sap>
+                            </div>
+                            <div class="col-12 md:col-12" *ngIf="!manTransportista1">
+                              <label class="label-custom" for="float-input-numero-placa1">Número de placa: </label>
+                              <div class="p-inputgroup">
+                                <input id="float-input-numero-placa1" type="text" placeholder="Número de placa" maxlength="12" size="50" formControlName="numPlaca1" autocomplete="off" pInputText>
+                              </div>
+                            </div>
+                          </div>
+                        </p-fieldset>
+                      </div>
+
+                      <div class="col-12">
+                        <p-fieldset legend="Conductor">
+                          <div class="p-fluid p-formgrid grid">
+                              <div class="col-12 md:col-4">
+                                <label class="label-custom" for="float-input-tip-doc-ide-conductor1">Tipo de documento: </label>
+                                <p-dropdown id="float-input-tip-doc-ide-conductor1" [options]="listTipDocIdeConductor" class="ui dropdown-item-text" placeholder="Seleccione el tipo de documento" formControlName="tipDocIdeConductor1" optionLabel="label" [showClear]="true"></p-dropdown>
+                              </div>
+                              <div class="col-12 md:col-4" *ngIf="manTransportista1">
+                                <label class="label-custom" for="float-input-num-doc-conductor1">Número de documento: </label>
+                                <app-modal-conductor [codTransportista]="codTransportista" [numDocIdeConductor]="numDocIdeConductor1" (eventoAceptar)="onToConductorSelecionado($event)"></app-modal-conductor>
+                              </div>
+                              <div class="col-12 md:col-4" *ngIf="!manTransportista1">
+                                <label class="label-custom" for="float-input-num-doc-conductor1">Número de documento: </label>
+                                <div class="p-inputgroup">
+                                  <input id="float-input-num-doc-conductor1" type="text" placeholder="Número de documento" maxlength="50" size="50" formControlName="numDocIdeConductor1" autocomplete="off" pInputText>
+                                </div>
+                              </div>
+                              <div class="col-12 md:col-4">
+                                <label class="label-custom" for="float-input-den-conductor1">Denominación: </label>
+                                <div class="p-inputgroup">
+                                  <input id="float-input-den-conductor1" type="text" placeholder="Denominación" maxlength="50" size="50" formControlName="denConductor1" autocomplete="off" pInputText>
+                                </div>
+                              </div>
+                              <div class="col-12 md:col-4">
+                                <label class="label-custom" for="float-input-nom-conductor1">Nombre: </label>
+                                <div class="p-inputgroup">
+                                  <input id="float-input-nom-conductor1" type="text" placeholder="Nombre" maxlength="100" size="50" formControlName="u_FIB_NOM_COND1" autocomplete="off" pInputText>
+                                </div>
+                              </div>
+                              <div class="col-12 md:col-4">
+                                <label class="label-custom" for="float-input-ape-conductor1">Apellidos: </label>
+                                <div class="p-inputgroup">
+                                  <input id="float-input-ape-conductor1" type="text" placeholder="Apellidos" maxlength="100" size="50" formControlName="u_FIB_APE_COND1" autocomplete="off" pInputText>
+                                </div>
+                              </div>
+                              <div class="col-12 md:col-4">
+                                <label class="label-custom" for="float-input-lic-conductor1">Licencia: </label>
+                                <div class="p-inputgroup">
+                                  <input id="float-input-lic-conductor1" type="text" placeholder="Licencia" maxlength="15" size="50" formControlName="licConductor1" autocomplete="off" pInputText>
+                                </div>
+                              </div>
+                            </div>
+                        </p-fieldset>
+                      </div>
+                    </p-fieldset>
+                  </div>
+                </div>
+              </form>
+            </p-tabPanel>
+          </p-tabView>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-10">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormPie1">
+            <div class="p-fluid p-formgrid grid">
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-empleado-venta">Empleado de ventas: </label>
+                <p-dropdown id="float-input-empleado-venta" [options]="listEmleadoVenta" class="ui dropdown-item-text" placeholder="Seleccione el empleado de ventas" formControlName="empleadoVenta" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormPie1.controls['empleadoVenta'].errors && modeloFormPie1.controls['empleadoVenta'].dirty">
+                  <p-message severity="error" text="El empleado de ventas es requerida." *ngIf="modeloFormPie1.controls['empleadoVenta'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-total-bulto">Total de bultos: </label>
+                <div class="p-inputgroup">
+                  <p-inputNumber id="float-input-total-bulto" placeholder="Total de bultos" formControlName="totalBulto" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="2" [maxFractionDigits]="2"></p-inputNumber>
+                </div>
+                <div *ngIf="modeloFormPie1.controls['totalBulto'].errors && modeloFormPie1.controls['totalBulto'].dirty">
+                  <p-message severity="error" text="El total de bultos es requerido." *ngIf="modeloFormPie1.controls['totalBulto'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-total-kilo">Total de kilos: </label>
+                <div class="p-inputgroup">
+                  <p-inputNumber id="float-input-total-kilo" placeholder="Total de kilos" formControlName="totalKilo" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="2" [maxFractionDigits]="2"></p-inputNumber>
+                </div>
+                <div *ngIf="modeloFormPie1.controls['totalKilo'].errors && modeloFormPie1.controls['totalKilo'].dirty">
+                  <p-message severity="error" text="El total de kilos es requerida." *ngIf="modeloFormPie1.controls['totalKilo'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-comments">Comentarios: </label>
+                <div class="p-inputgroup">
+                  <textarea id="float-input-comments" placeholder="Comentarios" maxlength="254" rows="2" formControlName="comments" autocomplete="off" pInputTextarea></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-2">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormPie2">
+            <div class="p-fluid p-formgrid grid">
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-subTotal">SubTotal: </label>
+                <div class="p-inputgroup">
+                  <p-inputNumber id="float-input-subTotal" placeholder="SubTotal" formControlName="subTotal" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="2" [maxFractionDigits]="2"></p-inputNumber>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-vatSum">Impuesto: </label>
+                <div class="p-inputgroup">
+                  <p-inputNumber id="float-input-total-vatSum" placeholder="Total de impuesto" formControlName="vatSum" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="2" [maxFractionDigits]="2"></p-inputNumber>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-docTotal">Total: </label>
+                <div class="p-inputgroup">
+                  <p-inputNumber id="float-input-docTotal" placeholder="Total" formControlName="docTotal" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="2" [maxFractionDigits]="2"></p-inputNumber>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="!modeloFormCab1.valid || !modeloFormCab2.valid || !listItem?.length" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>

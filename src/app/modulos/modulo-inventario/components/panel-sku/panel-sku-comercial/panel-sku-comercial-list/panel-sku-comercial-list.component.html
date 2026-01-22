@@ -1,0 +1,173 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="strDate" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" pButton type="button" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExcel}}" (click)="onToExcel()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </form>
+    </p-panel>
+
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}">
+        <p-table
+        [value]="oskcList"
+        [scrollable]="true"
+        scrollDirection="both"
+        scrollHeight="500px"
+        [rowHover]="true"
+        [autoLayout]="true"
+        [responsive]="true"
+        [showCurrentPageReport]="true"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th style="width: 105px" pFrozenColumn></th>
+            <th style="width: 200px" pFrozenColumn class="custom-header">N° CORRELATIVO</th>
+            <th style="width: 300px">NOMBRE DEL EJECUTIVO COMERCIAL</th>
+            <th style="width: 150px">STATUS</th>
+            <th style="width: 150px">FECHA</th>
+            <th style="width: 200px">GRUPO DE ARTÍCULO</th>
+            <th style="width: 200px">SUBGRUPO DE ARTÍCULO</th>
+            <th style="width: 500px">DESCRIPCION DEL ARTÍCULO</th>
+            <th style="width: 500px">CLIENTE</th>
+            <th style="width: 150px">UM</th>
+            <th style="width: 150px">CANTIDAD</th>
+            <th style="width: 150px">ANCHO (CM)</th>
+            <th style="width: 150px">LARGO (TMS)</th>
+            <th style="width: 150px">GR/M2</th>
+            <th style="width: 150px">PESO ITEM  (GR)</th>
+            <th style="width: 200px">COLOR</th>
+            <th style="width: 100px">LAMINADO</th>
+            <th style="width: 200px">TIPO DE LAMINADO</th>
+            <th style="width: 100px">LINNER</th>
+            <th style="width: 150px">PESO LINNER</th>
+            <th style="width: 100px">IMPRESION</th>
+            <th style="width: 250px"># COLORES DE IMPRESION</th>
+            <th style="width: 250px">UV X MES (TIEMPO DE VIDA)</th>
+            <th style="width: 300px">VOLÚMENES PROYECTADOS MENSUALES</th>
+            <th style="width: 600px">PRECIO VENTA X KG $ (NO INCLUYE IGV) PRECIO VENTA X ROLLOS $ (NO INCLUYE IGV)</th>
+            <th style="width: 700px">OBSERVACION</th>
+        </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+          <tr>
+            <td style="width: 105px" pFrozenColumn>
+              <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+              </p-splitButton>
+            </td>
+            <td style="width: 200px" pFrozenColumn>
+                <span class="p-column-title">N° CORRELATIVO: </span> {{modelo.u_Number}}
+            </td>
+            <td style="width: 300px">
+                <span class="p-column-title">NOMBRE DEL EJECUTIVO COMERCIAL: </span> {{modelo.u_SlpName}}
+            </td>
+            <td style="width: 150px">
+                <span class="p-column-title">STATUS: </span> {{modelo.u_StatusName}}
+            </td>
+            <td style="width: 150px">
+                <span class="p-column-title">FECHA: </span> {{modelo.u_DocDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">GRUPO DE ARTÍCULO: </span> {{modelo.u_ItmsGrpNam}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">SUBGRUPO DE ARTÍCULO: </span> {{modelo.u_ItmsSGrpNam}}
+            </td>
+            <td style="width: 500px">
+              <span class="p-column-title">DESCRIPCION DEL ARTÍCULO: </span> {{modelo.u_ItemName}}
+            </td>
+            <td style="width: 500px">
+              <span class="p-column-title">CLIENTE: </span> {{modelo.u_CardName}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">UM: </span> {{modelo.u_UnitMsrName}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">CANTIDAD: </span> {{modelo.u_Quantity | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">ANCHO (CM): </span> {{modelo.u_Wide | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">LARGO (TMS): </span> {{modelo.u_Long | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">GR/M2: </span> {{modelo.u_GrMtSq | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">PESO ITEM (GR): </span> {{modelo.u_ItemWeight | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">COLOR: </span> {{modelo.u_ColorName}}
+            </td>
+            <td style="width: 100px">
+              <span class="p-column-title">COLOR: </span> {{modelo.u_LaminateName}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">TIPO DE LAMINADO: </span> {{modelo.u_LamTypName}}
+            </td>
+            <td style="width: 100px">
+              <span class="p-column-title">LINNER: </span> {{modelo.u_LinnerName}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">PESO LINNER: </span> {{modelo.u_LinnWeight | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 100px">
+              <span class="p-column-title">IMPRESION: </span> {{modelo.u_PrintName}}
+            </td>
+            <td style="width: 250px">
+              <span class="p-column-title"># COLORES DE IMPRESION: </span> {{modelo.u_PrintColName}}
+            </td>
+            <td style="width: 250px">
+              <span class="p-column-title">UV X MES (TIEMPO DE VIDA): </span> {{modelo.u_UvByMonName}}
+            </td>
+            <td style="width: 300px">
+              <span class="p-column-title">VOLÚMENES PROYECTADOS MENSUALES: </span> {{modelo.u_PrjMonVol | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 600px">
+              <span class="p-column-title">PRECIO VENTA X KG $ (NO INCLUYE IGV) PRECIO VENTA X ROLLOS $ (NO INCLUYE IGV): </span> {{modelo.u_Price | number: '.3':'en-EN'}}
+            </td>
+            <td style="width: 700px">
+              <span class="p-column-title">OBSERVACIÓN: </span> {{modelo.u_Observations}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td style="width: 6155px" colspan="26">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+</div>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay] = "isDeleting" ></app-panel-eliminar>
+
+
+

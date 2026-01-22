@@ -1,0 +1,164 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de {{titulo}}" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-checkbox id="float-input-isEntrada" [binary]="true" label="Realizar entrada de mercancías" formControlName="isEntrada"></p-checkbox>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-checkbox id="float-input-isSalida" [binary]="true" label="Realizar salida de mercancías" formControlName="isSalida"></p-checkbox>
+          </div>
+          <div class="col-12 md:col-8">
+          </div>
+          <div class="col-12 md:col-4">
+            <button [disabled]="buttonAcces.btnImpExcel" pButton label="{{globalConstants.cImpExcel}}" icon="{{globalConstants.icoImpExcel}}" (click)="onClickImport()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <button type="submit" [disabled]="modelo.length === 0" pButton label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </form>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de artículos" [toggleable]="true">
+      <p-table
+        [value]="modelo"
+        [columns]="columnas"
+        editMode="row"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        selectionMode="multiple"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [rows]="globalConstants.sizePage"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+              <p-sortIcon field="{{col.field}}"></p-sortIcon> {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+          <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo.u_Status === 'C'}">
+            <td>
+              <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+            </td>
+            <td>
+              <span class="p-column-title">Descripcion: </span> {{modelo.itemName}}
+            </td>
+            <td>
+              <span class="p-column-title">Código origen: </span> {{modelo.u_FIB_ItemCode}}
+            </td>
+            <td>
+              <span class="p-column-title">Descripcion origen: </span> {{modelo.u_FIB_ItemName}}
+            </td>
+            <td>
+              <span class="p-column-title">Grupo: </span> {{modelo.itmsGrpCod}}
+            </td>
+            <td class="custom-td-center">
+              <span class="p-column-title">Artículo de inventario: </span> {{modelo.invntItem}}
+            </td>
+            <td class="custom-td-center">
+              <span class="p-column-title">Artículo venta: </span> {{modelo.sellItem}}
+            </td>
+            <td class="custom-td-center">
+              <span class="p-column-title">Artículo compra: </span> {{modelo.prchseItem}}
+            </td>
+            <td class="custom-td-center">
+              <span class="p-column-title">Sujeto a retención de impuesto: </span> {{modelo.wTLiable}}
+            </td>
+            <td class="custom-td-center">
+              <span class="p-column-title">Sujeto a impuesto: </span> {{modelo.vatLiable}}
+            </td>
+            <td class="custom-td-center">
+              <span class="p-column-title">Impuesto indirecto: </span> {{modelo.indirctTax}}
+            </td>
+            <td>
+              <span class="p-column-title">UM de venta: </span> {{modelo.salUnitMsr}}
+            </td>
+            <td>
+              <span class="p-column-title">UM de compra: </span> {{modelo.buyUnitMsr}}
+            </td>
+            <td>
+              <span class="p-column-title">UM de inventario: </span> {{modelo.invntryUom}}
+            </td>
+            <td>
+              <span class="p-column-title">Almacén por defecto: </span> {{modelo.dfltWH}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Stock: </span> {{modelo.onHand | number: '.3':'en-EN'}}
+            </td>
+            <td>
+              <span class="p-column-title">Código de impuesto: </span> {{modelo.taxCodeAR}}
+            </td>
+            <td>
+              <span class="p-column-title">Tipo existencia: </span> {{modelo.u_BPP_TIPEXIST}}
+            </td>
+            <td>
+              <span class="p-column-title">Tipo Unidad de medida: </span> {{modelo.u_BPP_TIPUNMED}}
+            </td>
+            <td>
+              <span class="p-column-title">Partida Arancelaria: </span> {{modelo.u_S_PartAranc1}}
+            </td>
+            <td>
+              <span class="p-column-title">Part. Arancelaria Colombia: </span> {{modelo.u_S_PartAranc2}}
+            </td>
+            <td>
+              <span class="p-column-title">Part. Arancelaria Ecuador: </span> {{modelo.u_FIB_ECU}}
+            </td>
+            <td>
+              <span class="p-column-title">Centro Costo Artículo: </span> {{modelo.u_S_CCosto}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Peso Item: </span> {{modelo.u_FIB_PESO | number: '.3':'en-EN'}}
+            </td>
+            <td>
+              <span class="p-column-title">Sub grupo: </span> {{modelo.u_FIB_SGRUP}}
+            </td>
+            <td>
+              <span class="p-column-title">Sub grupo 2: </span> {{modelo.u_FIB_SGRUPO2}}
+            </td>
+            <td>
+              <span class="p-column-title">Línea de Negocio: </span> {{modelo.u_FIB_LINNEG}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+</div>
+
+
+<p-dialog header="Subir artículos" *ngIf="isDisplayUpload" [(visible)]="isDisplayUpload" [modal]="true" [closable]="true" [autoZIndex] [style]="{width: '35vw'}">
+  <div>
+    <app-modal-subir-archivo (eventoAceptar)="onClickUpload($event)"></app-modal-subir-archivo>
+    <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger"></p-button>
+  </ng-template>
+  </div>
+</p-dialog>
+
+
+
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

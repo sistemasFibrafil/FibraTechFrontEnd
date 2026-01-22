@@ -1,0 +1,224 @@
+<p-panel header="Registro de {{titulo}}">
+
+    <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+            <div class="col-12">
+                <p-fieldset legend="Configuración Sistemas">
+                    <div class="grid p-fluid">
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-email">Tipo Autenticación: </label>
+                            <p-dropdown [options]="listTipoAutenticacion" formControlName="tipoAutenticacion" class="p-dropdown-items" placeholder="Seleccionar" optionLabel="label" [showClear]="true"></p-dropdown>
+                            <div *ngIf="modeloForm.controls['tipoAutenticacion'].errors && modeloForm.controls['tipoAutenticacion'].dirty">
+                                <p-message severity="error" text="Tipo Autenticación es requerido" *ngIf="modeloForm.controls['tipoAutenticacion'].errors['required']"></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <p-checkbox label="Dimensión SAP" [binary]="true" formControlName="flgDimensionSAP" (onChange)="goChangeCheckDimension($event.checked)"></p-checkbox>
+                            <p-dropdown [options]="listDimension" formControlName="dimensionSAP" class="p-dropdown-items" placeholder="Seleccionar" optionLabel="label" [showClear]="true"></p-dropdown>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <p-checkbox label="Configuración Google Drive" [binary]="true" class="fibratech-center-checkbox" (onChange)="goChangeCheckGoogleDrive($event.checked)" formControlName="flgGoogleDrive"></p-checkbox>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <p-checkbox label="Doble Autenticación (Token)" [binary]="true" class="fibratech-center-checkbox" formControlName="flgDobleAutenticacion"></p-checkbox>
+                        </div>
+                    </div>
+                </p-fieldset>
+                <br>
+                <p-fieldset legend="Configuración Email">
+                    <div class="grid p-fluid">
+                        <div class="col-12 md:col-4">
+                            <label class="label-custom" for="float-input-apli-email">Email: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <input id="float-input-apli-email" type="email" placeholder="Email" size="100" formControlName="sendEmail" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmail'].errors && modeloForm.controls['sendEmail'].dirty">
+                                <p-message severity="error" text="Email es requerido" *ngIf="modeloForm.controls['sendEmail'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sendEmail'].errors['minlength'] || modeloForm.controls['sendEmail'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-apli-password">Contraseña: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-key"></i></span>
+                                <input id="float-input-apli-password" type="password" placeholder="Contraseña" size="30" formControlName="sendEmailPasswordOrigen" required pPassword>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailPasswordOrigen'].errors && modeloForm.controls['sendEmailPasswordOrigen'].dirty">
+                                <p-message severity="error" text="Contraseña es requerido" *ngIf="modeloForm.controls['sendEmailPasswordOrigen'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sendEmailPasswordOrigen'].errors['minlength'] || modeloForm.controls['sendEmailPasswordOrigen'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-port">Puerto: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-cog"></i></span>
+                                <input id="float-input-apli-port" type="number" placeholder="Puerto" formControlName="sendEmailPort" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailPort'].errors && modeloForm.controls['sendEmailPort'].dirty">
+                                <p-message severity="error" text="Puerto es requerido" *ngIf="modeloForm.controls['sendEmailPort'].errors['required']"></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-servidor">Servidor: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-cog"></i></span>
+                                <input id="float-input-apli-servidor" type="text" placeholder="Puerto" formControlName="sendEmailHost" required pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailHost'].errors && modeloForm.controls['sendEmailHost'].dirty">
+                                <p-message severity="error" text="Servidor es requerido" *ngIf="modeloForm.controls['sendEmailHost'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sendEmailHost'].errors['minlength'] || modeloForm.controls['sendEmailHost'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-1">
+                            <label class="label-custom" for="float-input-apli-ssl">SSL: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-cog"></i></span>
+                                <p-checkbox id="float-input-apli-ssl" formControlName="sendEmailEnabledSSL" [binary]="true"></p-checkbox>
+                            </div>
+                        </div>
+                    </div>
+                </p-fieldset>
+                <br>
+                <p-fieldset legend="Configuración Finanzas">
+                    <div class="grid p-fluid">
+                        <div class="col-12 md:col-4">
+                            <label class="label-custom" for="float-input-apli-email-finanza">Email: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <input id="float-input-apli-email-finanza" type="email" placeholder="Email" size="100" formControlName="sendEmailFinanza" pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailFinanza'].errors && modeloForm.controls['sendEmailFinanza'].dirty">
+                                <p-message severity="error" text="Email es requerido" *ngIf="modeloForm.controls['sendEmailFinanza'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sendEmailFinanza'].errors['minlength'] || modeloForm.controls['sendEmailFinanza'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-apli-password-finanza">Contraseña: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-key"></i></span>
+                                <input id="float-input-apli-password-finanza" type="password" placeholder="Contraseña" size="30" formControlName="sendEmailFinanzaPasswordOrigen" pPassword>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailFinanzaPasswordOrigen'].errors && modeloForm.controls['sendEmailFinanzaPasswordOrigen'].dirty">
+                                <p-message severity="error" text="Contraseña es requerido" *ngIf="modeloForm.controls['sendEmailFinanzaPasswordOrigen'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sendEmailFinanzaPasswordOrigen'].errors['minlength'] || modeloForm.controls['sendEmailFinanzaPasswordOrigen'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-port-finanza">Puerto: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-cog"></i></span>
+                                <input id="float-input-apli-port-finanza" type="number" placeholder="Puerto" formControlName="sendEmailFinanzaPort" pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailFinanzaPort'].errors && modeloForm.controls['sendEmailFinanzaPort'].dirty">
+                                <p-message severity="error" text="Puerto es requerido" *ngIf="modeloForm.controls['sendEmailFinanzaPort'].errors['required']"></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-servidor-finanza">Servidor: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-cog"></i></span>
+                                <input id="float-input-apli-servidor-finanza" type="text" placeholder="Puerto" formControlName="sendEmailFinanzaHost" pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['sendEmailFinanzaHost'].errors && modeloForm.controls['sendEmailFinanzaHost'].dirty">
+                                <p-message severity="error" text="Servidor es requerido" *ngIf="modeloForm.controls['sendEmailFinanzaHost'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['sendEmailFinanzaHost'].errors['minlength'] || modeloForm.controls['sendEmailFinanzaHost'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-1">
+                            <label class="label-custom" for="float-input-apli-ssl-finanza">SSL: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-cog"></i></span>
+                                <p-checkbox id="float-input-apli-ssl-finanza" formControlName="sendEmailFinanzaEnabledSSL" [binary]="true"></p-checkbox>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-dias-vencer-finanza">Días Por vencer: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <input id="float-input-apli-dias-vencer-finanza" type="number" placeholder="Días Por vencer" formControlName="diasPorVencerFinanza" pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['diasPorVencerFinanza'].errors && modeloForm.controls['diasPorVencerFinanza'].dirty">
+                                <p-message severity="error" text="Días Por vencer" *ngIf="modeloForm.controls['diasPorVencerFinanza'].errors['required']"></p-message>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-hora-envio-finanza">Hora Envío: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <p-calendar id="float-input-apli-hora-envio-finanza" formControlName="horaEnvioFinanza" placeholder="Hora Envío" [timeOnly]="true" dateFormat="HH:mm" inputId="timeonly"></p-calendar>
+                            </div>
+                            <div *ngIf="modeloForm.controls['horaEnvioFinanza'].errors && modeloForm.controls['horaEnvioFinanza'].dirty">
+                                <p-message severity="error" text="Hora Envío" *ngIf="modeloForm.controls['horaEnvioFinanza'].errors['required']"></p-message>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-2">
+                            <label class="label-custom" for="float-input-apli-asunto-finanza">Asunto: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <input id="float-input-apli-asunto-finanza" type="text" placeholder="Asunto" formControlName="asuntoFinanza" pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['asuntoFinanza'].errors && modeloForm.controls['asuntoFinanza'].dirty">
+                                <p-message severity="error" text="Servidor es requerido" *ngIf="modeloForm.controls['asuntoFinanza'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['asuntoFinanza'].errors['minlength'] || modeloForm.controls['asuntoFinanza'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+
+                        <div class="col-12 md:col-6">
+                            <label class="label-custom" for="float-input-apli-cuerpo-finanza">Cuerpo: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <textarea id="float-input-apli-cuerpo-finanza" rows="5" cols="30" pInputTextarea [autoResize]="true" placeholder="Cuerpo" maxlength="500" formControlName="cuerpoFinanza"></textarea>
+                            </div>
+                            <div *ngIf="modeloForm.controls['cuerpoFinanza'].errors && modeloForm.controls['cuerpoFinanza'].dirty">
+                                <p-message severity="error" text="Servidor es requerido" *ngIf="modeloForm.controls['cuerpoFinanza'].errors['required']"></p-message>
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 500 caractares" *ngIf="modeloForm.controls['cuerpoFinanza'].errors['minlength'] || modeloForm.controls['cuerpoFinanza'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </p-fieldset>
+                <br>
+                <p-fieldset legend="Configuración Google Drive">
+                    <div class="grid p-fluid">
+                        <div class="col-12 md:col-4">
+                            <label class="label-custom" for="float-input-google-email">Email: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                                <input id="float-input-google-email" type="email" placeholder="Email" maxlength="100" formControlName="emailGoogleDrive" pInputText>
+                            </div>
+                            <div *ngIf="modeloForm.controls['emailGoogleDrive'].errors && modeloForm.controls['emailGoogleDrive'].dirty">
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['emailGoogleDrive'].errors['minlength'] || modeloForm.controls['emailGoogleDrive'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-3">
+                            <label class="label-custom" for="float-input-google-password">Contraseña: </label>
+                            <div class="p-inputgroup">
+                                <span class="p-inputgroup-addon"><i class="pi pi-key"></i></span>
+                                <input id="float-input-google-password" type="password" placeholder="Contraseña" maxlength="30" formControlName="emailPassword" pPassword>
+                            </div>
+                            <div *ngIf="modeloForm.controls['emailPassword'].errors && modeloForm.controls['emailPassword'].dirty">
+                                <p-message severity="error" text="Tener un min. de 5 y max. de 100 caractares" *ngIf="modeloForm.controls['emailPassword'].errors['minlength'] || modeloForm.controls['emailPassword'].errors['maxlength'] "></p-message>
+                            </div>
+                        </div>
+                    </div>
+                </p-fieldset>
+            </div>
+        </div>
+    </form>
+
+    <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+            <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+    </div>
+</p-panel>

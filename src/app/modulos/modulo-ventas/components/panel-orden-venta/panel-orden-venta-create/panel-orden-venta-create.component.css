@@ -1,0 +1,10 @@
+i {
+  cursor: pointer;
+}
+
+
+:host ::ng-deep .input-number input {
+  text-align: right !important;
+}
+
+

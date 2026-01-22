@@ -1,0 +1,20 @@
+/* CABECERA */
+:host ::ng-deep .p-datatable-thead > tr > th
+{
+  display: block !important;
+  text-align: center !important;
+  white-space: nowrap;
+}
+
+/* CUERPO */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(7),  /* Stock */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(8),  /* Cantidad */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(9),  /* Peso */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(10), /* Kg Pedido */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(11), /* Precio */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(12)  /* Importe USD */
+{
+  display: block !important;
+  text-align: right !important;
+  white-space: nowrap;
+}

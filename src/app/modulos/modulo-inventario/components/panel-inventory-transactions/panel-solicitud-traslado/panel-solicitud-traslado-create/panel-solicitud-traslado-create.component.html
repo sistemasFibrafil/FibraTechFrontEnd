@@ -1,0 +1,297 @@
+<div class="card card-w-title">
+  <p-panel header="Crear {{ titulo }}">
+    <div class="grid p-fluid">
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormSn">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cardCode">Código de cliente </label>
+                <app-modal-socio-negocio [title]="'Socios de Negocios'" [cardCode]="cardCode" [cardType] = "'C,S'" [transType] = "'N,Y'" (eventoAceptar)="onSelectedSocioNegocio($event)"></app-modal-socio-negocio>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-cardName">Razón social o nombre </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-persona-contacto">Persona de contacto </label>
+                <app-modal-persona-contacto [cardCode]="cardCode" [cntctCode]="cntctCode" (eventoAceptar)="onSelectedPersonaContacto($event)"></app-modal-persona-contacto>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-address">Dirección de destino </label>
+                <div class="p-inputgroup">
+                  <textarea id="float-area-address" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText [readOnly]="true"></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormDoc">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-5">
+                <label class="label-custom" for="float-input-docNum">Número </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-docNum" class="field-mandatory" type="text" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-docStatus">Estado </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-docStatus" class="field-mandatory" type="text" placeholder="Estado" maxlength="50" size="50" formControlName="docStatus" autocomplete="off" pInputText [readOnly]="true">
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-u_FIB_IsPkg">¿Picking? </label>
+                <div class="p-inputgroup">
+                  <p-checkbox id="float-input-u_FIB_IsPkg" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="u_FIB_IsPkg" styleClass="ng-invalid ng-dirty"></p-checkbox>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-docDate">Fecha de contabilización </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDate" class="field-mandatory" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['docDate'].errors && modeloFormDoc.controls['docDate'].dirty">
+                  <p-message severity="error" text="La fecha de contabilización es requerida." *ngIf="modeloFormDoc.controls['docDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-docDueDate">Fecha de entrega </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDueDate" class="field-mandatory" placeholder="Fecha de entrega" formControlName="docDueDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['docDueDate'].errors && modeloFormDoc.controls['docDueDate'].dirty">
+                  <p-message severity="error" text="La fecha de entrega es requerida." *ngIf="modeloFormDoc.controls['docDueDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-taxDate">Fecha de documento </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-taxDate" class="field-mandatory" placeholder="Fecha de documento" formControlName="taxDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['taxDate'].errors && modeloFormDoc.controls['taxDate'].dirty">
+                  <p-message severity="error" text="La fecha de documento es requerida." *ngIf="modeloFormDoc.controls['taxDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-5">
+                <label class="label-custom" for="float-input-filler">De almacén </label>
+                <p-dropdown id="float-input-filler" class="field-mandatory" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="filler" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeAlmacenOrigen($event)"></p-dropdown>
+                <div *ngIf="modeloFormDoc.controls['filler'].errors && modeloFormDoc.controls['filler'].dirty">
+                  <p-message severity="error" text="Almacén origen es requerido." *ngIf="modeloFormDoc.controls['filler'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-7">
+                <label class="label-custom" for="float-input-toWhsCode">Alamcén destino </label>
+                <p-dropdown id="float-input-toWhsCode" class="field-mandatory" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="toWhsCode" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeAlmacenDestino($event)"></p-dropdown>
+                <div *ngIf="modeloFormDoc.controls['toWhsCode'].errors && modeloFormDoc.controls['toWhsCode'].dirty">
+                  <p-message severity="error" text="Almacén destino es requerido." *ngIf="modeloFormDoc.controls['toWhsCode'].errors['required']"></p-message>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <p-contextMenu #cm [model]="items" (onShow)="onContextMenuShow($event)" ></p-contextMenu>
+
+      <div class="col-12">
+        <div class="card no-margin">
+          <p-tabView styleClass="tabview-custom">
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Contenido&nbsp;</span>
+              </ng-template>
+              <p-table
+                [value]="modeloLines"
+                [columns]="columnas"
+                editMode="row"
+                [rowHover]="true"
+                [contextMenu]="cm"
+                [autoLayout]="true"
+                [resizableColumns]="true"
+                responsiveLayout="scroll"
+                [showCurrentPageReport]="true"
+                [(contextMenuSelection)]="modeloLinesSelectedContext"
+                styleClass="{{globalConstants.cStyleTableGridLines}}"
+                currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+                <!-- Header -->
+                <ng-template pTemplate="header" let-columns>
+                  <tr>
+                    <th class="custom-header"></th>
+                    <th *ngFor="let col of columns" class="custom-header">
+                      {{col.header}}
+                    </th>
+                  </tr>
+                </ng-template>
+                <!-- body -->
+                <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+                  <tr [pContextMenuRow]="modelo">
+                    <td class="custom-td-2">
+                      <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                      </p-splitButton>
+                    </td>
+                    <td class="p-fluid">
+                      <span class="p-column-title">Código: </span><i class="pi pi-search" (click)="onOpenArticulo(ri)"></i> {{modelo.itemCode}}
+                    </td>
+                    <td class="p-fluid">
+                        <span class="p-column-title">Descripción: </span> {{modelo.dscription}}
+                    </td>
+                    <td class="p-fluid">
+                      <span class="p-column-title">De almacén: </span><i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacenOrigenItem(modelo, ri)" ></i> {{modelo.fromWhsCod}}
+                    </td>
+                    <td class="p-fluid">
+                      <span class="p-column-title">Almacén destino: </span><i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacenDestinoItem(modelo, ri)"></i> {{modelo.whsCode}}
+                    </td>
+                    <td class="p-fluid">
+                      <span class="p-column-title">Tipo operación: </span><i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenTipoOperacionItem(ri)"></i> {{modelo?.u_tipoOpT12Nam}}
+                    </td>
+                    <td class="custom-td-3">
+                      <span class="p-column-title">UM: </span> {{modelo.unitMsr}}
+                    </td>
+                    <td class="custom-td-numero" pEditableColumn>
+                      <span class="p-column-title">Cantidad: </span>
+                      <p-cellEditor>
+                        <ng-template pTemplate="input">
+                          <input id="cantidad" type="text"autocomplete="off" [(ngModel)]="modelo.quantity" maxlength="9" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.quantity)">
+                        </ng-template>
+                        <ng-template pTemplate="output">
+                          {{modelo.quantity | number: '.3':'en-EN'}}
+                        </ng-template>
+                      </p-cellEditor>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage" let-columns>
+                  <tr>
+                    <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </p-tabPanel>
+
+            <p-tabPanel>
+              <ng-template pTemplate = "header">
+                <i class="pi pi-circle-fill"></i>
+                <span>&nbsp;Otros&nbsp;</span>
+              </ng-template>
+              <form [formGroup]="modeloFormOtr">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_FIB_TIP_TRAS">Tipo de traslado </label>
+                    <p-dropdown id="float-input-u_FIB_TIP_TRAS" class="field-mandatory" [options]="tipoTrasladoList" [filter]="true" placeholder="Seleccione el tipo de traslado" formControlName="u_FIB_TIP_TRAS" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['u_FIB_TIP_TRAS'].errors && modeloFormOtr.controls['u_FIB_TIP_TRAS'].dirty">
+                      <p-message severity="error" text="Tipo de traslado es requerido." *ngIf="modeloFormOtr.controls['u_FIB_TIP_TRAS'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_MDMT">Motivo de traslado </label>
+                    <p-dropdown id="float-input-u_BPP_MDMT" class="field-mandatory" [options]="motivoTrasladoList" [filter]="true" placeholder="Seleccione el motivo de traslado" formControlName="u_BPP_MDMT" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['u_BPP_MDMT'].errors && modeloFormOtr.controls['u_BPP_MDMT'].dirty">
+                      <p-message severity="error" text="Motivo de traslado es requerido." *ngIf="modeloFormOtr.controls['u_BPP_MDMT'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_MDTS">Tipo de salida </label>
+                    <p-dropdown id="float-input-u_BPP_MDTS" class="field-mandatory" [options]="tipoSalidaList" [filter]="true" placeholder="Seleccione el tipo de salida" formControlName="u_BPP_MDTS" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['u_BPP_MDTS'].errors && modeloFormOtr.controls['u_BPP_MDTS'].dirty">
+                      <p-message severity="error" text="Tipo de salida es requerido." *ngIf="modeloFormOtr.controls['u_BPP_MDTS'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </p-tabPanel>
+          </p-tabView>
+
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormPie">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-slpCode">Empleado de ventas </label>
+                <p-dropdown id="float-input-slpCode" class="field-mandatory" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="slpCode" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormPie.controls['slpCode'].errors && modeloFormPie.controls['slpCode'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormPie.controls['slpCode'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-jrnlMemo">Comentarios </label>
+                <div class="p-inputgroup">
+                  <textarea formControlName="jrnlMemo" autocomplete="off" placeholder="Comentarios" maxlength="50" rows="2" pInputText></textarea>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-comments">Comentarios </label>
+                <div class="p-inputgroup">
+                  <textarea formControlName="comments" autocomplete="off" placeholder="Comentarios" maxlength="254" rows="2" pInputText></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="submit" [disabled]="!modeloFormDoc.valid || !modeloFormOtr.valid || !modeloFormPie.valid || !hasValidLines" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-dialog *ngIf="isVisualizarArticulo" header="Artículo" [(visible)]="isVisualizarArticulo" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+  <app-busqueda-articulo [invntItem] = "'Y'" (eventoAceptar)="onSelectedArticulo($event)"></app-busqueda-articulo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseArticulo()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarAlmacenOrigen" header="Almacén" [(visible)]="isVisualizarAlmacenOrigen" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-almacen-by-articulo [itemCode]="itemCode" [inactive]="inactiveAlmacenItem" (eventoAceptar)="onSelectedAlmacenOrigenItem($event)"></app-busqueda-almacen-by-articulo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseAlmacenOrigenItem()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarAlmacenDestino" header="Almacén" [(visible)]="isVisualizarAlmacenDestino" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-almacen-by-articulo [itemCode]="itemCode" [inactive]="inactiveAlmacenItem" (eventoAceptar)="onSelectedAlmacenDestinoItem($event)"></app-busqueda-almacen-by-articulo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseAlmacenDestinoItem()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarTipoOperacion" header="Tipo de operación" [(visible)]="isVisualizarTipoOperacion" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-tipo-operacion [title]="'Tipo de Operación'" [placeholder]="'Tipo de operación'" [nomTabla]="'OWTR'" [nomCampo]="'U_tipoOpT12'" (eventoAceptar)="onSelectedTipoOperacionItem($event)"></app-busqueda-tipo-operacion>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoOperacionItem()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Subir artículos" *ngIf="isDisplayUpload" [(visible)]="isDisplayUpload" [modal]="true" [closable]="true" [autoZIndex] [style]="{width: '35vw'}">
+  <div>
+    <app-modal-subir-archivo (eventoAceptar)="onClickUpload($event)"></app-modal-subir-archivo>
+    <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger"></p-button>
+  </ng-template>
+  </div>
+</p-dialog>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

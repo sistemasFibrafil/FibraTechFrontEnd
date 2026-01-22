@@ -1,0 +1,145 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <form [formGroup]="modeloForm">
+          <div class="p-formgrid grid">
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-apepat">Apellido Paterno </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                <input id="float-input-apepat" type="text" placeholder="Apellido Paterno" maxlength="50" size="50" formControlName="apellidoPaterno" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['apellidoPaterno'].errors && modeloForm.controls['apellidoPaterno'].dirty">
+                <p-message severity="error" text="Apellido Paterno es requerido" *ngIf="modeloForm.controls['apellidoPaterno'].errors['required']"></p-message>
+                <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['apellidoPaterno'].errors['minlength'] || modeloForm.controls['apellidoPaterno'].errors['maxlength'] "></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-apemat">Apellido Materno </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                <input id="float-input-apemat" type="text" placeholder="Apellido Materno" maxlength="50" size="50" formControlName="apellidoMaterno" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['apellidoMaterno'].errors && modeloForm.controls['apellidoMaterno'].dirty">
+                <p-message severity="error" text="Apellido Materno es requerido" *ngIf="modeloForm.controls['apellidoMaterno'].errors['required']"></p-message>
+                <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['apellidoMaterno'].errors['minlength'] || modeloForm.controls['apellidoMaterno'].errors['maxlength'] "></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-nombre">Nombres </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                <input id="float-input-nombre" type="text" placeholder="Nombres" maxlength="50" size="50" formControlName="nombre" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['nombre'].errors && modeloForm.controls['nombre'].dirty">
+                <p-message severity="error" text="Nombre es requerido" *ngIf="modeloForm.controls['nombre'].errors['required']"></p-message>
+                <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['nombre'].errors['minlength'] || modeloForm.controls['nombre'].errors['maxlength'] "></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-documento">Nro Documento </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-file"></i></span>
+                <input id="float-input-documento" type="text" placeholder="Nro Documento" maxlength="20" formControlName="numeroDocumento" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['numeroDocumento'].errors && modeloForm.controls['numeroDocumento'].dirty">
+                <p-message severity="error" text="Nro Documento es requerido" *ngIf="modeloForm.controls['numeroDocumento'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-telefono">Nro Telefono </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-mobile"></i></span>
+                <input id="float-input-telefono" type="number" placeholder="Nro Telefono" maxlength="20" formControlName="numeroTelefono" pInputText>
+              </div>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-userSap">Usuario SAP </label>
+              <p-dropdown id="float-input-userSap" [options]="userSapList" placeholder="Seleccione usuario SAP" formControlName="userSap" optionLabel="label" [filter]="true" [showClear]="true"></p-dropdown>
+              <div *ngIf="modeloForm.controls['userSap'].errors && modeloForm.controls['userSap'].dirty">
+                <p-message severity="error" text="Usuario SAP es requerido." *ngIf="modeloForm.controls['userSap'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-1">
+              <label class="label-custom" for="float-input-activo">Activo </label>
+              <div class="p-inputgroup">
+                <p-checkbox [ngStyle]="{'padding-top': '5px'}" id="float-input-activo" [binary]="true" formControlName="activo"></p-checkbox>
+              </div>
+            </div>
+            <div class="col-12">
+              <p-fieldset legend="Credenciales Usuario">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-usuario">Usuario </label>
+                    <div class="p-inputgroup">
+                      <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                      <input id="float-input-usuario" type="text" placeholder="Usuario" formControlName="usuario" autocomplete="off" required pInputText>
+                    </div>
+                    <div *ngIf="modeloForm.controls['usuario'].errors && modeloForm.controls['usuario'].dirty">
+                      <p-message severity="error" text="Usuario es requerido" *ngIf="modeloForm.controls['usuario'].errors['required']"></p-message>
+                      <p-message severity="error" text="Tener un min. de 2 y max. de 20 caractares" *ngIf="modeloForm.controls['usuario'].errors['minlength'] || modeloForm.controls['nombre'].errors['maxlength'] "></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3" *ngIf="modeloSistema.tipoAutenticacion === 'AUTO-NORMAL'">
+                    <label class="label-custom" for="float-input-password">Contraseña </label>
+                    <div class="p-inputgroup">
+                      <span class="p-inputgroup-addon"><i class="pi pi-lock"></i></span>
+                      <input id="float-input-password" type="text" pPassword autocomplete="off" formControlName="password" style="-webkit-text-security: circle;">
+                    </div>
+                    <div *ngIf="modeloForm.controls['password'].errors && modeloForm.controls['password'].dirty">
+                      <p-message severity="error" text="Constraseña es requerido" *ngIf="modeloForm.controls['password'].errors['required']"></p-message>
+                      <p-message severity="error" text="Tener un min. de 6 y max. de 15 caractares" *ngIf="modeloForm.controls['password'].errors['minlength'] || modeloForm.controls['nombre'].errors['maxlength'] "></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-email">Email </label>
+                    <div class="p-inputgroup">
+                      <span class="p-inputgroup-addon"><i class="pi pi-envelope"></i></span>
+                      <input id="float-input-email" type="email" placeholder="Email" pInputText formControlName="email" autocomplete="off" required>
+                    </div>
+                    <div *ngIf="modeloForm.controls['email'].errors && modeloForm.controls['email'].dirty">
+                      <p-message severity="error" text="Email es requerido" *ngIf="modeloForm.controls['email'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-perfil">Perfil </label>
+                    <p-dropdown id="float-input-perfil" [options]="listItemPerfil" class="ui dropdown-item-text" placeholder="Select Perfil" formControlName="perfil" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['perfil'].errors && modeloForm.controls['perfil'].dirty">
+                      <p-message severity="error" text="Perfil es requerido" *ngIf="modeloForm.controls['perfil'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                </div>
+              </p-fieldset>
+            </div>
+          </div>
+        </form>
+
+        <p-fieldset legend="Datos Adicionales">
+          <p-fieldset legend="Foto" [toggleable]="true" [collapsed]="true">
+            <div class="p-fluid p-formgrid grid">
+              <div class="col-12 md:col-4">
+                <img [src]="sellersPermitString" style="width: 100%; display: block;">
+              </div>
+              <div class="col-12 md:col-8">
+                <p-fileUpload name="demo[]" chooseLabel="Seleccionar" cancelLabel="Cancelar" accept="image/*" [showUploadButton]="false" (onSelect)="onBasicUpload($event)" (onClear)="onClearUpload()">
+                </p-fileUpload>
+              </div>
+            </div>
+          </p-fieldset>
+        </p-fieldset>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>

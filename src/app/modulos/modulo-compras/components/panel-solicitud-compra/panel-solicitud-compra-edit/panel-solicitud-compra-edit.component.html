@@ -1,0 +1,318 @@
+<div class="card card-w-title">
+  <p-panel header="Editar {{ titulo }}">
+    <div class="grid p-fluid">
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormReq">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-reqType">Solicitante </label>
+                <p-dropdown id="float-input-reqType" class="field-mandatory" [options]="reqTypesList" [filter]="true" placeholder="Seleccione el solicitante" formControlName="reqType" [required] optionLabel="label" (onChange)="onChangeReqType()"></p-dropdown>
+                <div *ngIf="modeloFormReq.controls['reqType'].errors && modeloFormReq.controls['reqType'].dirty">
+                  <p-message severity="error" text="Solicitante es requerido." *ngIf="modeloFormReq.controls['reqType'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-8">
+                <label class="label-custom" for="float-input-reqName">Nombre de solicitante </label>
+                <p-dropdown id="float-input-reqName" class="field-mandatory" [options]="requesterList" [filter]="true" placeholder="Seleccione el nombre de solicitante" formControlName="reqName" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeReqName()"></p-dropdown>
+                <div *ngIf="modeloFormReq.controls['reqName'].errors && modeloFormReq.controls['reqName'].dirty">
+                  <p-message severity="error" text="Nombre de solicitante es requerido." *ngIf="modeloFormReq.controls['reqName'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-branch">Sucursal </label>
+                <p-dropdown id="float-input-branch" [options]="branchesList" [filter]="true" placeholder="Seleccione el sucursal" formControlName="branch" optionLabel="label" [showClear]="true"></p-dropdown>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-department">Departamento </label>
+                <p-dropdown id="float-input-department" [options]="departmentsList" [filter]="true" placeholder="Seleccione el departamento" formControlName="department" optionLabel="label" [showClear]="true"></p-dropdown>
+              </div>
+              <div class="col-12 md:col-12">
+                <label #notifyLabel class="label-custom" for="float-input-notify">Enviar email si se agregó pedido o entrada mercancías </label>
+                <div class="p-inputgroup">
+                  <p-checkbox id="float-input-notify" [ngStyle]="{'padding-top': paddingTop}" [binary]="true" formControlName="notify"></p-checkbox>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-email">Email </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-email" type="text" placeholder="Email" maxlength="100" size="50" formControlName="email" autocomplete="off" pInputText>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-12 md:col-6">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormDoc">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-docNum">Número </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-docNum" class="field-mandatory" type="text" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
+                </div>
+              </div>
+              <div class="col-12 md:col-6">
+                <label class="label-custom" for="float-input-docStatus">Estado </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-docStatus" class="field-mandatory" type="text" placeholder="Estado" maxlength="50" size="50" formControlName="docStatus" autocomplete="off" pInputText [readOnly]="true">
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-docDate">Fecha de contabilización </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDate" class="field-mandatory" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['docDate'].errors && modeloFormDoc.controls['docDate'].dirty">
+                  <p-message severity="error" text="Fecha de contabilización es requerida." *ngIf="modeloFormDoc.controls['docDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-docDueDate">Fecha de vencimiento </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-docDueDate" class="field-mandatory" placeholder="Fecha de vencimiento" formControlName="docDueDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['docDueDate'].errors && modeloFormDoc.controls['docDueDate'].dirty">
+                  <p-message severity="error" text="Fecha de vencimiento es requerida." *ngIf="modeloFormDoc.controls['docDueDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-taxDate">Fecha de documento </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-taxDate" class="field-mandatory" placeholder="Fecha de documento" formControlName="taxDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['taxDate'].errors && modeloFormDoc.controls['taxDate'].dirty">
+                  <p-message severity="error" text="Fecha de documento es requerida." *ngIf="modeloFormDoc.controls['taxDate'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-reqDate">Fecha necesaria </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar-reqDate" class="field-mandatory" placeholder="Fecha necesaria" formControlName="reqDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloFormDoc.controls['reqDate'].errors && modeloFormDoc.controls['reqDate'].dirty">
+                  <p-message severity="error" text="Fecha necesaria es requerida." *ngIf="modeloFormDoc.controls['reqDate'].errors['required']"></p-message>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <p-contextMenu #cm [model]="items" (onShow)="onContextMenuShow($event)" ></p-contextMenu>
+
+      <div class="col-12">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormCon">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-docType">Clase de artículo/servicio </label>
+                <p-dropdown id="float-input-docType" class="field-mandatory" [options]="docTypesList" placeholder="Seleccione la clase de artículo/servicio" formControlName="docType" [required] optionLabel="label"></p-dropdown>
+                <div *ngIf="modeloFormCon.controls['docType'].errors && modeloFormCon.controls['docType'].dirty">
+                  <p-message severity="error" text="Clase de artículo/servicio es requerido." *ngIf="modeloFormCon.controls['docType'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-10"></div>
+            </div>
+          </form>
+
+          <!-- Grilla de Datos     -->
+          <p-table
+            [value]="modeloLines"
+            [columns]="columnas"
+            editMode="row"
+            [rowHover]="true"
+            [contextMenu]="cm"
+            [autoLayout]="true"
+            [resizableColumns]="true"
+            responsiveLayout="scroll"
+            [showCurrentPageReport]="true"
+            [(contextMenuSelection)]="modeloLinesSelectedContext"
+            styleClass="{{globalConstants.cStyleTableGridLines}}"
+            currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+            <!-- Header -->
+            <ng-template pTemplate="header" let-columns>
+              <tr>
+                <th class="custom-header"></th>
+                <th *ngFor="let col of columns" class="custom-header">
+                  {{col.header}}
+                </th>
+              </tr>
+            </ng-template>
+            <!-- body -->
+            <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+              <tr [pContextMenuRow]="modelo" [ngClass]="{'row-cerrado': modelo?.lineStatus === 'C'}">
+                <td class="custom-td-2">
+                  <p-splitButton [disabled]="modelo.lineStatus==='C'" icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                  </p-splitButton>
+                </td>
+                <td class="p-fluid" *ngIf="docTypeSelected?.value === 'I'">
+                  <i class="pi pi-search" (click)="onOpenArticulo(ri)"></i>
+                  {{modelo.itemCode}}
+                </td>
+                <td class="p-fluid" *ngIf="docTypeSelected?.value === 'I'">
+                  {{modelo.dscription}}
+                </td>
+                <td class="p-fluid" pEditableColumn *ngIf="docTypeSelected?.value === 'S'">
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <input id="dscription" pInputText type="text"autocomplete="off" [(ngModel)]="modelo.dscription" maxlength="100" (ngModelChange)="onDescChange()">
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{modelo.dscription}}
+                    </ng-template>
+                  </p-cellEditor>
+                </td>
+                <td class="p-fluid">
+                  <i *ngIf="docTypeSelected?.value === 'S' && modelo.dscription.trim().length > 0 ? true : (modelo.itemCode !== ''? true:false)" class="pi pi-search" (click)="onOpenProveedor(ri)"></i>
+                  {{modelo.lineVendor}}
+                </td>
+                <td class="custom-td-12" pEditableColumn>
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <p-calendar id="pqtReqDate" appendTo="body" [(ngModel)]="modelo.pqtReqDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true" (ngModelChange)="onFechaChange()"></p-calendar>
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{modelo.pqtReqDate | date: 'dd/MM/yyyy'}}
+                    </ng-template>
+                  </p-cellEditor>
+                </td>
+                <td class="p-fluid">
+                  <i *ngIf="docTypeSelected?.value === 'S' && modelo.dscription.trim().length > 0? true : (modelo.itemCode !== ''? true:false)" class="pi pi-search" (click)="onOpenCuentaContable(ri)"></i>
+                  {{modelo.formatCode}}
+                </td>
+                <td class="p-fluid">
+                  {{modelo.acctName}}
+                </td>
+                <td class="custom-td-16">
+                  <i *ngIf="docTypeSelected?.value === 'S' && modelo.dscription.trim().length > 0 ? true : (modelo.itemCode !== ''? true:false)" class="pi pi-search" (click)="onOpenCentroCosto(ri)"></i>
+                  {{modelo.ocrCode}}
+                </td>
+                <td class="p-fluid" *ngIf="docTypeSelected?.value === 'I'">
+                  <i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacen(modelo, ri)"></i>
+                  {{modelo.whsCode}}
+                </td>
+                <td class="p-fluid">
+                  <i *ngIf="docTypeSelected?.value === 'S' && modelo.dscription.trim().length > 0? true : (modelo.itemCode !== ''? true:false)" class="pi pi-search" (click)="onOpenTipoOperacion(ri)"></i>
+                  {{modelo?.u_tipoOpT12Nam}}
+                </td>
+                <td class="p-fluid">
+                  <i *ngIf="docTypeSelected?.value === 'S' && modelo.dscription.trim().length > 0 ? true : (modelo.itemCode !== ''? true:false)" class="pi pi-search" (click)="onOpenTipoCompra(ri)"></i>
+                  {{modelo?.u_FF_TIP_COM_NAM}}
+                </td>
+                <td class="custom-td-8" *ngIf="docTypeSelected?.value === 'I'">
+                  {{modelo.unitMsr}}
+                </td>
+                <td class="custom-td-numero" pEditableColumn *ngIf="docTypeSelected?.value === 'I'">
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <input id="quantity" type="text"autocomplete="off" [(ngModel)]="modelo.quantity" maxlength="9" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.quantity)">
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{modelo.quantity | number: '.3':'en-EN'}}
+                    </ng-template>
+                  </p-cellEditor>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td [attr.colspan]="docTypeSelected?.value === 'I' ? 12 : 8">{{globalConstants.currentTableEmptyMessage}}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card no-margin">
+          <form [formGroup]="modeloFormPie">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-employeeInfo">Propietario </label>
+                <p-dropdown id="float-input-employeeInfo" class="field-mandatory" [options]="employeesInfoList" [filter]="true" placeholder="Seleccione el propietario" formControlName="employeeInfo" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormPie.controls['employeeInfo'].errors && modeloFormPie.controls['employeeInfo'].dirty">
+                  <p-message severity="error" text="Propietario es requerido." *ngIf="modeloFormPie.controls['employeeInfo'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-8">
+                <label class="label-custom" for="float-input-comments">Comentarios </label>
+                <div class="p-inputgroup">
+                  <textarea formControlName="comments" autocomplete="off" placeholder="Comentarios" maxlength="254" rows="2" pInputText></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormReq.valid || !modeloFormDoc.valid || !modeloFormPie.valid || !hasValidLines" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-dialog *ngIf="isVisualizarArticulo" header="Artículo" [(visible)]="isVisualizarArticulo" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+  <app-busqueda-articulo [prchseItem]="'Y'" (eventoAceptar)="onSelectedArticulo($event)"></app-busqueda-articulo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseArticulo()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarProveedor" header="Proveedor" [(visible)]="isVisualizarProveedor" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+  <app-busqueda-socio-negocio [subTitle]="'Proveedores'" [cardType]="'S'" [transType]="'Y'" (eventoAceptar)="onSelectedProveedor($event)"></app-busqueda-socio-negocio>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseProveedor()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarCuentaContable" header="Cuentas" [(visible)]="isVisualizarCuentaContable" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-cuenta-contable (eventoAceptar)="onSelectedCuentaContable($event)"></app-busqueda-cuenta-contable>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseCuentaContable()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarCentroCosto" header="Centro de costo" [(visible)]="isVisualizarCentroCosto" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-centro-costo [active]="'Y'" (eventoAceptar)="onSelectedCentroCosto($event)"></app-busqueda-centro-costo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseCentroCosto()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarAlmacen" header="Almacén" [(visible)]="isVisualizarAlmacen" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-almacen-by-articulo [itemCode]="itemCode" [inactive]="inactiveAlmacenItem" (eventoAceptar)="onSelectedAlmacen($event)"></app-busqueda-almacen-by-articulo>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseAlmacen()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarTipoOperacion" header="Tipo de operación" [(visible)]="isVisualizarTipoOperacion" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-tipo-operacion [title]="'Tipo de Operación'" [placeholder]="'Tipo de operación'" [nomTabla]="'OWTR'" [nomCampo]="'U_tipoOpT12'" (eventoAceptar)="onSelectedTipoOperacion($event)"></app-busqueda-tipo-operacion>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoOperacion()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarTipoCompra" header="Tipo de compra" [(visible)]="isVisualizarTipoCompra" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-campo-definido-usuario [title]="'Tipo de compra'" [placeholder]="'Tipo de compra'" [tableID]="'PRQ1'" [aliasID]="'FF_TIP_COM'" (eventoAceptar)="onClickSelectedTipoCompra($event)"></app-busqueda-campo-definido-usuario>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoCompra()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

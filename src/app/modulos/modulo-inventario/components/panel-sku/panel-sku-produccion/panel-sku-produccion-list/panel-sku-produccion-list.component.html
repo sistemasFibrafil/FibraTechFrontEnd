@@ -1,0 +1,109 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-6">
+            <input id="float-input-filtro" type="text" placeholder="Buscar por artículo o cliente" maxlength="100" size="50" formControlName="filtro" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+          <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+        </div>
+        </div>
+      </form>
+    </p-panel>
+
+
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}">
+        <p-table
+          [value]="list"
+          [rowHover]="true"
+          [autoLayout]="true"
+          [responsive]="true"
+          [showCurrentPageReport]="true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th style="width: 105px" rowspan="3"></th>
+              <th colspan="5" rowspan="2" class="custom-header">DATOS DE COMERCIAL</th>
+              <th colspan="2" class="custom-header">DATOS DE PRODUCCIÓN</th>
+              <th colspan="2" class="custom-header">COSTEO DETALLADO</th>
+            </tr>
+            <tr>
+              <th colspan="2" class="custom-header">FECHA</th>
+              <th colspan="2" class="custom-header">FECHA</th>
+            </tr>
+            <tr>
+              <th class="custom-header">N° CORRELATIVO</th>
+              <th class="custom-header">CÓDIGO DE ARTÍCULO</th>
+              <th class="custom-header">NOMBRE DE ARTÍCULO</th>
+              <th class="custom-header">CÓDIGO DE CLIENTE</th>
+              <th class="custom-header">NOMBRE DE CLIENTE</th>
+
+              <th class="custom-header">INICIO</th>
+              <th class="custom-header">TÉRMINO</th>
+
+              <th class="custom-header">INICIO</th>
+              <th class="custom-header">TÉRMINO</th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+            <tr class="p-selectable-row">
+              <td style="width: 105px">
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td>
+                <span class="p-column-title">N° CORRELATIVO</span> {{modelo.u_Number}}
+              </td>
+              <td>
+                <span class="p-column-title">CÓDIGO DE ARTÍCULO</span> {{modelo.u_ItemCode}}
+              </td>
+              <td>
+                <span class="p-column-title">DESCRIPCIÓN DE ARTÍCULO</span> {{modelo.u_ItemName}}
+              </td>
+              <td>
+                <span class="p-column-title">CÓDIGO DE CLIENTE</span> {{modelo.u_CardCode}}
+              </td>
+              <td>
+                <span class="p-column-title">NOMBRE DE CLIENTE</span> {{modelo.u_CardName}}
+              </td>
+              <td>
+                <span class="p-column-title">FECHA INICIO: </span> {{modelo.u_PrdStrDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td>
+                <span class="p-column-title">FECHA TÉRMINO: </span> {{modelo.u_PrdEndDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td>
+                <span class="p-column-title">FECHA INICIO: </span> {{modelo.u_CosStrDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td>
+                <span class="p-column-title">FECHA TÉRMINO: </span> {{modelo.u_CosEndDate | date: 'dd/MM/yyyy'}}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="9">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+    </p-panel>
+</div>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay] = "isDeleting" ></app-panel-eliminar>

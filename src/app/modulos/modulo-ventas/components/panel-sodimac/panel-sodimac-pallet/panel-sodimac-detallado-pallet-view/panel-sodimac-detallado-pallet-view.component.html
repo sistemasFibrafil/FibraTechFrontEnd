@@ -1,0 +1,110 @@
+<div class="card card-w-title">
+  <p-panel header="Visualización de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <div class="card no-margin">
+          <p-table
+            [value]="detail"
+            [columns]="columnas"
+            dataKey="line"
+            editMode="row"
+            [rowHover]="true"
+            [autoLayout]="true"
+            [responsive]="true"
+            [(selection)]="selected"
+            [showCurrentPageReport]="true"
+            styleClass="{{globalConstants.cStyleTableGridLines}}"
+            currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+            <!-- Caption -->
+            <ng-template pTemplate="caption">
+              <button [disabled]="selected?.length===0" pButton type="button" icon="{{globalConstants.icoImprimir}}" class="{{globalConstants.cStyleButtonWarning}}" (click)="headerPrint()"></button>
+            </ng-template>
+            <!-- Header -->
+            <ng-template pTemplate="header" let-columns>
+              <tr>
+                <th class="custom-header"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                <th *ngFor="let col of columns" class="custom-header">
+                  {{col.header}}
+                </th>
+                <th class="custom-header"></th>
+              </tr>
+            </ng-template>
+            <!-- body -->
+            <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+              <tr>
+                <td class="custom-td-2">
+                  <p-tableCheckbox [value]="modelo" ></p-tableCheckbox>
+                </td>
+                <td class="custom-td-3">
+                  <span class="p-column-title">#: </span>{{modelo.line}}
+                </td>
+                <td class="custom-td-10">
+                  <span class="p-column-title">Código: </span>{{modelo.itemCode}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">Sku: </span> {{modelo.sku}}
+                </td>
+                <td class="p-fluid">
+                    <span class="p-column-title">Descripción: </span> {{modelo.dscription}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">Descripción larga: </span> {{modelo.dscriptionLarga}}
+                </td>
+                <td class="p-fluid">
+                  <span class="p-column-title">EAN: </span> {{modelo.ean}}
+                </td>
+                <td class="custom-td-numero">
+                  <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
+                </td>
+                <td class="custom-td-2">
+                  <button pButton icon="{{globalConstants.icoImprimir}}" class="{{globalConstants.cStyleButtonWarning}}" (click)="onToRowSelectPrint(modelo)"></button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="7">{{globalConstants.currentTableEmptyMessage}}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="detail?.length <= 0" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+<p-dialog *ngIf="isDisplayGenerandoVisor" header="Generando visor" [(visible)]="isDisplayGenerandoVisor" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Generando visor del registro seleccionado...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog *ngIf="isDisplayVisor" header="LPN" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>
+
+
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
+

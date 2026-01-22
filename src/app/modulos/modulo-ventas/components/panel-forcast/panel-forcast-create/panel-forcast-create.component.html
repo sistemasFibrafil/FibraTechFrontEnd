@@ -1,0 +1,146 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <div class="card no-margin">
+          <form [formGroup]="modeloForm">
+            <div class="p-formgrid grid">
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-con-sin-oc">C/S OC: </label>
+                <p-dropdown id="float-input-con-sin-oc" [options]="listConSinOc" class="ui dropdown-item-text" placeholder="Seleccione el C/S OC" formControlName="conSinOc" [required] optionLabel="nomConSinOc" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['conSinOc'].errors && modeloForm.controls['conSinOc'].dirty">
+                  <p-message severity="error" text="El C/S OC es requerido." *ngIf="modeloForm.controls['conSinOc'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-negocio">Negocio: </label>
+                <p-dropdown id="float-input-negocio" [options]="listNegocio" class="ui dropdown-item-text" placeholder="Seleccione el Negocio" formControlName="negocio" [required] optionLabel="nomNegocio" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['negocio'].errors && modeloForm.controls['negocio'].dirty">
+                  <p-message severity="error" text="El negocio es requerido." *ngIf="modeloForm.controls['negocio'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-fecha-registro">Fecha de registro: </label>
+                <div class="p-inputgroup">
+                  <p-calendar id="float-calendar--fecha-registro" placeholder="Fecha de registro" formControlName="fecRegistro" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                </div>
+                <div *ngIf="modeloForm.controls['fecRegistro'].errors && modeloForm.controls['fecRegistro'].dirty">
+                  <p-message severity="error" text="La fecha de registro es requerido." *ngIf="modeloForm.controls['fecRegistro'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-numero-ov">Número de OV: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-cantidad" type="number" placeholder="Número de OV" maxlength="10" size="1999999999" min="1" formControlName="docNum" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloForm.controls['docNum'].errors && modeloForm.controls['docNum'].dirty">
+                  <p-message severity="error" text="El número de ov es requerido." *ngIf="modeloForm.controls['docNum'].errors['required']"></p-message>
+                </div>
+              </div>
+
+
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-grupo-articulo">Grupo de artículo: </label>
+                <p-dropdown id="float-input-grupo-articulo" [options]="listGrupoArticulo" class="ui dropdown-item-text" placeholder="Seleccione el Grupo de artículo" formControlName="grupoArticulo" [required] optionLabel="itmsGrpNam" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['grupoArticulo'].errors && modeloForm.controls['grupoArticulo'].dirty">
+                  <p-message severity="error" text="El grupo de artículo es requerido." *ngIf="modeloForm.controls['grupoArticulo'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-itemCode">Código de artículo: </label>
+                <app-modal-articulo [itemCode]="itemCode" (eventoAceptar)="onToArticuloSelecionado($event)"></app-modal-articulo>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-itemName">Nombre de artículo: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-itemName" type="text" placeholder="Nombre de artículo" maxlength="100" size="50" formControlName="itemName" autocomplete="off" required pInputText>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-cardCode">Código de cliente: </label>
+                <div class="p-inputgroup">
+                  <app-modal-socio-negocio [title]="'Clientes'" [cardCode]="cardCode" [cardType] = "'C'" [transType] = "'N,Y'" (eventoAceptar)="onToClienteSelecionado($event)"></app-modal-socio-negocio>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-licTradNum">RUC: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-licTradNum" type="text" placeholder="RUC" maxlength="15" size="50" formControlName="licTradNum" autocomplete="off" required pInputText>
+                </div>
+              </div>
+              <div class="col-12 md:col-4">
+                <label class="label-custom" for="float-input-cardName">Razón social o nombre: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" required pInputText>
+                </div>
+              </div>
+
+
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-unidad-medida">Unidad de medida: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-unidad-medida" type="text" placeholder="Unidad de medida" maxlength="50" size="50" formControlName="unidadMedida" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloForm.controls['unidadMedida'].errors && modeloForm.controls['unidadMedida'].dirty">
+                  <p-message severity="error" text="La unidad de medida es requerida." *ngIf="modeloForm.controls['unidadMedida'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-cantidad">Cantidad: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-cantidad" type="number" placeholder="Cantidad" maxlength="10" size="50" min="1" formControlName="cantidad" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloForm.controls['cantidad'].errors && modeloForm.controls['cantidad'].dirty">
+                  <p-message severity="error" text="La cantidad es requerida." *ngIf="modeloForm.controls['cantidad'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-kg">Kg: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-kg" type="number" placeholder="Kg" mmaxlength="10" size="50" min="1" formControlName="kg" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloForm.controls['kg'].errors && modeloForm.controls['kg'].dirty">
+                  <p-message severity="error" text="El kg es requerido." *ngIf="modeloForm.controls['kg'].errors['required']"></p-message>
+                </div>
+              </div>
+              <div class="col-12 md:col-3">
+                <label class="label-custom" for="float-input-precio">Precio: </label>
+                <div class="p-inputgroup">
+                  <input id="float-input-precio" type="number" placeholder="Precio" maxlength="10" size="50" min="1" formControlName="precio" autocomplete="off" required pInputText>
+                </div>
+                <div *ngIf="modeloForm.controls['precio'].errors && modeloForm.controls['precio'].dirty">
+                  <p-message severity="error" text="La cantidad es requerida." *ngIf="modeloForm.controls['precio'].errors['required']"></p-message>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-12">
+                <label class="label-custom" for="float-input-estado">Estado: </label>
+                <p-dropdown id="float-input-estado" [options]="listEstado" class="ui dropdown-item-text" placeholder="Seleccionar el Estado" formControlName="estado" [required] optionLabel="nomEstado" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloForm.controls['estado'].errors && modeloForm.controls['estado'].dirty">
+                  <p-message severity="error" text="El estado es requerido." *ngIf="modeloForm.controls['estado'].errors['required']"></p-message>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>

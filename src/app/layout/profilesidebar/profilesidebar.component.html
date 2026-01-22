@@ -1,0 +1,53 @@
+<p-sidebar [(visible)]="visible" position="right" [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" styleClass="layout-profile-sidebar w-full sm:w-25rem">
+    <div class="flex flex-column mx-auto md:mx-0">
+        <span class="mb-2 font-semibold">Bienvenido</span>
+        <span class="text-color-secondary font-medium mb-5">{{isUserEmail}}</span>
+
+        <ul class="list-none m-0 p-0">
+            <li>
+                <a class="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150" (click)="goPerfil()">
+                    <span>
+                        <i class="pi pi-user text-xl text-primary"></i>
+                    </span>
+                    <div class="ml-3">
+                        <span class="mb-2 font-semibold">Perfil</span>
+                        <p class="text-color-secondary m-0">{{isUserName}}</p>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a class="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150" (click)="goCambiarContrasena()">
+                    <span>
+                        <i class="pi pi-lock text-xl text-primary"></i>
+                    </span>
+                    <div class="ml-3">
+                        <span class="mb-2 font-semibold">Cambiar de Contraseña</span>
+                        <p class="text-color-secondary m-0">{{isUserEmail}}</p>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a class="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
+                    <span>
+                        <i class="pi pi-book text-xl text-primary"></i>
+                    </span>
+                    <div class="ml-3">
+                        <span class="mb-2 font-semibold">Manual Usuario</span>
+                        <p class="text-color-secondary m-0">Versión v1.0.0</p>
+                    </div>
+                </a>
+            </li>
+            <li (click)="goLogout($event)">
+                <a class="cursor-pointer flex surface-border mb-3 p-3 align-items-center border-1 surface-border border-round hover:surface-hover transition-colors transition-duration-150">
+                    <span>
+                        <i class="pi pi-power-off text-xl text-primary"></i>
+                    </span>
+                    <div class="ml-3">
+                        <span class="mb-2 font-semibold">Cerrar Sesión</span>
+                        <p class="text-color-secondary m-0">Aplicación Web</p>
+                    </div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</p-sidebar>

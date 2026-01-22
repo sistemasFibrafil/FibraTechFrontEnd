@@ -1,0 +1,177 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{titulo}}" [style] = "{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="fecInicial" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="fecFinal" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnBuscar" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onToCreate()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnExpExcel" pButton type="button" label="{{globalConstants.cExpExcel}}" icon="{{globalConstants.icoExpExcel}}" (click)="onToExportExcel()"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <button [disabled]="buttonAcces.btnImpExcel" pButton type="button" label="{{globalConstants.cImpExcel}}" icon="{{globalConstants.icoImpExcel}}" (click)="onToImportExcel()"></button>
+          </div>
+          <div class="col-12 md:col-4">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{titulo}}">
+        <p-table
+          [value]="list"
+          [scrollable]="true"
+          scrollDirection="both"
+          scrollHeight="450px"
+          dataKey="idForcastVenta"
+          [autoLayout]="true"
+          [responsive]="true"
+          [showCurrentPageReport]="true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+          [rowHover]="true">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th style="width: 110px" class="custom-header" pFrozenColumn>Acciones</th>
+              <th style="width: 100px" pFrozenColumn pSortableColumn="nomConSinOc" class="custom-header">
+                <p-sortIcon field="nomConSinOc"></p-sortIcon>
+                C/S OC
+              </th>
+              <th style="width: 150px" pFrozenColumn pSortableColumn="nomNegocio" class="custom-header">
+                <p-sortIcon field="nomNegocio"></p-sortIcon>
+                Negocio
+              </th>
+              <th style="width: 250px" pFrozenColumn pSortableColumn="itmsGrpNam" class="custom-header">
+                <p-sortIcon field="itmsGrpNam"></p-sortIcon>
+                Grupo de artículo
+              </th>
+              <th style="width: 300px" pSortableColumn="itemName" class="custom-header">
+                <p-sortIcon field="itemName"></p-sortIcon>
+                Artículo
+              </th>
+              <th style="width: 160px" pSortableColumn="docNum" class="custom-header">
+                <p-sortIcon field="docNum"></p-sortIcon>
+                Órden de venta
+              </th>
+              <th style="width: 300px" pSortableColumn="cardName" class="custom-header">
+                <p-sortIcon field="cardName"></p-sortIcon>
+                Cliente
+              </th>
+              <th style="width: 120px" pSortableColumn="fecRegistro" class="custom-header">
+                <p-sortIcon field="fecRegistro"></p-sortIcon>
+                Fecha
+              </th>
+              <th style="width: 100px" pSortableColumn="unidadMedida" class="custom-header">
+                <p-sortIcon field="unidadMedida"></p-sortIcon>
+                UM
+              </th>
+              <th style="width: 150px" pSortableColumn="cantidad" class="custom-header">
+                <p-sortIcon field="cantidad"></p-sortIcon>
+                Cantidad
+              </th>
+              <th style="width: 150px" pSortableColumn="kg" class="custom-header">
+                <p-sortIcon field="kg"></p-sortIcon>
+                Kg
+              </th>
+              <th style="width: 150px" pSortableColumn="precio" class="custom-header">
+                <p-sortIcon field="precio"></p-sortIcon>
+                Precio
+              </th>
+              <th style="width: 150px" pSortableColumn="total" class="custom-header">
+                <p-sortIcon field="total"></p-sortIcon>
+                Total
+              </th>
+              <th style="width: 200px" pSortableColumn="nomEstado" class="custom-header">
+                <p-sortIcon field="nomEstado"></p-sortIcon>
+                Estado
+              </th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
+            <tr class="ui-selectable-row">
+              <td style="width: 110px" pFrozenColumn>
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onToItemSelected(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td style="width: 100px" pFrozenColumn>
+                <span class="p-column-title">C/S OC</span> {{modelo.nomConSinOc}}
+              </td>
+              <td style="width: 150px" pFrozenColumn>
+                <span class="p-column-title">Negocio</span> {{modelo.nomNegocio}}
+              </td>
+              <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden" pFrozenColumn>
+                <span class="p-column-title">Grupo de artículo</span> {{modelo.itmsGrpNam}}
+              </td>
+              <td style="width: 300px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                <span class="p-column-title">Artículo</span> {{modelo.itemName}}
+              </td>
+              <td style="width: 160px">
+                <span class="p-column-title">Órden de venta</span> {{modelo.docNum}}
+              </td>
+              <td style="width: 300px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                <span class="p-column-title">Cliente</span> {{modelo.cardName}}
+              </td>
+              <td style="width: 120px" pFrozenColumn>
+                <span class="p-column-title">Fecha</span> {{modelo.fecRegistro | date: 'dd/MM/yyyy'}}
+              </td>
+              <td style="width: 100px" pFrozenColumn>
+                <span class="p-column-title">UM</span> {{modelo.unidadMedida}}
+              </td>
+              <td style="width: 150px" pFrozenColumn>
+                <span class="p-column-title">Cantidad</span> {{modelo.cantidad | number: '.2':'en-EN'}}
+              </td>
+              <td style="width: 150px" pFrozenColumn>
+                <span class="p-column-title">Kg</span> {{modelo.kg | number: '.2':'en-EN'}}
+              </td>
+              <td style="width: 150px" pFrozenColumn>
+                <span class="p-column-title">Precio</span> {{modelo.precio | number: '.2':'en-EN'}}
+              </td>
+              <td style="width: 150px" pFrozenColumn>
+                <span class="p-column-title">Total</span> {{modelo.total | number: '.2':'en-EN'}}
+              </td>
+              <td style="width: 200px" pFrozenColumn>
+                <span class="p-column-title">Estado</span> {{modelo.nomEstado}}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td style="width: 2380px" colspan="14">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+    </p-panel>
+</div>
+
+
+<p-dialog header="Importar - {{titulo}}" *ngIf="isImport" [(visible)]="isImport" [modal]="true" [closable]="true" [autoZIndex] [style]="{width: '50vw'}">
+  <div>
+    <app-ven-panel-forcast-import (eventoCancelar)="onToCancelImport($event)"></app-ven-panel-forcast-import>
+  </div>
+</p-dialog>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-eliminar [isDisplay] = "isDeleting" ></app-panel-eliminar>

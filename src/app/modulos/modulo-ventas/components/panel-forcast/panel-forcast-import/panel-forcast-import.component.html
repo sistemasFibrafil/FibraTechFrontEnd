@@ -1,0 +1,20 @@
+<div class="grid p-fluid" id="modal-import">
+  <div class="col-12 md:col-12">
+    <p-fileUpload #fileUploadArchivo name="demo[]" chooseLabel="Seleccionar" uploadLabel="Importar" cancelLabel="Cancelar" [customUpload]="true" accept=".txt" [maxFileSize]="500486000" [fileLimit]="1" (uploadHandler)="onToUpload($event, fileUploadArchivo)">
+    </p-fileUpload>
+    <div class="barra-progreso">
+      <ng-container *ngIf="isEnvioArchivo && progress === 0">
+        <p-progressBar mode="indeterminate" [style]="{ height: '6px', margin: '10px 0 0 0' }"></p-progressBar>
+        <h3 style="text-align: center;">Enviando solicitud...</h3>
+      </ng-container>
+      <p-progressBar *ngIf="progress > 0" [value]="progress" [style]="{ margin: '10px 0 15px 0' }">
+      </p-progressBar>
+    </div>
+  </div>
+  <div class="col-12 md:col-12">
+    <button pButton type="button" label="{{globalConstants.cCancelar}}" icon="{{globalConstants.icoCancelar}}" class="fibratech-button {{globalConstants.cStyleButtonDanger}}" (click)="onToCancelUpload(fileUploadArchivo)"></button>
+  </div>
+</div>
+
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>

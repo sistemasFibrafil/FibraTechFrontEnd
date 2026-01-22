@@ -1,0 +1,359 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{subtitulo}}" [style]="{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="startDate" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="businessPartnerGroupSapList" [(ngModel)]="businessPartnerGroupSelected" formControlName="msBusinessPartnerGroup" defaultLabel="Seleccione el Grupo de Cliente" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="salesEmployeeList" [(ngModel)]="salesEmployeeSelected" formControlName="msSalesEmployee" defaultLabel="Seleccione el Vendedor" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="documentTypeList" [(ngModel)]="documentTypeSelected" formControlName="msDocumentType" defaultLabel="Seleccione el Tipo de Documento" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="statusList" [(ngModel)]="statusSelected" formControlName="msStatus" defaultLabel="Seleccione el Estado" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-6">
+            <input id="float-input-customer" type="text" placeholder="Buscar por código o nombre de cliente" maxlength="100" size="50" formControlName="customer" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+          <div class="col-12 md:col-6">
+            <input id="float-input-item" type="text" placeholder="Buscar por código o nombre de artículo" maxlength="100" size="50" formControlName="item" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" pButton type="button" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExcel}}" (click)="onClickExcel()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <p-splitButton [disabled]='reporteList?.length <= 0' label="Copiar a" icon="pi pi-copy" [model] = "opciones" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+          </div>
+          <div class="col-12 md:col-3">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{subtitulo}}">
+      <p-table
+        [value]="reporteList"
+        [scrollable]="true"
+        scrollDirection="both"
+        scrollHeight="550px"
+        [rowHover]="true"
+        [responsive]="true"
+        [autoLayout]="true"
+        [showCurrentPageReport]="true"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th style="width: 200px" pSortableColumn="cardCode" class="custom-header">
+              <p-sortIcon field="cardCode"></p-sortIcon>
+              Código de Cliente
+            </th>
+            <th style="width: 250px" pSortableColumn="cardName" class="custom-header">
+              <p-sortIcon field="cardName"></p-sortIcon>
+              Nombre de Cliente
+            </th>
+            <th style="width: 200px" pSortableColumn="nomTipDocumento" class="custom-header">
+              <p-sortIcon field="nomTipDocumento"></p-sortIcon>
+              Tipo de Documento
+            </th>
+            <th style="width: 220px" pSortableColumn="numeroDocumento" class="custom-header">
+              <p-sortIcon field="numeroDocumento"></p-sortIcon>
+              Número de Documento
+            </th>
+            <th style="width: 180px" pSortableColumn="numeroPedido" class="custom-header">
+              <p-sortIcon field="numeroPedido"></p-sortIcon>
+              Número de Pedido
+            </th>
+            <th style="width: 200px" pSortableColumn="numeroFactura" class="custom-header">
+              <p-sortIcon field="numeroFactura"></p-sortIcon>
+              Número de Factura
+            </th>
+            <th style="width: 230px" pSortableColumn="docDate" class="custom-header">
+              <p-sortIcon field="docDate"></p-sortIcon>
+              Fecha de Contabilización
+            </th>
+            <th style="width: 180px" pSortableColumn="taxDate" class="custom-header">
+              <p-sortIcon field="taxDate"></p-sortIcon>
+              Fecha de Emisión
+            </th>
+            <th style="width: 180px" pSortableColumn="docDueDate" class="custom-header">
+              <p-sortIcon field="docDueDate"></p-sortIcon>
+              Fecha de Entrega
+            </th>
+            <th style="width: 150px" pSortableColumn="nomStatus" class="custom-header">
+              <p-sortIcon field="nomStatus"></p-sortIcon>
+              Estado
+            </th>
+            <th style="width: 200px" pSortableColumn="slpName" class="custom-header">
+              <p-sortIcon field="slpName"></p-sortIcon>
+              Vendedor
+            </th>
+            <th style="width: 250px" pSortableColumn="itemCode" class="custom-header">
+              <p-sortIcon field="itemCode"></p-sortIcon>
+              Código de Artículo
+            </th>
+            <th style="width: 300px" pSortableColumn="itemName" class="custom-header">
+              <p-sortIcon field="itemName"></p-sortIcon>
+              Nombre de Artículo
+            </th>
+            <th style="width: 200px" pSortableColumn="whsName" class="custom-header">
+              <p-sortIcon field="whsName"></p-sortIcon>
+              Nombre de Almacén
+            </th>
+            <th style="width: 150px" pSortableColumn="salUnitMsr" class="custom-header">
+              <p-sortIcon field="salUnitMsr"></p-sortIcon>
+              UM de Venta
+            </th>
+            <th style="width: 150px" pSortableColumn="stockProduccion" class="custom-header">
+              <p-sortIcon field="stockProduccion"></p-sortIcon>
+              Stock
+            </th>
+            <th style="width: 150px" pSortableColumn="pendienteProduccion" class="custom-header">
+              <p-sortIcon field="pendienteProduccion"></p-sortIcon>
+              Pendiente
+            </th>
+            <th style="width: 150px" pSortableColumn="solicitadoProduccion" class="custom-header">
+              <p-sortIcon field="solicitadoProduccion"></p-sortIcon>
+              Solicitado
+            </th>
+            <th style="width: 150px" pSortableColumn="disponibleProduccion" class="custom-header">
+              <p-sortIcon field="disponibleProduccion"></p-sortIcon>
+              Disponible
+            </th>
+            <th style="width: 150px" pSortableColumn="quantity" class="custom-header">
+              <p-sortIcon field="quantity"></p-sortIcon>
+              Cantidad
+            </th>
+            <th style="width: 150px" pSortableColumn="rolloPedido" class="custom-header">
+              <p-sortIcon field="rolloPedido"></p-sortIcon>
+              Rol Pedido
+            </th>
+            <th style="width: 150px" pSortableColumn="kgPedido" class="custom-header">
+              <p-sortIcon field="kgPedido"></p-sortIcon>
+              Kg Pedido
+            </th>
+            <th style="width: 150px" pSortableColumn="toneladaPedida" class="custom-header">
+              <p-sortIcon field="toneladaPedida"></p-sortIcon>
+              Tn Pedida
+            </th>
+            <th style="width: 300px" pSortableColumn="openQty" class="custom-header">
+              <p-sortIcon field="openQty"></p-sortIcon>
+              Cantidad Pendiente Por Despachar
+            </th>
+            <th style="width: 150px" pSortableColumn="rolloPendiente" class="custom-header">
+              <p-sortIcon field="rolloPendiente"></p-sortIcon>
+              Rol Pendiente
+            </th>
+            <th style="width: 150px" pSortableColumn="kgPendiente" class="custom-header">
+              <p-sortIcon field="kgPendiente"></p-sortIcon>
+              Kg Pendiente
+            </th>
+            <th style="width: 150px" pSortableColumn="toneladaPendiente" class="custom-header">
+              <p-sortIcon field="toneladaPendiente"></p-sortIcon>
+              Tn Pendiente
+            </th>
+            <th style="width: 220px" pSortableColumn="delivrdQty" class="custom-header">
+              <p-sortIcon field="delivrdQty"></p-sortIcon>
+              Cantidad Despachada
+            </th>
+            <th style="width: 150px" pSortableColumn="price" class="custom-header">
+              <p-sortIcon field="price"></p-sortIcon>
+              Precio
+            </th>
+            <th style="width: 150px" pSortableColumn="totalSumSy" class="custom-header">
+              <p-sortIcon field="totalSumSy"></p-sortIcon>
+              Importe USD
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate="body" let-modelo>
+          <tr class="ui-selectable-row">
+            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Código de Cliente</span> {{modelo.cardCode}}
+            </td>
+            <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Nombre de Cliente</span> {{modelo.cardName}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">Tipo de Documento</span> {{modelo.nomTipDocumento}}
+            </td>
+            <td style="width: 220px">
+              <span class="p-column-title">Número de Documento</span> {{modelo.numeroDocumento}}
+            </td>
+            <td style="width: 180px">
+              <span class="p-column-title">Número de Pedido</span> {{modelo.numeroPedido}}
+            </td>
+            <td style="width: 200px">
+              <span class="p-column-title">Número de Factura</span> {{modelo.numeroFactura}}
+            </td>
+            <td style="width: 230px">
+              <span class="p-column-title">Fecha de Contabilización</span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 180px">
+              <span class="p-column-title">Fecha de Emisión</span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 180px">
+              <span class="p-column-title">Fecha de Entrega</span> {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Estado</span>
+              <span [ngSwitch] = "modelo.codStatus">
+                <span class="label" style="background:green" *ngSwitchCase = "01">{{modelo.nomStatus}}</span>
+                <span class="label" style="background:blue"  *ngSwitchCase = "02">{{modelo.nomStatus}}</span>
+                <span class="label" *ngSwitchDefault>{{modelo.nomStatus}}</span>
+              </span>
+            </td>
+            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Vendedor</span> {{modelo.slpName}}
+            </td>
+            <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Código de Artículo</span> {{modelo.itemCode}}
+            </td>
+            <td style="width: 300px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Nombre de Artículo</span> {{modelo.itemName}}
+            </td>
+            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+              <span class="p-column-title">Nombre de Almacén</span> {{modelo.whsName}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">UM de Venta</span> {{modelo.salUnitMsr}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Stock</span> {{modelo.stockProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Pendiente</span> {{modelo.pendienteProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Solicitado</span> {{modelo.solicitadoProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Disponible</span> {{modelo.disponibleProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Cantidad</span> {{modelo.quantity | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Rol Pedido</span> {{modelo.rolloPedido | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Kg Pedido</span> {{modelo.kgPedido | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Tn Pedida</span> {{modelo.toneladaPedida | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 300px">
+              <span class="p-column-title">Cantidad Pendiente Por Despachar</span> {{modelo.openQty | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Rol Pendiente</span> {{modelo.rolloPendiente | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Kg Pendiente</span> {{modelo.kgPendiente | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Tn Pendiente</span> {{modelo.toneladaPendiente | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 220px">
+              <span class="p-column-title">Cantidad Despachada</span> {{modelo.delivrdQty | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Precio</span> {{modelo.price | number: '.2':'en-EN'}}
+            </td>
+            <td style="width: 150px">
+              <span class="p-column-title">Importe USD</span> {{modelo.totalSumSy | number: '.2':'en-EN'}}
+            </td>
+          </tr>
+        </ng-template>
+        <!-- emptymessage -->
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td style="width: 5560px" colspan="23">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+</div>
+
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Obteniendo Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog header="S&OP" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '40vw'}" [maximizable]="true" (onHide)="onHide()">
+  <p-panel id="modal" header="Datos para generar S&OP" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+    <form [formGroup]="modeloFormSop">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-year">Año </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <p-dropdown id="float-input-year" [options]="listAnio" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el año" formControlName="year" [required] optionLabel="label" [showClear]="true" (onChange)="getListSemana()"></p-dropdown>
+          <div *ngIf="modeloFormSop.controls['year'].errors && modeloFormSop.controls['year'].dirty">
+            <p-message severity="error" text="El año es requerido." *ngIf="modeloFormSop.controls['year'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-month">Mes </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <p-dropdown id="float-input-month" [options]="listMes" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el mes" formControlName="month" [required] optionLabel="label" [showClear]="true" (onChange)="getListSemana()"></p-dropdown>
+          <div *ngIf="modeloFormSop.controls['month'].errors && modeloFormSop.controls['month'].dirty">
+            <p-message severity="error" text="El mes es requerido." *ngIf="modeloFormSop.controls['month'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-week">Semana </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <p-dropdown id="float-input-week" [options]="listSemana" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el semana" formControlName="week" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+          <div *ngIf="modeloFormSop.controls['week'].errors && modeloFormSop.controls['week'].dirty">
+            <p-message severity="error" text="La semana es requerida." *ngIf="modeloFormSop.controls['week'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-name">Nombre de S&OP </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <div class="p-inputgroup">
+            <input id="float-input-name" type="text" placeholder="Nombre de S&OP" maxlength="100" size="50" formControlName="name" autocomplete="off" pInputText>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-comments">Comentarios </label>
+          <div class="p-inputgroup">
+            <textarea id="float-area-comments" formControlName="comments" autocomplete="off" placeholder="Comentarios" maxlength="500" rows="3" pInputText></textarea>
+          </div>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button [disabled]="!modeloFormSop.valid" label="{{globalConstants.cCopiar}}" icon="{{globalConstants.icoCopiar}}" styleClass="p-button-success" (onClick)="onClickCopySop()"></p-button>
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseSop()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>

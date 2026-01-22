@@ -1,0 +1,23 @@
+/* Scroll solo para header+body dentro del table */
+:host ::ng-deep .p-datatable .p-datatable-wrapper {
+  overflow-x: auto;   /* 👈 scroll horizontal aquí */
+}
+
+/* La tabla crece al contenido pero nunca menos que el ancho disponible */
+:host ::ng-deep .p-datatable .p-datatable-wrapper table {
+  width: max-content;  /* se expande al contenido */
+  min-width: 100%;     /* al menos ocupa todo el contenedor */
+}
+
+/* Evita que el texto rompa línea y comprima columnas */
+:host ::ng-deep .p-datatable-thead > tr > th,
+:host ::ng-deep .p-datatable-tbody > tr > td {
+  white-space: nowrap;
+}
+
+/* Responsivo: da un “lienzo” mínimo en móvil para permitir el swipe horizontal */
+@media (max-width: 768px) {
+  :host ::ng-deep .p-datatable .p-datatable-wrapper table {
+    min-width: 560px;
+  }
+}

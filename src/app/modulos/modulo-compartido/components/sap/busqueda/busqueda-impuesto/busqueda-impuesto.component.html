@@ -1,0 +1,59 @@
+<p-panel id="modal" header="Opciones de búsqueda" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+  <form [formGroup]="modeloFormBusqueda">
+    <div class="grid p-fluid">
+      <div class="col-12 md:col-6">
+        <div class="p-inputgroup">
+          <input id="float-input-text1" type="text" placeholder="Buscar por código o descripción" maxlength="100" size="50" formControlName="text1" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+        </div>
+      </div>
+      <div class="col-12 md:col-6">
+        <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+      </div>
+    </div>
+  </form>
+</p-panel>
+<p-panel header="Lista de impuestos" [toggleable]="true">
+  <p-table
+  [value]="list"
+  [columns]="columnas"
+  [rowHover]="true"
+  [paginator]="true"
+  [autoLayout]="true"
+  [responsive]="true"
+  selectionMode="single"
+  [showCurrentPageReport]="true"
+  [rows]="globalConstants.sizePageModal"
+  styleClass="{{globalConstants.cStyleTableGridLines}}"
+  currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+    <!-- Header -->
+    <ng-template pTemplate="header" let-columns>
+      <tr>
+        <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+          <p-sortIcon field="{{col.field}}"></p-sortIcon>
+          {{col.header}}
+        </th>
+        <th class="custom-header"></th>
+      </tr>
+    </ng-template>
+    <!-- body -->
+    <ng-template pTemplate="body" let-modelo let-editing="editing">
+      <tr class="p-selectable-row" [pSelectableRow]="modelo">
+        <td class="p-fluid">
+          <span class="p-column-title">Código: </span> {{modelo.code}}
+        </td>
+        <td class="p-fluid">
+          <span class="p-column-title">Nombre: </span> {{modelo.name}}
+        </td>
+        <td class="custom-td-numero">
+          <span class="p-column-title">Tasa: </span> {{modelo.rate | number: '.2':'en-EN'}}
+        </td>
+        <td class="custom-td-2">
+          <button pButton icon="{{globalConstants.icoAceptar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onToSelected(modelo)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-panel>
+
+
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

@@ -1,0 +1,40 @@
+<div class="card card-w-title">
+  <p-panel header="Liberar">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <form [formGroup]="modeloForm">
+          <div class="p-formgrid grid">
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-objType">Tipo de documento </label>
+              <p-dropdown id="float-input-objType" class="field-mandatory" [options]="objTypeList" placeholder="Seleccione el tipo de documento" formControlName="objType" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeTypeDocument()"></p-dropdown>
+              <div *ngIf="modeloForm.controls['objType'].errors && modeloForm.controls['objType'].dirty">
+                <p-message severity="error" text="Tipo de documento es requerido." *ngIf="modeloForm.controls['objType'].errors['required']"></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-9">
+              <label class="label-custom" for="float-input-barcode">Código de barras </label>
+              <div class="p-inputgroup">
+                <input #codeBarInput id="float-input-u_CodeBar" class="field-mandatory" type="text" placeholder="Ingrese código de barras" maxlength="100" size="50" formControlName="u_CodeBar" autocomplete="off" required pInputText (keyup.enter)="onClickRelease()">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<p-toast position="top-right"></p-toast>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isRelease"></app-panel-guardar>
