@@ -104,8 +104,19 @@ export class UserContextService {
     return this.sessionService.getItemDecrypt('dfltWhs');
   }
 
+  public getCarptaAnexos() {
+    return this.sessionService.getItemDecrypt('srcCarpetaAnexos');
+  }
+
   public getWhsCodeSpareParts() {
-    return this.sessionService.getItemDecrypt('whsCodeSpareParts');
+    return this.sessionService.getItemDecrypt('whsCodeSpaPar');
+  }
+  public getCodGrpCustNat(): number {
+    return this.sessionService.getItemDecrypt('codGrpCustNat');
+  }
+
+  public getCodGrpCustFor(): number {
+    return this.sessionService.getItemDecrypt('codGrpCustFor');
   }
 
   public logout()

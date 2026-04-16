@@ -44,6 +44,9 @@ export class AccesoOpcionesService {
             if (element.keyOpcion === 'btn-cerrar') {
               this.buttonAcces.btnCerrar = false;
             }
+            if (element.keyOpcion === 'btn-cancelar') {
+              this.buttonAcces.btnCancelar = false;
+            }
             if (element.keyOpcion === 'btn-transferir') {
               this.buttonAcces.btnTransferir = false;
             }
@@ -136,6 +139,12 @@ export class AccesoOpcionesService {
             }
             if (element.keyOpcion === 'btn-permiso-logistico') {
               this.buttonAcces.btnPermisoLogistico = false;
+            }
+            if (element.keyOpcion === 'btn-vehiculo') {
+              this.buttonAcces.btnVehiculo = false;
+            }
+            if (element.keyOpcion === 'btn-conductor') {
+              this.buttonAcces.btnConductor = false;
             }
           });
     }

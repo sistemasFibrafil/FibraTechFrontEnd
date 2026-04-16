@@ -7,9 +7,11 @@ import { GestionPrimeNgModule } from './modulo-gestion-primeng.module';
 import { GestionRoutingModule } from './modulo-gestion-routing.module';
 
 
+
 @NgModule({
     declarations:
-    [],
+    [
+    ],
     imports:
     [
       CommonModule,

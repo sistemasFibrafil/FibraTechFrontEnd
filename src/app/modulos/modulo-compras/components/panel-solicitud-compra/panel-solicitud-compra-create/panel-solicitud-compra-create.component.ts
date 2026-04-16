@@ -1,27 +1,32 @@
-import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
 import { finalize, forkJoin, Subject, takeUntil } from 'rxjs';
-import { LayoutComponent } from 'src/app/layout/layout.component';
-import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 
-import { ISolicitudCompra1 } from '../../../interfaces/sap/solicitud-compra.interface';
-import { IArticuloQuery } from 'src/app/modulos/modulo-inventario/interfaces/articulo.interface';
+import { LayoutComponent } from '@app/layout/layout.component';
 
-import { UtilService } from 'src/app/services/util.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { SolicitudCompraService } from '../../../services/sap/solicitud-compra.service';
-import { ArticuloService } from 'src/app/modulos/modulo-inventario/services/articulo.service';
-import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/users.service';
-import { EmployeesInfoService } from 'src/app/modulos/modulo-recursos-humanos/services/employees-info.service';
-import { BranchesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/branchs.service';
-import { DepartmentsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/departments.service';
-import { NumeracionDocumentoService } from 'src/app/modulos/modulo-gestion/services/sap/inicializacion-sistema/numeracion-documento.service';
-import { SolicitudCompraCreateModel } from '../../../models/sap/solicitud-compra.model';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
+
+import { ItemsFindByListCodeModel } from '@app/modulos/modulo-inventario/models/items.model';
+import { PurchaseRequest1CreateModel, PurchaseRequestCreateModel } from '../../../models/sap-business-one/purchase-request.model';
+
+import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
+import { IArticuloQuery } from '@app/modulos/modulo-inventario/interfaces/items.interface';
+import { IPurchaseRequest1 } from '../../../interfaces/sap-business-one/purchase-request.interface';
+
+import { UtilService } from '@app/services/util.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { ItemsService } from '@app/modulos/modulo-inventario/services/items.service';
+import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
+import { EmployeesInfoService } from '@app/modulos/modulo-recursos-humanos/services/employees-info.service';
+import { UsersService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { BranchesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/branchs.service';
+import { DepartmentsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/departments.service';
+import { DocumentNumberingSeriesService } from '@app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series.service';
+import { saveAs } from 'file-saver';
 
 
 @Component({
@@ -30,39 +35,39 @@ import { SolicitudCompraCreateModel } from '../../../models/sap/solicitud-compra
   styleUrls: ['./panel-solicitud-compra-create.component.css']
 })
 export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, AfterViewInit {
-  // Lifecycle management
-  /** Gestión de ciclo de vida y ajustes visuales auxiliares */
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                    = new Subject<void>();
-  paddingTop                                   = '20px';
-  @ViewChild('notifyLabel') notifyLabel!      : ElementRef<HTMLElement>;
   private resizeObserver!                      : ResizeObserver;
 
-  // Forms
-  /** Formularios reactivos de la vista */
+  paddingTop                                   = '20px';
+  @ViewChild('notifyLabel') notifyLabel!       : ElementRef<HTMLElement>;
+
+
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
+  readonly titulo                              = 'Solicitud de Compra';
+  readonly nombreArchivo                       = `Solicitud de Compra - ${this.utilService.fechaHoraArchivo()}`;
+  globalConstants                              : GlobalsConstantsForm = new GlobalsConstantsForm();
+
+
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
   modeloFormReq                                : FormGroup;
   modeloFormDoc                                : FormGroup;
   modeloFormCon                                : FormGroup;
   modeloFormPie                                : FormGroup;
 
-  // Configuration
-  /** Configuración general y constantes */
-  readonly titulo                              = 'Solicitud de Compra';
-  globalConstants                              : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  // Combos
-  /** Listas de soporte para dropdowns */
-  reqTypesList                                 : SelectItem[] = [];
-  docTypesList                                 : SelectItem[] = [];
-  branchesList                                 : SelectItem[] = [];
-  departmentsList                              : SelectItem[] = [];
-  docStatusList                                : SelectItem[] = [];
-  requesterList                                : SelectItem[] = [];
-  employeesInfoList                            : SelectItem[] = [];
-
-  // UI State
-  /** Estados de overlays, modales y flags UI */
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
   isSaving                                     = false;
   isDisplay                                    = false;
+  hasValidLines                                 = false;
   isVisualizarAlmacen                          = false;
   isVisualizarArticulo                         = false;
   isVisualizarProveedor                        = false;
@@ -71,74 +76,91 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
   isVisualizarTipoOperacion                    = false;
   isVisualizarCuentaContable                   = false;
 
-  // Table configuration
-  /** Configuración de tabla y menús de acción */
+
+  // ===========================
+  // 🔹 5. TABLE CONFIG
+  // ===========================
   items                                        : MenuItem[];
   columnas                                     : TableColumn[] = [];
   opciones                                     : MenuItem[];
 
-  // Data
-  /** Modelos de detalle y selección */
-  modeloLines                                  : ISolicitudCompra1[] = [];
-  modeloLinesSelected                          : ISolicitudCompra1;
-  modeloLinesSelectedContext                   : ISolicitudCompra1;
-  
+
+  // ===========================
+  // 🔹 6. DATA (CORE)
+  // ===========================
+  modeloLines                                  : IPurchaseRequest1[] = [];
+  modeloLinesSelected                          : IPurchaseRequest1;
+  modeloLinesSelectedContext                   : IPurchaseRequest1;
+
+
+  // ===========================
+  // 🔹 7. COMBOS / LISTS
+  // ===========================
+  reqTypesList                                 : SelectItem[] = [];
+  docTypesList                                 : SelectItem[] = [];
+  branchesList                                 : SelectItem[] = [];
+  docStatusList                                : SelectItem[] = [];
+  requesterList                                : SelectItem[] = [];
+  departmentsList                              : SelectItem[] = [];
+  employeesInfoList                            : SelectItem[] = [];
+
+
+  // ===========================
+  // 🔹 8. DOC TYPE CONTROL
+  // ===========================
   docTypePrevious                              : any;
   docTypeSelected                              : any;
 
-  // Filters / Additional properties
-  /** Identificadores y auxiliares */
-  itemCode                                     = '';
+
+  // ===========================
+  // 🔹 9. INDEXES (UI CONTROL)
+  // ===========================
   indexAlmacen                                 = 0;
   indexArticulo                                = 0;
-  indexCentroCosto                             = 0;
   indexTipoCompra                              = 0;
+  indexCentroCosto                             = 0;
   indexTipoOperacion                           = 0;
   indexCentroProveedor                         = 0;
   indexCentroCuentaContable                    = 0;
 
+
+  // ===========================
+  // 🔹 10. AUX / FILTERS
+  // ===========================
   filler                                       = '';
+  itemCode                                     = '';
   toWhsCode                                    = '';
   inactiveAlmacen                              = 'N';
   demandanteAlmacen                            = 'N';
   inactiveAlmacenItem                          = 'N';
 
-  hasValidLines                                 = false;
 
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
     public  readonly app: LayoutComponent,
     private readonly usersService: UsersService,
-    private readonly articuloService: ArticuloService,
+    private readonly itemsService: ItemsService,
     private readonly branchesService: BranchesService,
     private readonly swaCustomService: SwaCustomService,
     private readonly localDataService: LocalDataService,
     private readonly userContextService: UserContextService,
     private readonly departmentsService: DepartmentsService,
     private readonly employeesInfoService: EmployeesInfoService,
-    private readonly solicitudCompraService: SolicitudCompraService,
-    private readonly numeracionDocumentoService: NumeracionDocumentoService,
+    private readonly purchaseRequestService: PurchaseRequestService,
+    private readonly documentNumberingSeriesService: DocumentNumberingSeriesService,
     public  readonly utilService: UtilService,
   ) {}
 
-  // ===========================
-  // Lifecycle Hooks
-  // ===========================
+
+
+  //#region <<< 1. LIFECYCLE >>>
 
   /**
    * Inicializa formularios y carga datos iniciales para combos.
    */
   ngOnInit(): void {
     this.initializeComponent();
-  }
-
-  /**
-   * Limpia suscripciones/observadores para evitar fugas de memoria.
-   */
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   /**
@@ -154,6 +176,14 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
     });
 
     this.resizeObserver.observe(this.notifyLabel.nativeElement);
+  }
+
+  /**
+   * Limpia suscripciones/observadores para evitar fugas de memoria.
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /** Detecta redimensionamiento de ventana y vuelve a medir */
@@ -181,20 +211,30 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
     });
   }
 
+  //#endregion
 
-  // ===========================
-  // Initialization
-  // ===========================
+
+
+  //#region <<< 2. INITIALIZATION >>>
 
   private initializeComponent(): void {
-    // Construye formularios reactivos y columnas/menús de UI
+    // 1️⃣ Crear formularios
     this.buildForms();
+
+    // 2️⃣ Cargar datos base
+    this.loadAllCombos();
+
+    // 3️⃣ Registrar listeners reactivos
+    this.wireDocTypeControl()
     this.subscribeReqDate();
+
+    // 4️⃣ Inicializar UI
     this.onBuildColumn();
     this.opcionesTabla();
     this.buildContextMenu();
-    // Cargar todos los combos en paralelo y aplicar valores por defecto sin emitir eventos
-    this.loadAllCombos();
+
+    // 5️⃣ Inicializar líneas
+    this.addLine(0);
   }
 
   private buildForms(): void {
@@ -209,12 +249,12 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      docStatus               : [{ value: 'Abierto', disabled: true }, Validators.required],
-      docDate                 : [new Date(), Validators.required],
-      docDueDate              : [new Date(), Validators.required],
-      taxDate                 : [new Date(), Validators.required],
-      reqDate                 : [null, Validators.required]
+      docNum                  : [{ value: '', disabled: false }],
+      docStatus               : [{ value: 'Abierto', disabled: false }, Validators.required],
+      docDate                 : [ { value: new Date(), disabled: false }, Validators.required],
+      docDueDate              : [ { value: new Date(), disabled: false }, Validators.required],
+      taxDate                 : [ { value: new Date(), disabled: false }, Validators.required],
+      reqDate                 : [ { value: null, disabled: false }, Validators.required]
     });
 
     this.modeloFormCon = this.fb.group({
@@ -225,192 +265,11 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
       employeeInfo            : ['', Validators.required],
       comments                : ['']
     });
-
-    this.addLine(0);
   }
 
-  private onBuildColumn(): void {
-    // Usar docTypeSelected si está disponible, sino leer del formulario
-    const docTyp = this.modeloFormCon.get('docType')?.value?.value;
-
-    if( docTyp === 'I'){
-      this.columnas = [
-        { field: 'itemCode',          header: 'Código' },
-        { field: 'dscription',        header: 'Descripción' },
-        { field: 'lineVendor',        header: 'Proveedor' },
-        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
-        { field: 'formatCode',        header: 'Cuenta mayor' },
-        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
-        { field: 'ocrCode',           header: 'Centro de costos' },
-        { field: 'whsCode',           header: 'Almacén' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
-        { field: 'unitMsr',           header: 'UM' },
-        { field: 'quantity',          header: 'Cantidad' },
-      ];
-    }
-    else{
-      this.columnas = [
-        { field: 'dscription',        header: 'Descripción' },
-        { field: 'lineVendor',        header: 'Proveedor' },
-        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
-        { field: 'formatCode',        header: 'Cuenta mayor' },
-        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
-        { field: 'ocrCode',           header: 'Centro de costos' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
-      ];
-    }
-  }
-
-  private opcionesTabla(): void {
-    // Acciones del split-button para operaciones de fila
-    this.opciones = [
-      { value: '1', label: 'Añadir línea', icon: 'pi pi-pencil',  command: () => this.onClickAddLine() },
-      { value: '2', label: 'Borrar línea', icon: 'pi pi-times',   command: () => this.onClickDelete() }
-    ];
-  }
-
-  private buildContextMenu(): void {
-    // Acciones del menú contextual asociadas a la fila seleccionada
-    this.items = [
-      { value: '1', label: 'Añadir línea', icon: 'pi pi-plus',   command: () => this.onClickContextMenuAddLine(this.modeloLinesSelectedContext) },
-      { value: '2', label: 'Borrar línea', icon: 'pi pi-trash',  command: () => this.onClickContextMenuDelete(this.modeloLinesSelectedContext) }
-    ];
-  }
-
-  onContextMenuShow(event: any): void {
-    // No sobrescribir la selección del contexto si el evento no trae datos de fila.
-    // El p-table ya actualiza `modeloLinesSelectedContext` vía [(contextMenuSelection)].
-    if (event?.item?.data) {
-      this.modeloLinesSelectedContext = event.item.data;
-    }
-    this.updateMenuContextVisibility();
-  }
-
-  /** Agrega una nueva línea después de la línea seleccionada en el menú contextual */
-  onClickContextMenuAddLine(modelo: ISolicitudCompra1): void {
-    // Manejar casos donde el objeto 'modelo' no es pasado correctamente
-    const target = modelo || this.modeloLinesSelectedContext;
-
-    let insertIndex = this.modeloLines.length; // por defecto al final
-    if (target) {
-      const idx = this.modeloLines.indexOf(target);
-      insertIndex = idx > -1 ? idx + 1 : this.modeloLines.length;
-    }
-
-    this.addLine(insertIndex);
-  }
-
-  /** Elimina la línea seleccionada en el menú contextual */
-  onClickContextMenuDelete(modelo: ISolicitudCompra1): void {
-    const index = this.modeloLines.indexOf(modelo);
-    if (index > -1) {
-      this.modeloLines.splice(index, 1);
-    }
-    // Si se quedó sin líneas, agregar una vacía como comportamiento por defecto
-    if (this.modeloLines.length === 0) {
-      this.addLine(0);
-    }
-
-    this.updateHasValidLines();
-  }
-
-  // ===========================
-  // Table Events
-  // ===========================
-
-  /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
-  onSelectedItem(modelo: ISolicitudCompra1): void {
-    this.modeloLinesSelected = modelo;
-    this.updateMenuVisibility();
-  }
-
-  onClickAddLine(): void {
-    // Agrega una nueva línea vacía
-    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    const insertIndex = index + 1;
-    this.addLine(insertIndex);
-  }
-
-  onClickDelete(): void {
-    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    if (index > -1) {
-      this.modeloLines.splice(index, 1);
-    }
-
-    if (this.modeloLines.length === 0) {
-      this.addLine(0);
-    }
-
-    this.updateHasValidLines();
-  }
-
-  // ===========================
-  // Helper Methods
-  // ===========================
-
-  private updateMenuVisibility(): void {
-    // Leer el valor actual del formulario
-    const formConValues     = this.modeloFormCon.getRawValue();
-    const docTypeValue      = formConValues.docType?.value;
-    const isItemDoc         = docTypeValue === 'I';
-
-    // Activa/desactiva opciones del split-button según líneas presentes y vacías
-    const hasEmptyLines = this.modeloLines.some(line => isItemDoc ? line.itemCode === '' : line.dscription === '');
-    const hasLines = this.modeloLines.length > 0;
-
-    const addLineOption = this.opciones.find(x => x.label === 'Añadir línea');
-    const deleteLineOption = this.opciones.find(x => x.label === 'Borrar línea');
-
-    if (addLineOption) addLineOption.visible = !hasEmptyLines;
-    if (deleteLineOption) deleteLineOption.visible = hasLines;
-  }
-
-  private updateMenuContextVisibility(): void {
-    // Leer el valor actual del formulario
-    const formConValues     = this.modeloFormCon.getRawValue();
-    const docTypeValue      = formConValues.docType?.value;
-    const isItemDoc         = docTypeValue === 'I';
-
-    // Activa/desactiva opciones del menú contextual según líneas presentes y vacías
-    const hasEmptyLines = this.modeloLines.some(line => isItemDoc ? line.itemCode === '' : line.dscription === '');
-    const hasLines = this.modeloLines.length > 0;
-
-    const addLineOption = this.items.find(x => x.label === 'Añadir línea');
-    const deleteLineOption = this.items.find(x => x.label === 'Borrar línea');
-
-    if (addLineOption) addLineOption.visible = !hasEmptyLines;
-    if (deleteLineOption) deleteLineOption.visible = hasLines;
-  }
-
-  // Verifica si todas las líneas son válidas según el tipo de documento
-  private updateHasValidLines(): void {
-    const docTypeValue = this.modeloFormCon.getRawValue().docType?.value;
-    const isItemDoc = docTypeValue === 'I';
-
-    this.hasValidLines =
-    this.modeloLines.length > 0 &&
-    this.modeloLines.every(line =>
-      isItemDoc
-        ? !!line.itemCode?.trim()
-        : !!line.dscription?.trim()
-    );
-  }
-
-  private addLine(index: number): void {
-    this.modeloLines.splice(index, 0,{ lineStatus: 'O', itemCode: '', dscription: '', lineVendor: '' , pqtReqDate: null, acctCode: '', formatCode: '', acctName: '', ocrCode: '',whsCode: '', u_tipoOpT12: '', u_tipoOpT12Nam: '', u_FF_TIP_COM: '', u_FF_TIP_COM_NAM: '', unitMsr: '', quantity: 0, openQty: 0 });
-    this.updateHasValidLines();
-  }
-
-  /**
-   * Carga en paralelo las listas de soporte (numeración, almacenes, tipos y empleados)
-   * y establece los valores por defecto en los formularios usando { emitEvent: false } para
-   * evitar triggers no deseados en valueChanges.
-   */
   private loadAllCombos(): void {
     // Obtiene datos para combos (numeración, usuarios, sucursales, departamentos, empleados)
-    const paramNumero: any = { objectCode: '1470000113' };
+    const paramNumero: any = { objectCode: '1470000113', docSubType: '--' };
 
     this.isDisplay = true;
 
@@ -437,7 +296,7 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
 
     // Cargar datos asíncronos en paralelo
     forkJoin({
-      numero            : this.numeracionDocumentoService.getNumero(paramNumero),
+      numero            : this.documentNumberingSeriesService.getNumero(paramNumero),
       requesterList     : this.usersService.getList(),
       branchesList      : this.branchesService.getList(),
       departmentsList   : this.departmentsService.getList(),
@@ -455,8 +314,8 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
 
         // Mapear requester list
         this.requesterList = res.requesterList.map(item => ({
-          label: item.u_NAME,
-          value: item.useR_CODE
+          label: item.userName,
+          value: item.userCode
         }));
 
 
@@ -494,12 +353,624 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
         this.onChangeReqName();
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
 
-  /** Maneja cambios en el tipo de solicitante y carga la lista correspondiente */
+  private onBuildColumn(): void {
+    // Usar docTypeSelected si está disponible, sino leer del formulario
+    const isItemDoc         = this.docType  === 'I';
+
+    if( isItemDoc){
+      this.columnas = [
+        { field: 'itemCode',          header: 'Código' },
+        { field: 'dscription',        header: 'Descripción' },
+        { field: 'lineVendor',        header: 'Proveedor' },
+        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
+        { field: 'formatCode',        header: 'Cuenta mayor' },
+        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
+        { field: 'ocrCode',           header: 'Centro de costos' },
+        { field: 'whsCode',           header: 'Almacén' },
+        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+        { field: 'unitMsr',           header: 'UM' },
+        { field: 'onHand',            header: 'Stock' },
+        { field: 'quantity',          header: 'Cantidad' },
+      ];
+    }
+    else{
+      this.columnas = [
+        { field: 'dscription',        header: 'Descripción' },
+        { field: 'lineVendor',        header: 'Proveedor' },
+        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
+        { field: 'formatCode',        header: 'Cuenta mayor' },
+        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
+        { field: 'ocrCode',           header: 'Centro de costos' },
+        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+      ];
+    }
+  }
+
+  private opcionesTabla(): void {
+    // Acciones del split-button para operaciones de fila
+    this.opciones = [
+      { value: '1', label: 'Añadir línea', icon: 'pi pi-pencil',  command: () => this.onClickAddLine() },
+      { value: '2', label: 'Borrar línea', icon: 'pi pi-trash',   command: () => this.onClickDelete() }
+    ];
+  }
+
+  private buildContextMenu(): void {
+    // Acciones del menú contextual asociadas a la fila seleccionada
+    this.items = [
+      { value: '1', label: 'Añadir línea', icon: 'pi pi-plus',      command: () => this.onClickContextMenuAddLine(this.modeloLinesSelectedContext) },
+      { value: '2', label: 'Borrar línea', icon: 'pi pi-trash',     command: () => this.onClickContextMenuDelete(this.modeloLinesSelectedContext) },
+      { value: '3', label: 'Descargar',    icon: 'pi pi-download',  command: () => this.onClickContextMenuDownload() },
+      { value: '4', label: 'Cargar',       icon: 'pi pi-upload',    command: () => this.onClickContextMenuUpload(this.modeloLinesSelectedContext) },
+    ];
+  }
+
+  /** Se suscribe a cambios en la fecha de requerimiento para aplicarlos a todas las líneas */
+  private subscribeReqDate(): void {
+    this.modeloFormDoc.get('reqDate')!
+    .valueChanges
+    .pipe(
+      takeUntil(this.destroy$)
+    )
+    .subscribe((date: Date | null) => {
+      if (date) {
+        this.applyReqDateToLines(date);
+      }
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 3. GETTERS >>>
+
+  private get docType(): string {
+    return this.modeloFormCon.get('docType')?.value?.value;
+  }
+
+  get isItem(): boolean {
+    return this.docType === 'I';
+  }
+
+  get isService(): boolean {
+    return this.docType === 'S';
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 4. TABLE / CONTEXT MENU >>>
+
+  onContextMenuShow(event: any): void {
+    // No sobrescribir la selección del contexto si el evento no trae datos de fila.
+    // El p-table ya actualiza `modeloLinesSelectedContext` vía [(contextMenuSelection)].
+    if (event?.item?.data) {
+      this.modeloLinesSelectedContext = event.item.data;
+    }
+    this.updateMenuContextVisibility();
+  }
+
+  /** Agrega una nueva línea después de la línea seleccionada en el menú contextual */
+  onClickContextMenuAddLine(modelo: IPurchaseRequest1): void {
+    // Manejar casos donde el objeto 'modelo' no es pasado correctamente
+    const target = modelo || this.modeloLinesSelectedContext;
+
+    let insertIndex = this.modeloLines.length; // por defecto al final
+    if (target) {
+      const idx = this.modeloLines.indexOf(target);
+      insertIndex = idx > -1 ? idx + 1 : this.modeloLines.length;
+    }
+
+    this.addLine(insertIndex);
+  }
+
+  /** Elimina la línea seleccionada en el menú contextual */
+  onClickContextMenuDelete(modelo: IPurchaseRequest1): void {
+    const index = this.modeloLines.indexOf(modelo);
+    if (index > -1) {
+      this.modeloLines.splice(index, 1);
+    }
+    // Si se quedó sin líneas, agregar una vacía como comportamiento por defecto
+    if (this.modeloLines.length === 0) {
+      this.addLine(0);
+    }
+
+    this.updateHasValidLines();
+  }
+
+  onClickContextMenuDownload(): void {
+    this.isDisplay = true;
+    this.purchaseRequestService
+    .getDownloadFormat()
+    .subscribe({next:(response: any) => {
+      saveAs(
+        new Blob([response],
+        {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }),
+        this.nombreArchivo
+      );
+      this.isDisplay = false;
+      this.swaCustomService.swaMsgExito(null);
+      },error:(e)=>{
+        this.isDisplay = false;
+        this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
+      }
+    });
+  }
+
+  onClickContextMenuUpload(modelo: IPurchaseRequest1): void {
+  }
+
+
+  /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
+  onSelectedItem(modelo: IPurchaseRequest1): void {
+    this.modeloLinesSelected = modelo;
+    this.updateMenuVisibility();
+  }
+
+  onClickAddLine(): void {
+    /** Agrega una nueva línea vacía después de la fila seleccionada */
+    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
+    const insertIndex = index + 1;
+    this.addLine(insertIndex);
+  }
+
+  onClickDelete(): void {
+    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
+    if (index > -1) {
+      this.modeloLines.splice(index, 1);
+    }
+
+    if (this.modeloLines.length === 0) {
+      this.addLine(0);
+    }
+
+    this.updateHasValidLines();
+  }
+
+  private hasEmptyLine(): boolean {
+    return this.modeloLines.some(line =>
+      this.isItem
+        ? !this.utilService.normalizePrimitive(line.itemCode)
+        : !this.utilService.normalizePrimitive(line.dscription)
+    );
+  }
+
+
+  private updateMenuVisibility(): void {
+    const hasEmptyLines = this.hasEmptyLine();
+    const hasLines      = this.modeloLines.length > 0;
+
+    const addLineOption    = this.opciones.find(x => x.label === 'Añadir línea');
+    const deleteLineOption = this.opciones.find(x => x.label === 'Borrar línea');
+
+    if (addLineOption) addLineOption.visible = !hasEmptyLines;
+    if (deleteLineOption) deleteLineOption.visible = hasLines;
+  }
+
+  private updateMenuContextVisibility(): void {
+    const hasEmptyLines = this.hasEmptyLine();
+    const hasLines      = this.modeloLines.length > 0;
+
+    const addLineOption    = this.items.find(x => x.label === 'Añadir línea');
+    const deleteLineOption = this.items.find(x => x.label === 'Borrar línea');
+
+    if (addLineOption) addLineOption.visible = !hasEmptyLines;
+    if (deleteLineOption) deleteLineOption.visible = hasLines;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 5. LINES (CORE) >>>
+
+  private addLine(index: number): void {
+    const newLine: IPurchaseRequest1 = {
+      lineStatus        : 'O',
+      itemCode          : '',
+      dscription        : '',
+      lineVendor        : '',
+      pqtReqDate        : null,
+      acctCode          : '',
+      formatCode        : '',
+      acctName          : '',
+      ocrCode           : '',
+      whsCode           : '',
+      u_tipoOpT12       : '',
+      u_tipoOpT12Nam    : '',
+      u_FF_TIP_COM      : '',
+      u_FF_TIP_COM_NAM  : '',
+      unitMsr           : '',
+      onHand            : 0,
+      quantity          : 0,
+      openQty           : 0,
+      record            : 0
+    };
+
+    // 🔥 Crear nueva referencia
+    this.modeloLines = [
+      ...this.modeloLines.slice(0, index),
+      newLine,
+      ...this.modeloLines.slice(index)
+    ];
+
+    this.updateHasValidLines();
+  }
+
+  /** Aplica la fecha de requerimiento a todas las líneas que tengan artículo seleccionado */
+  private applyReqDateToLines(date: Date): void {
+    // Se obtiene solo las líneas que tienen descripción (artículo seleccionado)
+    this.modeloLines = this.modeloLines.map(line =>
+      line.dscription
+        ? { ...line, pqtReqDate: date }
+        : line
+    );
+  }
+
+  // Verifica si todas las líneas son válidas según el tipo de documento
+  private updateHasValidLines(): void {
+  this.hasValidLines =
+    this.modeloLines.length > 0 &&
+    !this.hasEmptyLine();
+}
+
+  //#endregion
+
+
+
+  //#region <<< 6. DOC TYPE >>>
+
+  private wireDocTypeControl(): void {
+    this.modeloFormCon.get('docType')?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(docTyp => {
+
+      const hasLines = this.modeloLines.some(n => n.dscription?.trim());
+
+      if (!hasLines) {
+
+        this.docTypeSelected = docTyp;
+        this.docTypePrevious = docTyp;
+
+        this.onBuildColumn();
+        this.updateHasValidLines();
+
+        return;
+      }
+
+      this.swaCustomService.swaConfirmation(
+        this.globalConstants.titleCerrar,
+        this.globalConstants.subTitleCerrar,
+        this.globalConstants.icoSwalQuestion
+      )
+      .then((result) => {
+
+        if (result.isConfirmed) {
+          this.modeloLines = [];
+          this.addLine(0);
+
+          this.docTypeSelected = docTyp;
+          this.docTypePrevious = docTyp;
+
+          this.onBuildColumn();
+          this.updateHasValidLines();
+        }
+        else {
+          this.modeloFormCon.get('docType')?.setValue(this.docTypePrevious, { emitEvent: false });
+        }
+      });
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 7. ICONS >>>
+
+  showIcon(modelo: any): boolean {
+    const u = this.utilService;
+    const p = (v: any) => u.normalizePrimitive(v);
+
+    const lineStatus = p(modelo.lineStatus);
+    const itemCode   = p(modelo.itemCode);
+    const dscription = p(modelo.dscription);
+
+    if (lineStatus === 'C') return false;
+
+    // Caso 1: Tipo Item
+    if (this.docType === 'I') {
+      return !!itemCode;
+    }
+
+    // Caso 2: Tipo Servicio
+    if (this.docType === 'S') {
+      return !!dscription;
+    }
+
+    return false;
+  }
+
+  showIconDelete(modelo: any): boolean {
+    const p = (v: any) => this.utilService.normalizePrimitive(v);
+
+    return p(modelo.lineStatus) !== 'C'
+      && !!p(modelo.lineVendor);
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 8. ARTÍCULO >>>
+
+  onOpenArticulo(index: number): void {
+    this.indexArticulo        = index;
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  onSelectedArticulo(value: any): void {
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+    this.getListByCode(value.itemCode);
+  }
+
+  onClickCloseArticulo(): void {
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  private mapToPurchaseRequest(element: IArticuloQuery, date: Date): IPurchaseRequest1 {
+    /** helpers para evitar repetición */
+    const u       = this.utilService;
+    const p       = (v:any)=>u.normalizePrimitive(v);
+    const d       = (v:any)=>u.normalizeDateOrToday(v);
+
+    return {
+      itemCode       : p(element.itemCode),
+      dscription     : p(element.itemName),
+      pqtReqDate     : d(date),
+      acctCode       : p(element.acctCode),
+      formatCode     : p(element.formatCode),
+      acctName       : p(element.acctName),
+      u_tipoOpT12    : p(element.u_tipoOpT12),
+      u_tipoOpT12Nam : p(element.u_tipoOpT12Nam),
+      whsCode        : p(element.dfltWH),
+      unitMsr        : p(element.buyUnitMsr),
+      onHand         : p(element.onHand),
+      quantity       : 1,   // 🔥 SAP: siempre inicia en 1
+      openQty        : 1,
+      lineStatus     : 'O',
+      ocrCode        : ''
+    };
+  }
+
+  setItem(data: IArticuloQuery[]): void {
+    if (!data || data.length === 0) return;
+
+    const element = data[0];
+    const date = this.modeloFormDoc.get('reqDate')?.value;
+
+    const newItem = this.mapToPurchaseRequest(element, date);
+
+    // 🔥 Forzar cambio de referencia (Angular friendly)
+    this.modeloLines = this.modeloLines.map((line, index) =>
+      index === this.indexArticulo ? newItem : line
+    );
+
+    this.updateHasValidLines();
+  }
+
+  getListByCode(itemCode: string): void {
+    this.isDisplay = true;
+
+    this.itemsService
+    .getListByCode(this.buildFilterParams(itemCode))
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: IArticuloQuery[]) => {
+        this.setItem(data);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
+      }
+    });
+  }
+
+  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
+    return {
+      itemCode,
+      cardCode            : '',
+      currency            : '',
+      operationTypeCode   : '02',
+      warehouseProduction : '',
+      warehouseLogistics  : 'Y',
+    };
+  }
+
+  onDescChange() {
+    this.updateHasValidLines();
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 9. PROVEEDOR >>>
+
+  onOpenProveedor(index: number): void {
+    // Abre modal para seleccionar proveedor de la línea
+    this.indexCentroProveedor  = index;
+    this.isVisualizarProveedor = !this.isVisualizarProveedor;
+  }
+
+  onSelectedProveedor(value: any): void {
+    const currentLine          = this.modeloLines[this.indexCentroProveedor];
+    currentLine.lineVendor     = value.cardCode;
+    this.isVisualizarProveedor = !this.isVisualizarProveedor;
+  }
+
+  onClickCloseProveedor(): void {
+    this.isVisualizarProveedor = !this.isVisualizarProveedor;
+  }
+
+  onDeleteProveedor(index: number): void {
+    if (index == null || index < 0) return;
+
+    const linea = this.modeloLines[index];
+    if (!linea) return;
+
+    // 🔥 Limpiar proveedor
+    linea.lineVendor = '';
+
+    // 🔄 Forzar actualización (por si Angular no detecta el cambio)
+    this.modeloLines = [...this.modeloLines];
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 10. CUENTA CONTABLE >>>
+
+  onOpenCuentaContable(index: number): void {
+    this.indexCentroCuentaContable  = index;
+    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
+  }
+
+  onSelectedCuentaContable(value: any): void {
+    const currentLine               = this.modeloLines[this.indexCentroCuentaContable];
+    currentLine.acctCode            = value.acctCode;
+    currentLine.formatCode          = value.formatCode;
+    currentLine.acctName            = value.acctName;
+    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
+  }
+
+  onClickCloseCuentaContable(): void {
+    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 11. CENTRO DE COSTO >>>
+
+  onOpenCentroCosto(index: number): void {
+    this.indexCentroCosto        = index;
+    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
+  }
+
+  onSelectedCentroCosto(value: any): void {
+    const currentLine            = this.modeloLines[this.indexCentroCosto];
+    currentLine.ocrCode          = value.ocrCode;
+    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
+  }
+
+  onClickCloseCentroCosto(): void {
+    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 12. ALMACÉN >>>
+
+  onOpenAlmacen(value: IPurchaseRequest1, index: number): void {
+    this.indexAlmacen         = index;
+    this.itemCode             = value.itemCode;
+    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
+  }
+
+  onSelectedAlmacen(value: any): void {
+    const currentLine         = this.modeloLines[this.indexAlmacen];
+    currentLine.whsCode       = value.whsCode;
+    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
+  }
+
+  onClickCloseAlmacen(): void {
+    this.isVisualizarAlmacen = !this.isVisualizarAlmacen;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 13. TIPO OPERACIÓN >>>
+
+  onOpenTipoOperacion(index: number): void {
+    this.indexTipoOperacion = index;
+    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
+  }
+
+  onClickSelectedTipoOperacion(value: any): void {
+    const currentLine               = this.modeloLines[this.indexTipoOperacion];
+    currentLine.u_tipoOpT12         = value.code;
+    currentLine.u_tipoOpT12Nam      = value.fullDescription;
+    this.isVisualizarTipoOperacion  = !this.isVisualizarTipoOperacion;
+  }
+
+  onClickCloseTipoOperacion(): void {
+    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 14. TIPO COMPRA >>>
+
+  onOpenTipoCompra(index: number): void {
+    this.indexTipoCompra = index;
+    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
+  }
+
+  onClickSelectedTipoCompra(value: any): void {
+    const currentLine             = this.modeloLines[this.indexTipoCompra];
+    currentLine.u_FF_TIP_COM      = value.fldValue;
+    currentLine.u_FF_TIP_COM_NAM  = value.fullDescr;
+    this.isVisualizarTipoCompra   = !this.isVisualizarTipoCompra;
+  }
+
+  onClickCloseTipoCompra(): void {
+    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 15. CANTIDAD >>>
+
+  onChangeQuantity(value: IPurchaseRequest1, index: number): void {
+    const quantity        = this.utilService.onRedondearDecimal(value.quantity, 3);
+    const openQty         = this.utilService.onRedondearDecimal(value.quantity, 3);
+
+    const currentLine     = this.modeloLines[index];
+    currentLine.quantity  = value.itemCode === '' ? 0 : quantity;
+    currentLine.openQty   = value.itemCode === '' ? 0 : openQty;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 16. REQUESTER / HEADER LOGIC >>>
+
   onChangeReqType(): void {
     const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
 
@@ -512,8 +983,8 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
         this.usersService.getList().subscribe({
           next: (data: any) => {
             this.requesterList = data.map(item => ({
-              label: item.u_NAME,
-              value: item.useR_CODE
+              label: item.userName,
+              value: item.userCode
             }));
 
             const userSap = this.userContextService.getUserSap();
@@ -525,7 +996,7 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
             }
           },
           error: (e) => {
-            this.utilService.handleErrorSingle(e, 'onChangeReqType', () => {}, this.swaCustomService);
+            this.utilService.handleErrorSingle(e, 'onChangeReqType', this.swaCustomService);
           }
         });
       } else {
@@ -537,17 +1008,13 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
             }));
           },
           error: (e) => {
-            this.utilService.handleErrorSingle(e, 'onChangeReqType', () => {}, this.swaCustomService);
+            this.utilService.handleErrorSingle(e, 'onChangeReqType', this.swaCustomService);
           }
         });
       }
     }
   }
 
-  /**
-   * Maneja cambios en el selector de solicitante.
-   * Obtiene datos del usuario/empleado y actualiza sucursal/departamento automáticamente.
-   */
   onChangeReqName(): void {
     const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
     const reqNameValue = this.modeloFormReq.get('reqName')?.value?.value;
@@ -572,21 +1039,19 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
           }
 
           const dept = reqTypeValue === 12 ? data?.department : data?.dept;
-          const email= reqTypeValue === 12 ? data?.e_Mail     : data?.email;
+          const email= reqTypeValue === 12 ? data?.email     : data?.email;
 
           this.onSelectedBranchDeparment(data?.branch, dept);
 
           this.modeloFormReq.patchValue({ email: email }, { emitEvent: false });
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onChangeReqName', () => {}, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'onChangeReqName', this.swaCustomService);
         }
       });
   }
 
-  /** Asigna sucursal y departamento automáticamente sin disparar eventos adicionales */
   onSelectedBranchDeparment(branch: number, department: number): void {
-    // Asigna sucursal y departamento sin disparar eventos extra
     const branchCtrl = this.modeloFormReq.get('branch');
     const deptCtrl   = this.modeloFormReq.get('department');
     if (!branchCtrl || !deptCtrl) { return; }
@@ -598,426 +1063,13 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
     deptCtrl.setValue(departmentSelected, { emitEvent: false });
   }
 
-
-  /** Aplica la fecha de requerimiento a todas las líneas que tengan artículo seleccionado */
-  private applyReqDateToLines(date: Date): void {
-    // Se obtiene solo las líneas que tienen descripción (artículo seleccionado)
-    this.modeloLines.filter(line => line.dscription !== '').forEach(line => {
-      line.pqtReqDate = date;
-    });
-  }
-
-  /** Se suscribe a cambios en la fecha de requerimiento para aplicarlos a todas las líneas */
-  private subscribeReqDate(): void {
-    this.modeloFormDoc.get('reqDate')!
-    .valueChanges
-    .pipe(
-      takeUntil(this.destroy$)
-    )
-    .subscribe((date: Date | null) => {
-      if (date) {
-        this.applyReqDateToLines(date);
-      }
-    });
-  }
-
-  /** Maneja cambios en el tipo de documento; limpia líneas si hay con confirmación */
-  onChangeDocType(): void {
-    const docTyp   = this.modeloFormCon.get('docType')?.value;
-    const hasLines = this.modeloLines.filter(n => n.dscription.trim() !== '').length > 0;
-
-    // 🔹 Caso 1: NO hay líneas → no preguntar
-    if (!hasLines) {
-      this.docTypeSelected = docTyp;
-      this.docTypePrevious = docTyp;
-      this.onBuildColumn();
-      this.updateHasValidLines();
-      return;
-    }
-
-    // 🔹 Caso 2: Hay líneas → preguntar
-    this.swaCustomService.swaConfirmation(
-    this.globalConstants.titleCerrar,
-    this.globalConstants.subTitleCerrar,
-    this.globalConstants.icoSwalQuestion
-    ).then((result) => {
-      if (result.isConfirmed) {
-        // ✅ Acepta el cambio
-        this.modeloLines = [];
-        this.addLine(0);
-        this.onBuildColumn();
-        this.docTypeSelected = docTyp;
-
-        // guarda el nuevo valor como anterior
-        this.docTypePrevious = docTyp;
-
-        this.updateHasValidLines();
-      }
-      else {
-        // ❌ Rechaza el cambio → volver al valor anterior
-        this.modeloFormCon.get('docType')?.setValue(this.docTypePrevious, { emitEvent: false });
-
-        this.updateHasValidLines();
-      }
-    });
-  }
-
-  onOpenArticulo(index: number): void {
-    // Abre modal para buscar/seleccionar un artículo para la línea indicada
-    this.indexArticulo        = index;
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-  /** Asigna un artículo seleccionado a la línea actual */
-  setItem(data: IArticuloQuery[]): void {
-    const item  = this.modeloLines[this.indexArticulo];
-    const date  = this.modeloFormDoc.get('reqDate')?.value;
-
-    for (let index = 0; index < data.length; index++) {
-      const element = data[index];
-      if(index === 0) {
-        item.itemCode       = element.itemCode;
-        item.dscription     = element.itemName;
-        if (date) {
-          item.pqtReqDate   = date;
-        }
-        item.acctCode       = element.acctCode || '';
-        item.formatCode     = element.formatCode || '';
-        item.acctName       = element.acctName || '';
-        item.u_tipoOpT12    = element.u_tipoOpT12 || '';
-        item.u_tipoOpT12Nam = element.u_tipoOpT12Nam || '';
-        item.whsCode        = element.dfltWH || '';
-        item.unitMsr        = element.invntryUom;
-        item.quantity       = 1;
-        item.openQty        = 1
-      }
-    }
-
-    this.updateHasValidLines();
-  }
-  /** Busca artículos por código desde el servicio */
-  getListByCode(itemCode: string): void {
-    this.isDisplay = true;
-
-    const params = {
-      itemCode,
-      cardCode          : '',
-      currency          : '',
-      slpCode           : 0,
-      codTipoOperacion  : '02'
-    };
-
-    this.articuloService.getListByCode(params)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (data:  IArticuloQuery[]) => {
-        this.isDisplay = false;
-        this.setItem(data);
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListByCode', () => { this.isDisplay = false; }, this.swaCustomService);
-      }
-    });
-  }
-  /** Maneja la selección de un artículo desde el modal */
-  onSelectedArticulo(value: any): void {
-    // Aplica el artículo seleccionado a la línea actual
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-    this.getListByCode(value.itemCode);
-  }
-  /** Cierra el modal de búsqueda de artículos */
-  onClickCloseArticulo(): void {
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-
-  onDescChange() {
-    this.updateHasValidLines();
-  }
-
-  /** Abre el modal para seleccionar proveedor de la línea indicada */
-  onOpenProveedor(index: number): void {
-    // Abre modal para seleccionar proveedor de la línea
-    this.indexCentroProveedor  = index;
-    this.isVisualizarProveedor = !this.isVisualizarProveedor;
-  }
-  /** Maneja la selección de un proveedor desde el modal */
-  onSelectedProveedor(value: any): void {
-    // Aplica el proveedor seleccionado a la línea actual
-    const currentLine          = this.modeloLines[this.indexCentroProveedor];
-    currentLine.lineVendor     = value.cardCode;
-    this.isVisualizarProveedor = !this.isVisualizarProveedor;
-  }
-  /** Cierra el modal de búsqueda de proveedores */
-  onClickCloseProveedor(): void {
-    this.isVisualizarProveedor = !this.isVisualizarProveedor;
-  }
-
-  /** Abre el modal para seleccionar cuenta contable de la línea indicada */
-  onOpenCuentaContable(index: number): void {
-    // Abre modal para seleccionar cuenta contable de la línea
-    this.indexCentroCuentaContable  = index;
-    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
-  }
-  /** Maneja la selección de una cuenta contable desde el modal */
-  onSelectedCuentaContable(value: any): void {
-    // Aplica el centro de costo seleccionado a la línea actual
-    const currentLine               = this.modeloLines[this.indexCentroCuentaContable];
-    currentLine.acctCode            = value.acctCode;
-    currentLine.formatCode          = value.formatCode;
-    currentLine.acctName            = value.acctName;
-    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
-  }
-  /** Cierra el modal de búsqueda de cuentas contables */
-  onClickCloseCuentaContable(): void {
-    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
-  }
-
-  /** Abre el modal para seleccionar centro de costo de la línea indicada */
-  onOpenCentroCosto(index: number): void {
-    // Abre modal para seleccionar centro de costo de la línea
-    this.indexCentroCosto        = index;
-    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
-  }
-  /** Maneja la selección de un centro de costo desde el modal */
-  onSelectedCentroCosto(value: any): void {
-    // Aplica el centro de costo seleccionado a la línea actual
-    const currentLine            = this.modeloLines[this.indexCentroCosto];
-    currentLine.ocrCode          = value.ocrCode;
-    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
-  }
-  /** Cierra el modal de búsqueda de centros de costo */
-  onClickCloseCentroCosto(): void {
-    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
-  }
-
-  /** Abre el modal para seleccionar almacén de destino de la línea indicada */
-  onOpenAlmacen(value: ISolicitudCompra1, index: number): void {
-    // Abre modal para seleccionar almacén de destino de la línea
-    this.indexAlmacen         = index;
-    this.itemCode             = value.itemCode;
-    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
-  }
-  /** Maneja la selección de un almacén desde el modal */
-  onSelectedAlmacen(value: any): void {
-    // Aplica el almacén de destino seleccionado a la línea actual
-    const currentLine         = this.modeloLines[this.indexAlmacen];
-    currentLine.whsCode       = value.whsCode;
-    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
-  }
-  /** Cierra el modal de búsqueda de almacenes */
-  onClickCloseAlmacen(): void {
-    this.isVisualizarAlmacen = !this.isVisualizarAlmacen;
-  }
-
-  /** Abre el modal para seleccionar tipo de operación de la línea indicada */
-  onOpenTipoOperacion(index: number): void {
-    // Abre modal para seleccionar tipo de operación de la línea
-    this.indexTipoOperacion = index;
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-  }
-  /** Maneja la selección de un tipo de operación desde el modal */
-  onClickSelectedTipoOperacion(value: any): void {
-    // Aplica el tipo de operación seleccionado a la línea actual
-    const currentLine               = this.modeloLines[this.indexTipoOperacion];
-    currentLine.u_tipoOpT12         = value.code;
-    currentLine.u_tipoOpT12Nam      = value.u_descrp;
-    this.isVisualizarTipoOperacion  = !this.isVisualizarTipoOperacion;
-  }
-  /** Cierra el modal de búsqueda de tipos de operación */
-  onClickCloseTipoOperacion(): void {
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-  }
-
-  /** Abre el modal para seleccionar tipo de compra de la línea indicada */
-  onOpenTipoCompra(index: number): void {
-    // Abre modal para seleccionar tipo de compra de la línea
-    this.indexTipoCompra = index;
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-  /** Maneja la selección de un tipo de compra desde el modal */
-  onClickSelectedTipoCompra(value: any): void {
-    // Aplica el tipo de compra seleccionado a la línea actual
-    const currentLine             = this.modeloLines[this.indexTipoCompra];
-    currentLine.u_FF_TIP_COM      = value.fldValue;
-    currentLine.u_FF_TIP_COM_NAM  = value.descr;
-    this.isVisualizarTipoCompra   = !this.isVisualizarTipoCompra;
-  }
-  /** Cierra el modal de búsqueda de tipos de compra */
-  onClickCloseTipoCompra(): void {
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-
-  /** Actualiza cantidades en la línea con validación de decimales */
-  onChangeQuantity(value: ISolicitudCompra1, index: number): void {
-    // Normaliza cantidades a 3 decimales y pone cero si no hay artículo
-    const quantity        = this.utilService.onRedondearDecimal(value.quantity, 3);
-    const openQty         = this.utilService.onRedondearDecimal(value.quantity, 3);
-
-    const currentLine     = this.modeloLines[index];
-    currentLine.quantity  = value.itemCode === '' ? 0 : quantity;
-    currentLine.openQty   = value.itemCode === '' ? 0 : openQty;
-  }
-
-  private validateSave(): boolean {
-    /** Valida que el documento esté completo antes de guardar */
-    const showError = (message: string): boolean => {
-      this.swaCustomService.swaMsgInfo(message);
-      return false;
-    };
-
-    const formReqValues     = this.modeloFormReq.getRawValue();
-    const formDocValues     = this.modeloFormDoc.getRawValue();
-    const formConValues     = this.modeloFormCon.getRawValue();
-    const formPieValues     = this.modeloFormPie.getRawValue();
-
-    const reqNameValue      = formReqValues.reqName?.value || '';
-    const notifyValue       = formReqValues.notify;
-    const emailValue        = formReqValues.email || '';
-    const docDate           = formDocValues.docDate;
-    const docDueDate        = formDocValues.docDueDate;
-    const taxDate           = formDocValues.taxDate;
-    const reqDate           = formDocValues.reqDate;
-
-    const docTypeValue      = formConValues.docType?.value;
-    const isItemDoc         = docTypeValue === 'I';
-
-    const employeeInfoValue = formPieValues.employeeInfo?.value;
-
-    if (reqNameValue === undefined || reqNameValue === null || reqNameValue === '') {
-      return showError('Seleccione el nombre del solicitante.');
-    }
-
-    if (notifyValue && (emailValue === undefined || emailValue === null || emailValue.trim() === '')) {
-      return showError('Ingrese un correo electrónico válido.');
-    }
-
-    if (!docDate) {
-      return showError('Ingrese la fecha del documento.');
-    }
-
-    if (!docDueDate) {
-      return showError('Ingrese la fecha de vencimiento del documento.');
-    }
-
-    if (!taxDate) {
-      return showError('Ingrese la fecha fiscal del documento.');
-    }
-
-    if (!reqDate) {
-      return showError('Ingrese la fecha de requerimiento.');
-    }
-
-    if (employeeInfoValue === undefined || employeeInfoValue === null) {
-      return showError('Seleccione el propietario de la solicitud.');
-    }
+  //#endregion
 
 
-    for (const line of this.modeloLines.filter(line => isItemDoc ? line.itemCode !== '' : line.dscription !== '')) {
-      if (isItemDoc && line.itemCode === '') {
-        return showError('Seleccione la cuenta contable en el detalle.');
-      }
-      if (line.pqtReqDate === null) {
-        return showError('Ingrese la fecha de requerimiento en el detalle.');
-      }
-      if (line.acctCode === '') {
-        return showError('Seleccione la cuenta contable en el detalle.');
-      }
-      if (line.ocrCode === '') {
-        return showError('Seleccione el centro de costos en el detalle.');
-      }
-      if (isItemDoc && line.whsCode === '') {
-        return showError('Seleccione el almacén en el detalle.');
-      }
-      if (!line?.u_tipoOpT12) {
-        return showError('Seleccione el tipo de operación en el detalle.');
-      }
-      if (!line?.u_FF_TIP_COM) {
-        return showError('Seleccione el tipo de compra en el detalle.');
-      }
-      if (isItemDoc && line.quantity === 0) {
-        return showError('La cantidad debe ser mayor que CERO (0).');
-      }
-    }
-    return true;
-  }
 
-  // ===========================
-  // Save Operations
-  // ===========================
-  private buildModelToSave(): SolicitudCompraCreateModel {
-      /** Construye el modelo de solicitud de traslado para enviar al backend */
-      const formValues = {
-        ...this.modeloFormReq.getRawValue(),
-        ...this.modeloFormDoc.getRawValue(),
-        ...this.modeloFormCon.getRawValue(),
-        ...this.modeloFormPie.getRawValue()
-      };
+  //#region <<< 17. SAVE >>>
 
-      const userId = this.userContextService.getIdUsuario();
-
-      return {
-        ...new SolicitudCompraCreateModel(),
-        docDate         : this.utilService.normalizeDate(formValues.docDate),
-        docDueDate      : this.utilService.normalizeDate(formValues.docDueDate),
-        taxDate         : this.utilService.normalizeDate(formValues.taxDate),
-        reqDate         : this.utilService.normalizeDate(formValues.reqDate),
-        docType         : formValues.docType?.value,
-        reqType         : formValues.reqType?.value,
-        requester       : formValues.reqName?.value,
-        reqName         : formValues.reqName?.label,
-        branch          : formValues.branch?.value,
-        department      : formValues.department?.value,
-        notify          : formValues.notify === true ? 'Y' : 'N',
-        email           : formValues.email,
-        ownerCode       : formValues.employeeInfo?.value,
-        comments        : formValues.comments,
-        u_UsrCreate     : userId,
-        lines           : this.modeloLines
-        .filter(linea => linea.dscription !== '')
-        .map(linea => ({
-          itemCode      : linea.itemCode,
-          dscription    : linea.dscription,
-          lineVendor    : linea.lineVendor,
-          pqtReqDate    : this.utilService.normalizeDate(linea.pqtReqDate),
-          acctCode      : linea.acctCode,
-          ocrCode       : linea.ocrCode,
-          whsCode       : linea.whsCode,
-          u_tipoOpT12   : linea.u_tipoOpT12,
-          u_FF_TIP_COM  : linea.u_FF_TIP_COM,
-          unitMsr       : linea.unitMsr,
-          quantity      : linea.quantity
-        }))
-      };
-    }
-
-  private save(): void {
-    // Persiste el documento al servicio backend si los detalles son válidos
-    if (!this.validateSave()) {
-      return;
-    }
-
-    this.isSaving = true;
-
-    const modeloToSave = this.buildModelToSave();
-
-    this.solicitudCompraService.setCreate(modeloToSave)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => { this.isSaving = false; })
-      )
-      .subscribe({
-        next: () => {
-          this.swaCustomService.swaMsgExito(null);
-          this.onClickBack();
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'save', () => { this.isSaving = false; }, this.swaCustomService);
-        }
-      });
-  }
-
-  /** Muestra diálogo de confirmación antes de guardar el documento */
   onClickSave(): void {
-    // Diálogo de confirmación antes de guardar; ejecuta `save()` si se confirma
     this.swaCustomService.swaConfirmation(
       this.globalConstants.titleGrabar,
       this.globalConstants.subTitleGrabar,
@@ -1029,8 +1081,185 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
     });
   }
 
-  /** Navega de vuelta a la lista de solicitudes de compra */
+  private save(): void {
+    if (!this.validateSave()) {
+      return;
+    }
+
+    this.isSaving = true;
+
+    const modeloToSave = this.buildModelToSave();
+
+    this.purchaseRequestService.setCreate(modeloToSave)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isSaving = false; })
+    )
+    .subscribe({
+      next: () => {
+        this.swaCustomService.swaMsgExito(null);
+        this.onClickBack();
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
+      }
+    });
+  }
+
+  private validateSave(): boolean {
+    const showError = (msg: string) => {
+      this.swaCustomService.swaMsgInfo(msg);
+      return false;
+    };
+
+    /** helpers */
+    const u   = this.utilService;
+    const p   = (v:any)=>u.normalizePrimitive(v);
+    const val = (v:any)=>v?.value ?? v;
+
+    const runValidations = (validations: { cond: boolean, msg: string }[]) => {
+      for (const v of validations) {
+        if (v.cond) return showError(v.msg);
+      }
+      return true;
+    };
+
+    /** combinar forms */
+    const f = this.mergeForms();
+
+    /** 🔹 HEADER */
+    if (!runValidations([
+      { cond: !val(f.reqName), msg: 'Seleccione el nombre del solicitante.' },
+      { cond: f.notify && !p(f.email)?.trim(), msg: 'Ingrese un correo electrónico válido.' },
+      { cond: !f.docDate, msg: 'Ingrese la fecha del documento.' },
+      { cond: !f.docDueDate, msg: 'Ingrese la fecha de vencimiento del documento.' },
+      { cond: !f.taxDate, msg: 'Ingrese la fecha fiscal del documento.' },
+      { cond: !f.reqDate, msg: 'Ingrese la fecha de requerimiento.' },
+      { cond: !val(f.employeeInfo), msg: 'Seleccione el propietario de la solicitud.' }
+    ])) return false;
+
+    /** 🔹 DETALLE */
+    for (let i = 0; i < this.modeloLines.length; i++) {
+
+      const line = this.modeloLines[i];
+      const row  = i + 1;
+
+      const validations = [
+
+        { cond: !line.pqtReqDate, msg: `Línea ${row}: Ingrese la fecha de requerimiento.` },
+        { cond: !line.ocrCode, msg: `Línea ${row}: Seleccione el centro de costos.` },
+        { cond: !p(line?.u_tipoOpT12), msg: `Línea ${row}: Seleccione el tipo de operación.` },
+        { cond: !p(line?.u_FF_TIP_COM), msg: `Línea ${row}: Seleccione el tipo de compra.` },
+
+        ...(this.isService ? [
+          { cond: !p(line.acctCode), msg: `Línea ${row}: Seleccione la cuenta contable.` }
+        ] : []),
+
+        ...(this.isItem ? [
+          { cond: !p(line.whsCode), msg: `Línea ${row}: Seleccione el almacén.` },
+          { cond: !line.unitMsr, msg: `Línea ${row}: Defina la unidad de medida en los datos maestros del artículo.` },
+          { cond: !line.quantity || line.quantity <= 0, msg: `Línea ${row}: La cantidad debe ser mayor que cero (0).` }
+        ] : [])
+      ];
+
+      if (!runValidations(validations)) return false;
+    }
+
+    return true;
+  }
+
+  private mergeForms() {
+    return {
+      ...this.modeloFormReq.getRawValue(),
+      ...this.modeloFormDoc.getRawValue(),
+      ...this.modeloFormCon.getRawValue(),
+      ...this.modeloFormPie.getRawValue()
+    };
+  }
+
+  private mapLinesCreate(): PurchaseRequest1CreateModel[] {
+    /** helpers para evitar repetición */
+    const u     = this.utilService;
+    const p     = (v:any)=>u.normalizePrimitive(v);
+    const n     = (v:any)=>u.normalizeNumber(v);
+    const d     = (v:any)=>u.normalizeDateOrToday(v);
+
+    return this.modeloLines.map(line => ({
+      itemCode     : p(line.itemCode),
+      dscription   : p(line.dscription),
+
+      lineVendor   : p(line.lineVendor),
+      pqtReqDate   : d(line.pqtReqDate),
+
+      acctCode     : p(line.acctCode),
+      ocrCode      : p(line.ocrCode),
+
+      whsCode      : p(line.whsCode),
+
+      unitMsr      : p(line.unitMsr),
+      quantity     : n(line.quantity),
+
+      u_tipoOpT12  : p(line.u_tipoOpT12),
+      u_FF_TIP_COM : p(line.u_FF_TIP_COM)
+    }));
+  }
+
+  private buildModelToSave(): PurchaseRequestCreateModel {
+    /** helpers para evitar repetición */
+    const u       = this.utilService;
+    const p       = (v:any)=>u.normalizePrimitive(v);
+    const d       = (v:any)=>u.normalizeDateOrToday(v);
+    const val     = (v:any)=>v?.value ?? v;
+    const label   = (v:any)=>v?.label ?? v ?? '';
+
+    /** combinar tod  os los formularios */
+    const f       = this.mergeForms();
+
+    const userId  = this.userContextService.getIdUsuario();
+
+    const notify  = f.notify === true ? 'Y' : 'N';
+
+    const lines   = this.mapLinesCreate();
+
+    return {
+      ...new PurchaseRequestCreateModel(),
+
+      docDate     : d(f.docDate),
+      docDueDate  : d(f.docDueDate),
+      taxDate     : d(f.taxDate),
+      reqDate     : d(f.reqDate),
+
+      docType     : val(f.docType),
+
+      reqType     : val(f.reqType),
+      requester   : val(f.reqName),
+      reqName     : label(f.reqName),
+
+      branch      : val(f.branch),
+      department  : val(f.department),
+
+      notify      : notify,
+      email       : p(f.email),
+
+      ownerCode   : val(f.employeeInfo),
+
+      comments    : p(f.comments),
+
+      u_UsrCreate : userId,
+
+      lines
+    };
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 18. NAVIGATION >>>
+
   onClickBack(): void {
     this.router.navigate(['/main/modulo-com/panel-solicitud-compra-list']);
   }
+
+  //#endregion
 }

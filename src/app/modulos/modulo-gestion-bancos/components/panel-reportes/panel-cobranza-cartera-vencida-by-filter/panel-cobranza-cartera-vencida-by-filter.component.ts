@@ -10,11 +10,11 @@ import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/socio-negocios/grupo-socio-negocio.interface';
 import { ICobranzaCarteraVencidaByFilter } from 'src/app/modulos/modulo-gestion-bancos/interfaces/pago-recibido.interface';
 import { PagoRecibidoService } from 'src/app/modulos/modulo-gestion-bancos/services/pagoRecibido.service';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/socio-negocios/grupo-socio-negocio.service';
 import { PagoRecibidoByFilterFindModel } from '../../../models/pago-recibido.model';
+import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
+import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
 
 
 @Component({

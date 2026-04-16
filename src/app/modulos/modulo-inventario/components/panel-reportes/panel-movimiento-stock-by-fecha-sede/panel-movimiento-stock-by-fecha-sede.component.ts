@@ -1,22 +1,24 @@
-import { saveAs } from 'file-saver';
 import { Subject } from 'rxjs';
+import { saveAs } from 'file-saver';
 import { SelectItem } from 'primeng/api';
 import { DatePipe } from '@angular/common';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { IMovimientoStockByFechaSede } from '../../../interfaces/articulo.interface';
-import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/location.service';
-import { ArticuloService } from '../../../services/articulo.service';
-import { MovimientoStokByFechaSedeFindModel } from '../../../models/articulo.model';
-import { ILocation } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/location.interface';
-import { takeUntil } from 'rxjs/operators';
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+
+import { MovimientoStokByFechaSedeFindModel } from '../../../models/items.model';
+import { IMovimientoStockByFechaSede } from '../../../interfaces/items.interface';
+import { ILocation } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/location.interface';
+
 import { UtilService } from 'src/app/services/util.service';
+import { ItemsService } from '../../../services/items.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/location.service';
 
 
 @Component({
@@ -48,7 +50,7 @@ export class PanelMovimientoStockByFechaSedeComponent implements OnInit, OnDestr
   columnas                          : any[];
 
   // Datos mostrados
-  list                              : IMovimientoStockByFechaSede[];
+  modelo                            : IMovimientoStockByFechaSede[];
 
   // Paginación de la tabla
   rows                = 20;
@@ -70,7 +72,7 @@ export class PanelMovimientoStockByFechaSedeComponent implements OnInit, OnDestr
     private readonly utilService: UtilService,
     private readonly locationService: LocationService,
     private readonly localDataService: LocalDataService,
-    private readonly ArticuloService: ArticuloService,
+    private readonly itemsService: ItemsService,
   ) {}
 
   ngOnInit() {
@@ -123,14 +125,12 @@ export class PanelMovimientoStockByFechaSedeComponent implements OnInit, OnDestr
   getListSede() {
     this.locationService.getList().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: ILocation[]) => {
-        // opciones con value = código
         this.locationList = data.map(i => ({ label: i.location, value: i.code }));
         const codes = data.map(i => i.code);
         this.modeloForm.get('mslocation')?.setValue(codes);
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getListSede', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListSede', this.swaCustomService);
       }
     });
   }
@@ -142,48 +142,74 @@ export class PanelMovimientoStockByFechaSedeComponent implements OnInit, OnDestr
   }
 
   onToBuscar() {
-    this.onListar();
+    this.loadData();
   }
 
-  onSetParametro()
-  {
-    // Capturamos todos los valores del formulario
-    this.params = this.modeloForm.getRawValue();
-    // Extraemos los códigos seleccionados de los p-multiSelect (mslocation)
-    const selectedLocationCodes: string[] = (this.modeloForm.controls['mslocation']?.value) || [];
-    this.params.location = (selectedLocationCodes && selectedLocationCodes.length > 0) ? selectedLocationCodes.join(',') : '';
-    // Extraemos los códigos seleccionados de tipo de movimiento (mstypeMovement)
-    const selectedTypeCodes = this.modeloForm.value.mstypeMovement || [];
-    this.params.typeMovement = selectedTypeCodes.map(x => x.code).join(',');
-  }
-
-  onListar() {
+  loadData(): void {
     this.isDisplay = true;
-    this.onSetParametro();
-    this.ArticuloService.getListMovimientoStockByFechaSede(this.params).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data: IMovimientoStockByFechaSede[]) => {
+
+    this.itemsService
+    .getListMovimientoStockByFechaSede(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
         this.isDisplay = false;
-        this.list = data;
+      })
+    )
+    .subscribe({
+      next: (data: IMovimientoStockByFechaSede[]) => {
+        this.modelo = data;
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getListMovimientoStockByFechaSede', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
 
-  onToExcel() {
+  private buildFilterParams(): MovimientoStokByFechaSedeFindModel {
+    const {
+      startDate,
+      endDate,
+      mslocation,
+      mstypeMovement,
+      customer,
+      item
+    } = this.modeloForm.getRawValue();
+
+    return {
+      startDate,
+      endDate,
+      location: (mslocation || []).join(','),
+      typeMovement: (mstypeMovement || []).map(x => x.code).join(','),
+      customer,
+      item
+    };
+  }
+
+  onToExcel(): void {
     this.isDisplay = true;
-    this.onSetParametro();
-    this.ArticuloService.getMovimientoStockExcelByFechaSede(this.params).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response: any) => {
-        saveAs(new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), this.nombreArchivo);
+
+    this.itemsService
+    .getMovimientoStockExcelByFechaSede(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
         this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (response: any) => {
+        saveAs(
+          new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }),
+          this.nombreArchivo
+        );
+
         this.swaCustomService.swaMsgExito(null);
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getMovimientoStockExcelByFechaSede', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'onToExcel', this.swaCustomService);
       }
     });
   }

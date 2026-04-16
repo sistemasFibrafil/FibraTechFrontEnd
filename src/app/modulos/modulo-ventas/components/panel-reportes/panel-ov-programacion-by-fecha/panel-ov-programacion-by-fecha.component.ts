@@ -9,9 +9,9 @@ import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 
-import { IOrdenVentaPendienteByFecha } from '../../../interfaces/sap/orden-venta.interface';
+import { IOrdersPendiente } from '../../../interfaces/sap-business-one/orders.interface';
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { OrdenVentaService } from '../../../services/sap/orden-venta.service';
+import { OrdersService } from '../../../services/sap-business-one/orders.service';
 
 
 
@@ -34,7 +34,7 @@ export class PanelOrdenVentaProgramcionByFechaComponent implements OnInit {
   // Opcion Buscar
   isDisplay: boolean = false;
 
-  reporteList: IOrdenVentaPendienteByFecha[];
+  reporteList: IOrdersPendiente[];
   params: FilterRequestModel = new FilterRequestModel();
 
   fecha: string = this.datePipe.transform(new Date(), 'dd-MM-yyyy');
@@ -45,7 +45,7 @@ export class PanelOrdenVentaProgramcionByFechaComponent implements OnInit {
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private OrdenVentaService: OrdenVentaService
+    private readonly ordersService: OrdersService
   ){}
 
   ngOnInit() {
@@ -73,8 +73,8 @@ export class PanelOrdenVentaProgramcionByFechaComponent implements OnInit {
     this.isDisplay = true;
     this.reporteList = [];
     this.onSetParametro();
-    this.OrdenVentaService.getListOrdenVentaProgramacionByFecha(this.params)
-    .subscribe({next:(data: IOrdenVentaPendienteByFecha[]) =>{
+    this.ordersService.getListOrdenVentaProgramacionByFecha(this.params)
+    .subscribe({next:(data: IOrdersPendiente[]) =>{
       if(data)
       {
         this.isDisplay = false;
@@ -91,7 +91,7 @@ export class PanelOrdenVentaProgramcionByFechaComponent implements OnInit {
   onToExcel() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.OrdenVentaService.getOrdenVentaProgramacionExcelByFecha(this.params)
+    this.ordersService.getOrdenVentaProgramacionExcelByFecha(this.params)
     .subscribe({next:(response: any) => {
         saveAs(
           new Blob([response],

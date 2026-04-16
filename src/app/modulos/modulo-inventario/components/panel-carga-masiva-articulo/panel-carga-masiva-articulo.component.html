@@ -148,7 +148,7 @@
 
 <p-dialog header="Subir artículos" *ngIf="isDisplayUpload" [(visible)]="isDisplayUpload" [modal]="true" [closable]="true" [autoZIndex] [style]="{width: '35vw'}">
   <div>
-    <app-modal-subir-archivo (eventoAceptar)="onClickUpload($event)"></app-modal-subir-archivo>
+    <app-modal-subir-archivo [fileType]="'.txt,.csv,.xlsx,.xls'" (eventoAceptar)="onClickUpload($event)"></app-modal-subir-archivo>
     <ng-template pTemplate="footer">
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger"></p-button>
   </ng-template>

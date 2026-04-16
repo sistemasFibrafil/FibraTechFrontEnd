@@ -89,7 +89,7 @@
             <td class="p-fluid">
               <span class="p-column-title">Técnico</span> {{modelo.nomTecnico}}
             </td>
-            <td class="custom-td-2">
+            <td class="custom-td-5">
               <span [ngSwitch]="modelo.codEstado">
                 <span class="label" style="font-weight: bolder;background:green" *ngSwitchCase="01">Pendiente</span>
                 <span class="label" style="font-weight: bolder;background:#2141fa" *ngSwitchCase="02">Aprobado</span>
@@ -97,10 +97,10 @@
                 <span class="label" *ngSwitchDefault>Otros</span>
               </span>
             </td>
-            <td class="custom-td-2">
+            <td class="custom-td-5">
               <button [disabled]="buttonAcces.btnEnviar" pButton icon="{{globalConstants.icoEnviar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onToRowSelectAprobar(modelo)"></button>
             </td>
-            <td class="custom-td-2">
+            <td class="custom-td-5">
               <button [disabled]="buttonAcces.btnImprimir" pButton icon="{{globalConstants.icoImprimir}}" class="{{globalConstants.cStyleButtonWarning}}" (click)="onToRowSelectPrint(modelo)"></button>
             </td>
           </tr>

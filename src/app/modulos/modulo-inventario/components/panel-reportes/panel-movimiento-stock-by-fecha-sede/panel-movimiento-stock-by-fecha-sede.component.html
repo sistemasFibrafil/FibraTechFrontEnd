@@ -44,7 +44,7 @@
     <!-- Grilla de Datos     -->
     <p-panel header="Lista de {{subtitulo}}">
         <p-table
-          [value]="list"
+          [value]="modelo"
           [columns]="columnas"
           [rows]="rows"
           [rowHover]="true"
@@ -57,7 +57,6 @@
           [rowsPerPageOptions]="rowsPerPageOptions"
           styleClass="{{globalConstants.cStyleTableGridLines}}"
           currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
-
           >
           <!-- Header -->
           <ng-template pTemplate="header" let-columns>
@@ -69,90 +68,90 @@
           </ng-template>
           <!-- body -->
           <ng-template pTemplate="body" let-modelo>
-            <tr class="p-selectable-row" [pSelectableRow]="modelo">
-              <td class="custom-td-18">
-                <span class="p-column-title">Tipo de Movimiento</span> {{modelo.nomTipoMovimiento}}
+            <tr [pSelectableRow]="modelo">
+              <td class="p-fluid">
+                {{modelo.nomTipoMovimiento}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Número de Guía SAP</span> {{modelo.numeroGuiaSAP}}
+              <td class="p-fluid">
+                {{modelo.numeroGuiaSAP}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Número de Guía SUNAT</span> {{modelo.numeroGuiaSUNAT}}
+              <td class="p-fluid">
+                {{modelo.numeroGuiaSUNAT}}
               </td>
-              <td class="custom-td-fecha">
-                <span class="p-column-title">Fecha de Guía</span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+              <td class="p-fluid">
+                {{modelo.docDate | date: 'dd/MM/yyyy'}}
               </td>
-              <td class="custom-td-20">
-                <span class="p-column-title">Código de Cliente</span> {{modelo.cardCode}}
+              <td class="p-fluid">
+                {{modelo.cardCode}}
               </td>
-              <td class="custom-td-30">
-                <span class="p-column-title">Nombre de Cliente</span> {{modelo.cardName}}
+              <td class="p-fluid">
+                {{modelo.cardName}}
               </td>
-              <td class="custom-td-20">
-                <span class="p-column-title">Usuario</span> {{modelo.usuario}}
+              <td class="p-fluid">
+                {{modelo.usuario}}
               </td>
-              <td class="custom-td-20">
-                <span class="p-column-title">Código de Artículo</span> {{modelo.itemCode}}
+              <td class="p-fluid">
+                {{modelo.itemCode}}
               </td>
-              <td class="custom-td-30">
-                <span class="p-column-title">Nombre de Artículo</span> {{modelo.itemName}}
+              <td class="p-fluid">
+                {{modelo.itemName}}
               </td>
-              <td class="custom-td-8">
-                <span class="p-column-title">Sede</span> {{modelo.sede}}
+              <td class="p-fluid">
+                {{modelo.sede}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Centro de Costo</span> {{modelo.centroCosto}}
+              <td class="p-fluid">
+                {{modelo.centroCosto}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Almacén de Origen</span> {{modelo.almacenOrigen}}
+              <td class="p-fluid">
+                {{modelo.almacenOrigen}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Almacén de Destino</span> {{modelo.almacenDestino}}
-              </td>
-              <td class="custom-td-numero">
-                <span class="p-column-title">Bulto</span> {{modelo.bulto | number: '.2':'en-EN'}}
+              <td class="p-fluid">
+                {{modelo.almacenDestino}}
               </td>
               <td class="custom-td-numero">
-                <span class="p-column-title">Total Kg</span> {{modelo.totalKg | number: '.2':'en-EN'}}
+                {{modelo.bulto | number: '.2':'en-EN'}}
               </td>
               <td class="custom-td-numero">
-                <span class="p-column-title">UM</span> {{modelo.unidadMedida}}
+                {{modelo.totalKg | number: '.2':'en-EN'}}
+              </td>
+              <td class="p-fluid">
+                {{modelo.unidadMedida}}
               </td>
               <td class="custom-td-numero">
-                <span class="p-column-title">Cantidad</span> {{modelo.quantity | number: '.2':'en-EN'}}
+                {{modelo.quantity | number: '.2':'en-EN'}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Número de Pedido</span> {{modelo.numeroPedido}}
+              <td class="p-fluid">
+                {{modelo.numeroPedido}}
               </td>
-              <td class="custom-td-fecha">
-                <span class="p-column-title">Fecha de Pedido</span> {{modelo.fechaPedido | date: 'dd/MM/yyyy'}}
+              <td class="p-fluid">
+                {{modelo.fechaPedido | date: 'dd/MM/yyyy'}}
               </td>
-              <td class="custom-td-16">
-                <span class="p-column-title">Número de Factura SAP</span> {{modelo.numeroFacturaSAP}}
+              <td class="p-fluid">
+                {{modelo.numeroFacturaSAP}}
               </td>
-              <td class="custom-td-16">
-                <span class="p-column-title">Número de Factura NUNAT</span> {{modelo.numeroFacturaSUNAT}}
+              <td class="p-fluid">
+                {{modelo.numeroFacturaSUNAT}}
               </td>
-              <td class="custom-td-30">
-                <span class="p-column-title">Nombre de Transportista</span> {{modelo.u_BPP_MDNT}}
+              <td class="p-fluid">
+                {{modelo.u_BPP_MDNT}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">RUC de Transportista</span> {{modelo.rucTransportista}}
+              <td class="p-fluid">
+                {{modelo.rucTransportista}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Placa de Transportista</span> {{modelo.placaTransportista}}
+              <td class="p-fluid">
+                {{modelo.placaTransportista}}
               </td>
-              <td class="custom-td-30">
-                <span class="p-column-title">Nombre de Conductor</span> {{modelo.u_FIB_NOM_COND}}
+              <td class="p-fluid">
+                {{modelo.u_FIB_NOM_COND}}
               </td>
-              <td class="custom-td-12">
-                <span class="p-column-title">Licencia de Conductor</span> {{modelo.lincenciaConductor}}
+              <td class="p-fluid">
+                {{modelo.lincenciaConductor}}
               </td>
             </tr>
           </ng-template>
-          <ng-template pTemplate="emptymessage">
+          <ng-template pTemplate="emptymessage" let-columns>
             <tr>
-              <td colspan="26">{{globalConstants.currentTableEmptyMessage}}</td>
+              <td [attr.colspan]="columns.length">{{globalConstants.currentTableEmptyMessage}}</td>
             </tr>
           </ng-template>
         </p-table>

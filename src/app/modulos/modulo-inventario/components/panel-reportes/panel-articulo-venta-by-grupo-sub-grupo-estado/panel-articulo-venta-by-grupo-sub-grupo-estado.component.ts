@@ -7,16 +7,17 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+
+import { FilterRequestModel } from 'src/app/models/filter-request.model';
+import { IArticuloVentaByGrupoSubGrupoEstado } from '../../../interfaces/items.interface';
+
+import { ItemsService } from '../../../services/items.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IArticuloVentaByGrupoSubGrupoEstado } from '../../../interfaces/articulo.interface';
-import { IGrupoArticulo, ISubGrupoArticulo2, ISubGrupoArticulo } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/grupo-articulo-sap.interface';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { ArticuloService } from '../../../services/articulo.service';
-import { GrupoArticuloService } from '../../../../modulo-gestion/services/sap/definiciones/inventario/grupo-articulo-sap.service';
-import { SubGrupoArticuloService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/sub-grupo-articulo-sap.service';
-import { SubGrupoArticulo2Service } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/sub-grupo-articulo2-sap.service';
+import { IGrupoArticulo, ISubGrupoArticulo, ISubGrupoArticulo2 } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/grupo-articulo-sap.interface';
+import { GrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/grupo-articulo-sap.service';
+import { SubGrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/sub-grupo-articulo-sap.service';
+import { SubGrupoArticulo2Service } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/sub-grupo-articulo2-sap.service';
 
 
 
@@ -65,16 +66,18 @@ export class PanelArticuloVentaByGrupoSubGrupoEstadoComponent implements OnInit,
   fecha: string = this.datePipe.transform(new Date(), 'dd-MM-yyyy');
   nombreArchivo: string = 'Artículos de Venta -' + this.fecha;
 
-  constructor(
+  constructor
+  (
     private router: Router,
     private fb: FormBuilder,
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private ArticuloService: ArticuloService,
-    private grupoArticuloService: GrupoArticuloService,
-    private subGrupoArticuloService: SubGrupoArticuloService,
-    private subGrupoArticulo2Service: SubGrupoArticulo2Service) {}
+    private itemsService: ItemsService,
+    private grupoItemsService: GrupoItemsService,
+    private subGrupoItemsService: SubGrupoItemsService,
+    private subGrupoArticulo2Service: SubGrupoArticulo2Service
+  ) {}
 
   ngOnInit() {
     this.modeloForm = this.fb.group(
@@ -115,7 +118,7 @@ export class PanelArticuloVentaByGrupoSubGrupoEstadoComponent implements OnInit,
 
   getListGrupoArticulo() {
     this.grupoArticuloList = [];
-    this.grupoArticuloService.getList()
+    this.grupoItemsService.getList()
     .subscribe({next:(data: IGrupoArticulo[]) =>{
       this.grupoArticuloSelected = [];
 
@@ -132,7 +135,7 @@ export class PanelArticuloVentaByGrupoSubGrupoEstadoComponent implements OnInit,
 
   getListSubGrupoArticulo() {
     this.subGrupoArticuloList = [];
-    this.subGrupoArticuloService.getList()
+    this.subGrupoItemsService.getList()
     .subscribe({next:(data: ISubGrupoArticulo[]) =>{
       this.subGrupoArticuloSelected = [];
 
@@ -191,7 +194,7 @@ export class PanelArticuloVentaByGrupoSubGrupoEstadoComponent implements OnInit,
     this.isDisplay = true;
     this.reporteList = [];
     this.onSetParametro();
-    this.ArticuloService.getListArticuloVentaByGrupoSubGrupoEstado(this.params)
+    this.itemsService.getListArticuloVentaByGrupoSubGrupoEstado(this.params)
     .subscribe({next:(data: IArticuloVentaByGrupoSubGrupoEstado[]) =>{
         this.isDisplay = false;
         this.reporteList = data;
@@ -205,7 +208,7 @@ export class PanelArticuloVentaByGrupoSubGrupoEstadoComponent implements OnInit,
   onToExcel() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.ArticuloService.getArticuloVentaExcelByGrupoSubGrupoEstado(this.params)
+    this.itemsService.getArticuloVentaExcelByGrupoSubGrupoEstado(this.params)
     .subscribe({next:(response: any) => {
         saveAs(
           new Blob([response],

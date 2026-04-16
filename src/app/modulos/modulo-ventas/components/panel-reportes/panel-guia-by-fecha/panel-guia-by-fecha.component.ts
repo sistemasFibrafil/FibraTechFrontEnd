@@ -1,22 +1,19 @@
 import { saveAs } from 'file-saver';
 import { Subscription } from 'rxjs';
 import { SelectItem } from 'primeng/api';
-import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { FilterRequestModel } from 'src/app/models/filter-request.model';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IGuiaSapByFecha } from '../../../interfaces/sap/entrega-sap.interface';
-import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/general/sales-persons.interface';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { EntregaSapService } from '../../../services/sap/entrega-sap.service';
+import { DeliveryNotesService } from '../../../services/sap-business-one/delivery-notes.service';
+import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
 
 
 
@@ -42,7 +39,7 @@ export class PanelGuiaByFechaComponent implements OnInit, OnDestroy {
 
   empleadoVentaList: SelectItem[];
   empleadoVentaSelected: ISalesPersons[];
-  reporteList: IGuiaSapByFecha[];
+  reporteList: any[];
   findModel: FilterRequestModel = new FilterRequestModel();
 
   fecha: string = this.datePipe.transform(new Date(), 'dd-MM-yyyy');
@@ -55,7 +52,6 @@ export class PanelGuiaByFechaComponent implements OnInit, OnDestroy {
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private entregaSapService: EntregaSapService,
     private salesPersonsService: SalesPersonsService
   ) {}
 
@@ -100,43 +96,43 @@ export class PanelGuiaByFechaComponent implements OnInit, OnDestroy {
   }
 
   onListar() {
-    this.isDisplay = true;
-    this.reporteList = [];
-    this.onSetParametro();
-    this.entregaSapService.getListGuiaByFecha(this.findModel)
-    .subscribe({next:(data: IGuiaSapByFecha[]) =>{
-      if(data)
-      {
-        this.isDisplay = false;
-        this.reporteList = data;
-      }
-      this.isDisplay = false;
-      },error:(e)=>{
-        this.isDisplay = false;
-        this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
-      }
-    });
+    // this.isDisplay = true;
+    // this.reporteList = [];
+    // this.onSetParametro();
+    // this.DeliveryNotesService.getListGuiaByFecha(this.findModel)
+    // .subscribe({next:(data: IGuiaSapByFecha[]) =>{
+    //   if(data)
+    //   {
+    //     this.isDisplay = false;
+    //     this.reporteList = data;
+    //   }
+    //   this.isDisplay = false;
+    //   },error:(e)=>{
+    //     this.isDisplay = false;
+    //     this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
+    //   }
+    // });
   }
 
   onToExcel() {
-    this.isDisplay = true;
-    this.onSetParametro();
-    this.entregaSapService.getGuiaExcelByFecha(this.findModel)
-    .subscribe({next:(response: any) => {
-      saveAs(
-        new Blob([response],
-        {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        }),
-        this.nombreArchivo
-      );
-      this.isDisplay = false;
-      this.swaCustomService.swaMsgExito(null);
-      },error:(e)=>{
-        this.isDisplay = false;
-        this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
-      }
-    });
+    // this.isDisplay = true;
+    // this.onSetParametro();
+    // this.deliveryNotesService.getGuiaExcelByFecha(this.findModel)
+    // .subscribe({next:(response: any) => {
+    //   saveAs(
+    //     new Blob([response],
+    //     {
+    //       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    //     }),
+    //     this.nombreArchivo
+    //   );
+    //   this.isDisplay = false;
+    //   this.swaCustomService.swaMsgExito(null);
+    //   },error:(e)=>{
+    //     this.isDisplay = false;
+    //     this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
+    //   }
+    // });
   }
 
   ngOnDestroy() {

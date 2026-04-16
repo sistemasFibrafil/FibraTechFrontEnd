@@ -92,140 +92,236 @@ $gutter: 1rem; //for primeflex grid system
 }
 
 .row-total {
-    background-color: var(--primary-100) !important;
-    text-align: right!important;
-    font-weight: bold !important;
+  background-color: var(--primary-100) !important;
+  text-align: right!important;
+  font-weight: bold !important;
 }
 
 .custom-td-checkbox {
-    text-align: center!important;
-    width: 8em!important;
+  text-align: center !important;
+  width: 8em !important;
+  min-width: 2em !important;
+  max-width: 2em !important;
+  white-space: nowrap;
 }
 
 .custom-td-1 {
-  text-align: left!important;
-  width: 1em!important;
+  text-align: left !important;
+  width: 1em !important;
+  min-width: 2em !important;
+  max-width: 2em !important;
+  white-space: nowrap;
 }
 .custom-td-2 {
-    text-align: left!important;
-    width: 2em!important;
+  text-align: left !important;
+  width: 2em !important;
+  min-width: 2em !important;
+  max-width: 2em !important;
+  white-space: nowrap;
 }
 .custom-td-3 {
-    text-align: left !important;
-    width: 3em !important;
+  text-align: left !important;
+  width: 3em !important;
+  min-width: 10em !important;
+  max-width: 10em !important;
+  white-space: nowrap;
 }
 .custom-td-4 {
-    text-align: left !important;
-    width: 4em !important;
+  text-align: left !important;
+  width: 4em !important;
+  min-width: 4em !important;
+  max-width: 4em !important;
+  white-space: nowrap;
 }
 .custom-td-5 {
-    text-align: left !important;
-    width: 5em !important;
+  text-align: left !important;
+  width: 5em !important;
+  min-width: 5em !important;
+  max-width: 5em !important;
+  white-space: nowrap;
 }
 .custom-td-6 {
-    text-align: left!important;
-    width: 6em!important;
+  text-align: left !important;
+  width: 6em !important;
+  min-width: 6em !important;
+  max-width: 6em !important;
+  white-space: nowrap;
 }
 .custom-td-7 {
-    text-align: left!important;
-    width: 7em!important;
+  text-align: left !important;
+  width: 7em !important;
+  min-width: 7em !important;
+  max-width: 7em !important;
+  white-space: nowrap;
 }
 .custom-td-8 {
-    text-align: left!important;
-    width: 8em!important;
+  text-align: left !important;
+  width: 8em !important;
+  min-width: 8em !important;
+  max-width: 8em !important;
+  white-space: nowrap;
 }
 .custom-td-9 {
-    text-align: left!important;
-    width: 9em!important;
+  text-align: left !important;
+  width: 9em !important;
+  min-width: 9em !important;
+  max-width: 9em !important;
+  white-space: nowrap;
 }
 .custom-td-10 {
-    text-align: left!important;
-    width: 10em!important;
+  text-align: left !important;
+  width: 10em !important;
+  min-width: 10em !important;
+  max-width: 10em !important;
+  white-space: nowrap;
 }
 .custom-td-12 {
-    text-align: left!important;
-    width: 12em!important;
+  text-align: left !important;
+  width: 12em !important;
+  min-width: 12em !important;
+  max-width: 12em !important;
+  white-space: nowrap;
 }
 .custom-td-14 {
-  text-align: left!important;
-  width: 14em!important;
+  text-align: left !important;
+  width: 14em !important;
+  min-width: 14em !important;
+  max-width: 14em !important;
+  white-space: nowrap;
 }
 .custom-td-16 {
-  text-align: left!important;
+  text-align: left !important;
   width: 16em!important;
+  min-width: 16em !important;
+  max-width: 16em !important;
+  white-space: nowrap;
 }
 .custom-td-17 {
-  text-align: left!important;
-    width: 17em;
+  text-align: left !important;
+  width: 17em !important;
+  min-width: 17em !important;
+  max-width: 17em !important;
+  white-space: nowrap;
 }
 .custom-td-18 {
-  text-align: left!important;
-    width: 18em;
+  text-align: left !important;
+  width: 18em !important;
+  min-width: 18em !important;
+  max-width: 18em !important;
+  white-space: nowrap;
 }
 .custom-td-20 {
-  text-align: left!important;
-  width: 20em;
+  text-align: left !important;
+  width: 20em !important;
+  min-width: 20em !important;
+  max-width: 20em !important;
+  white-space: nowrap;
 }
 .custom-td-22 {
-  text-align: left!important;
-  width: 22em;
+  text-align: left !important;
+  width: 22em !important;
+  min-width: 22em !important;
+  max-width: 22em !important;
+  white-space: nowrap;
 }
 .custom-td-24 {
-  text-align: left!important;
-  width: 24em;
+  text-align: left !important;
+  width: 24em !important;
+  min-width: 24em !important;
+  max-width: 24em !important;
+  white-space: nowrap;
 }
 .custom-td-26 {
-  text-align: left!important;
-  width: 26em;
+  text-align: left !important;
+  width: 26em !important;
+  min-width: 26em !important;
+  max-width: 26em !important;
+  white-space: nowrap;
 }
 .custom-td-28 {
-  text-align: left!important;
-  width: 28em;
+  text-align: left !important;
+  width: 28em !important;
+  min-width: 28em !important;
+  max-width: 28em !important;
+  white-space: nowrap;
 }
 .custom-td-30 {
-  text-align: left!important;
-  width: 30em;
+  text-align: left !important;
+  width: 30em !important;
+  min-width: 30em !important;
+  max-width: 30em !important;
+  white-space: nowrap;
 }
 
 .custom-td-10-left {
-  text-align: left!important;
+  text-align: left !important;
   width: 10em!important;
+  min-width: 10em !important;
+  max-width: 10em !important;
+  white-space: nowrap;
 }
 .custom-td-12-left {
-    text-align: left!important;
-    width: 12em!important;
+  text-align: left !important;
+  width: 12em!important;
+  min-width: 12em !important;
+  max-width: 12em !important;
+  white-space: nowrap;
 }
 .custom-td-18-left {
-  text-align: left!important;
-    width: 18em;
+  text-align: left !important;
+  width: 18em !important;
+  min-width: 18em !important;
+  max-width: 18em !important;
+  white-space: nowrap;
 }
 .custom-td-20-left {
-  text-align: left!important;
-    width: 20em;
+  text-align: left !important;
+  width: 20em !important;
+  min-width: 20em !important;
+  max-width: 20em !important;
+  white-space: nowrap;
 }
 .custom-td-25-left {
-  text-align: left!important;
-    width: 25em;
+  text-align: left !important;
+  width: 25em !important;
+  min-width: 25em !important;
+  max-width: 25em !important;
+  white-space: nowrap;
+
 }
 .custom-td-30-left {
-  text-align: left!important;
-    width: 30em;
+  text-align: left !important;
+  width: 30em !important;
+  min-width: 30em !important;
+  max-width: 30em !important;
+  white-space: nowrap;
 }
 
 .custom-td-center {
-    text-align: center!important;
-    width: 10em!important;
+  text-align: center !important;
+  width: 10em !important;
+  min-width: 10em !important;
+  max-width: 10em !important;
+  white-space: nowrap;
 }
 
 .custom-td-description {
-    text-align: left!important;
-    width: 20em!important;
-}
+  text-align: left !important;
+  width: 20em !important;
+  min-width: 20em !important;
+  max-width: 20em !important;
+  white-space: nowrap;
+  }
 
 .custom-td-numero {
-    text-align: right!important;
-    width: 10em!important;
+  text-align: right !important;
+  width: 10em !important;
+  min-width: 10em !important;
+  max-width: 10em !important;
+  white-space: nowrap;
 }
+
+
 
 .fibratech-button {
     .ui-splitbutton {
@@ -252,12 +348,18 @@ $gutter: 1rem; //for primeflex grid system
 table {
   .label {
     @include label-estado();
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: default;
+    }
   }
 }
 
 /* Estilos para el item del estado*/
 .row-cerrado {
-  background-color: rgba(0, 0, 0, 0.15) !important;
+  background-color: rgb(235, 235, 235) !important;
   color: #000 !important; /* asegura que el texto siempre sea blanco */
 }
 
@@ -268,7 +370,8 @@ table {
 }
 
 .field-numero {
-  text-align: right!important;
+  text-align: right !important;
+  white-space: nowrap;
 }
 
 .resumen-totales input.p-inputtext{
@@ -352,4 +455,68 @@ table {
       @include text-color-mandatory();
   }
   color: #495057 !important;
+}
+
+.readonly-control .p-datepicker-trigger {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+// Estado de autorización
+.estado-pendiente {
+  background: #17a2b8;
+}
+
+.estado-autorizado {
+  background: #28a745;
+}
+
+.estado-autorizacion {
+  background: #fd7e14;
+}
+
+.estado-creado {
+  background: #0d6efd;
+}
+
+.estado-rechazado {
+  background: #dc3545;
+}
+
+// Tipo de documento
+.badge-articulos {
+  background: linear-gradient(135deg, #5b3df5, #7a5af8);
+}
+
+.badge-servicios {
+  background: linear-gradient(135deg, #d946ef, #f472b6);
+}
+
+
+// Estado de documento
+.estado-abierto {
+  background: #17a2b8;
+}
+
+.estado-cancelado {
+  background: #dc3545;
+}
+
+.estado-pagado {
+  background: #28a745;
+}
+
+.estado-cerrado {
+  background: #0d6efd;
+}
+
+
+.type-nacional {
+  background: linear-gradient(135deg, #14b8a6, #14b8a6);
+}
+
+.type-exportacion {
+  background: linear-gradient(135deg, #fb923c, #fb923c);
 }

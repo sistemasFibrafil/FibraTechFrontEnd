@@ -1,27 +1,23 @@
-import swal from 'sweetalert2';
 import { saveAs } from 'file-saver';
 import { SelectItem } from 'primeng/api';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { SopCreateModel } from '../../../models/web/sop.model';
+import { FilterRequestModel } from 'src/app/models/filter-request.model';
+
+import { IOrdersSeguimientoDetallado } from '../../../interfaces/sap-business-one/orders.interface';
+import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { OrdersService } from '../../../services/sap-business-one/orders.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/socio-negocios/grupo-socio-negocio.interface';
-import { IOrdenVentaSeguimientoDetallado } from '../../../interfaces/sap/orden-venta.interface';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { TiempoService } from 'src/app/modulos/modulo-gestion/services/web/definiciones/general/tiempo.service';
-import { OrdenVentaService } from '../../../services/sap/orden-venta.service';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/socio-negocios/grupo-socio-negocio.service';
-import { SopCreateModel } from '../../../models/web/sop.model';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { SopService } from '../../../services/web/sop.service';
-import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/general/sales-persons.interface';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
 
 
 @Component({
@@ -52,7 +48,7 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
 
   empleadoVentaSelected: ISalesPersons[];
   grupoClienteSelected: IGrupoSocioNegocioSap[];
-  reporteList: IOrdenVentaSeguimientoDetallado[];
+  reporteList: IOrdersSeguimientoDetallado[];
 
   modeloSave: SopCreateModel = new SopCreateModel();
   params: FilterRequestModel = new FilterRequestModel();
@@ -73,7 +69,7 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private OrdenVentaService: OrdenVentaService,
+    private readonly ordersService: OrdersService,
     private salesPersonsService: SalesPersonsService,
     private grupoSocionegocioSapService: GrupoSocionegocioSapService
   ) {}
@@ -146,8 +142,8 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
   onListar() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.OrdenVentaService.getListOrdenVentaPreliminarPendienteByFecha(this.params)
-    .subscribe({ next: (resp: IOrdenVentaSeguimientoDetallado[])=>{
+    this.ordersService.getListOrdenVentaPreliminarPendienteByFecha(this.params)
+    .subscribe({ next: (resp: IOrdersSeguimientoDetallado[])=>{
         this.isDisplay = false;
         this.reporteList = resp;
       },
@@ -161,7 +157,7 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
   onClickExcel() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.OrdenVentaService.getListOrdenVentaPreliminarPendienteExcelByFecha(this.params)
+    this.ordersService.getListOrdenVentaPreliminarPendienteExcelByFecha(this.params)
     .subscribe({next:(response: any) => {
         saveAs(
           new Blob([response],

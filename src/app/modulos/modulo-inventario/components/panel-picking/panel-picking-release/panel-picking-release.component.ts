@@ -1,16 +1,17 @@
 import { Subject } from 'rxjs';
 import { Router } from '@angular/router';
-import { MessageService, SelectItem } from 'primeng/api';
 import { finalize, takeUntil } from 'rxjs/operators';
-import { UtilService } from 'src/app/services/util.service';
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { MessageService, SelectItem } from 'primeng/api';
 import { LayoutComponent } from 'src/app/layout/layout.component';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 
 import { PickingReleaseModel } from '../../../models/picking.model';
+
+import { UtilService } from 'src/app/services/util.service';
+import { LocalDataService } from 'src/app/services/local-data.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
 import { PickingService } from 'src/app/modulos/modulo-inventario/services/picking.service';
 
@@ -50,8 +51,7 @@ export class PanelPickingReleaseComponent implements OnInit, OnDestroy {
     private readonly messageService: MessageService,
     private readonly localDataService: LocalDataService,
     private readonly swaCustomService: SwaCustomService,
-    private readonly userContextService: UserContextService,
-    private readonly utilService: UtilService,
+    private readonly userContextService: UserContextService
   ) {}
 
   // ===========================

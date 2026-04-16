@@ -1,23 +1,27 @@
-import { Subject } from 'rxjs';
 import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { catchError, finalize, map, take, takeUntil } from 'rxjs/operators';
 import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
-import { ISolicitudTraslado, ISolicitudTraslado1 } from 'src/app/modulos/modulo-inventario/interfaces/solicitud-traslado.interface';
-import { SolicitudTrasladoFilterModel } from 'src/app/modulos/modulo-inventario/models/solicitud-traslado.model';
+import { InventoryTransferRequestFilterModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
+
+import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+import { IInventoryTransferRequest } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
 
 import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
 import { UserContextService } from 'src/app/services/user-context.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { SolicitudTrasladoService } from 'src/app/modulos/modulo-inventario/services/solicitud-traslado.service';
+import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
+import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
+
 
 @Component({
   selector: 'app-inv-panel-solicitud-traslado-list',
@@ -45,31 +49,33 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
   // Table configuration
   columnas                                      : TableColumn[] = [];
   opciones                                      : MenuItem[] = [];
-  docStatusList                                 : SelectItem[] = [];
   opcionesMap                                   : Map<string, MenuItem>;
+
+  docStatusList                                 : SelectItem[] = [];
+
 
   // Data
   isDataBlob                                    : Blob;
-  modeloSelected                                : ISolicitudTraslado;
-  modelo                                        : ISolicitudTraslado[] = [];
+
+  modeloSelected                                : IInventoryTransferRequest;
+
+  modelo                                        : IInventoryTransferRequest[] = [];
 
   // Paginación de la tabla
-  rows                = 20;
-  rowsPerPageOptions  = [20, 40, 60, 80, 100];
-
-  // Filters
-  params                                        : SolicitudTrasladoFilterModel = new SolicitudTrasladoFilterModel();
+  rows                                          = 20;
+  rowsPerPageOptions                            = [20, 40, 60, 80, 100];
 
 
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly utilService: UtilService,
     private readonly localDataService: LocalDataService,
     private readonly swaCustomService: SwaCustomService,
     private readonly userContextService: UserContextService,
+    private readonly exchangeRatesService: ExchangeRatesService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private readonly solicitudTrasladoService: SolicitudTrasladoService,
+    private readonly InventoryTransferRequestService: InventoryTransferRequestService,
+    public  readonly utilService: UtilService,
   ) {}
 
   // ===========================
@@ -96,10 +102,8 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
     this.opcionesTabla();
     this.getListStatus();
 
-    this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-inv-panel-solicitud-traslado-list');
-
     if (!this.buttonAcces.btnBuscar) {
-      this.getList();
+      this.loadData();
     }
   }
 
@@ -110,6 +114,8 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
       docStatus     : ['', Validators.required],
       searchText    : ['']
     });
+
+    this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-inv-panel-solicitud-traslado-list');
   }
 
   private onBuildColumn(): void {
@@ -146,7 +152,7 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  private updateMenuVisibility(modelo: ISolicitudTraslado): void {
+  private updateMenuVisibility(modelo: IInventoryTransferRequest): void {
     const isOpen        = modelo.docStatus === 'O';
     // Si u_FIB_IsPkg es null/undefined/empty lo consideramos 'N' (no picking)
     const pkgFlag       = modelo?.u_FIB_IsPkg;
@@ -163,7 +169,7 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: ISolicitudTraslado): void {
+  onSelectedItem(modelo: IInventoryTransferRequest): void {
     this.modeloSelected = modelo;
     this.updateMenuVisibility(modelo);
   }
@@ -173,46 +179,71 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
   // ===========================
 
   private getListStatus(): void {
-    const statuses = this.localDataService.getListStatusDocumentInventory();
+    const statuses = this.localDataService.getListStatusDocuments();
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('docStatus')?.setValue(statuses);
   }
 
-  private onSetParametro(): void {
-    this.params = this.modeloForm.getRawValue();
-    const selectedStatuses = this.modeloForm.value.docStatus || [];
-    this.params.docStatus = selectedStatuses.map(x => x.code).join(',');
+  private buildFilterParams(): InventoryTransferRequestFilterModel {
+    const {
+      startDate,
+      endDate,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
+
+    return {
+      startDate,
+      endDate,
+      docStatus: (docStatus || []).map(x => x.code).join(','),
+      searchText
+    };
   }
 
-  getList(): void {
+  loadData(): void {
     this.isDisplay = true;
-    this.onSetParametro();
-    this.solicitudTrasladoService.getListByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: ISolicitudTraslado[]) => {
+
+    this.InventoryTransferRequestService
+      .getListByFilter(this.buildFilterParams())
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
           this.isDisplay = false;
+        })
+      )
+      .subscribe({
+        next: (data: IInventoryTransferRequest[]) => {
           this.modelo = data;
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'getList', () => this.isDisplay = false, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
         }
       });
   }
 
   private close(): void {
     this.isClosing = true;
-    const param = { docEntry: this.modeloSelected.docEntry, u_UsrUpdate: this.userContextService.getIdUsuario() };
-    this.solicitudTrasladoService.setClose(param)
-      .pipe(takeUntil(this.destroy$))
+
+    const param = {
+      docEntry: this.modeloSelected.docEntry,
+      u_UsrUpdate: this.userContextService.getIdUsuario()
+    };
+
+    this.InventoryTransferRequestService
+      .setClose(param)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isClosing = false;
+        })
+      )
       .subscribe({
         next: () => {
-          this.getList();
-          this.isClosing = false;
+          this.loadData();
           this.swaCustomService.swaMsgExito(null);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'close', () => this.isClosing = false, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'close', this.swaCustomService);
         }
       });
   }
@@ -222,12 +253,50 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
   // ===========================
 
   onClickBuscar(): void {
-    this.getList();
+    this.loadData();
   }
 
-  onClickCreate(): void {
-    const data: ISolicitudTraslado1[] = [{ lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', u_tipoOpT12Nam: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, openQty: 0 }];
-    this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-create', JSON.stringify(data)]);
+  private fetchTipoCambioRate(): Observable<IExchangeRates | null> {
+    const docDate: Date = new Date();
+    const sysCurrncy    = this.userContextService.getSysCurrncy();
+
+    if (!docDate) {
+      return of(null);
+    }
+
+    const params = {
+      rateDate: this.utilService.normalizeDateOrToday(docDate),
+      currency: '', // Se envía vacío por diseño (backend define moneda)
+      sysCurrncy
+    };
+
+    return this.exchangeRatesService.getByDocDateAndCurrency(params)
+    .pipe(
+      map(data => data ?? null),
+      catchError(() => of(null))
+    );
+  }
+
+  private validarTipoCambioYContinuar(continuar: () => void): void {
+    this.fetchTipoCambioRate()
+    .pipe(take(1))
+    .subscribe(rate => {
+      if (!rate || rate.sysRate === 0) {
+        this.swaCustomService.swaMsgInfo(
+          'Falta registrar el tipo de cambio de hoy en SAP Business One.'
+        );
+        return;
+      }
+
+      // ✅ Si pasa la validación
+      continuar();
+    });
+  }
+
+  onClickCreate() {
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-create'], { state: { mode: 'create' } });
+    });
   }
 
   onClickVer(): void {
@@ -235,22 +304,27 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-view', this.modeloSelected.docEntry]);
   }
 
-  onClickEditar(): void {
+  onClickEditar() {
     if (!this.validateSelection()) return;
-    this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-edit', this.modeloSelected.docEntry]);
+
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-edit', this.modeloSelected.docEntry]);
+    });
   }
 
-  onClickCerrar(): void {
+  onClickCerrar() {
     if (!this.validateSelection()) return;
 
-    this.swaCustomService.swaConfirmation(
-      this.globalConstants.titleCerrar,
-      this.globalConstants.subTitleCerrar,
-      this.globalConstants.icoSwalQuestion
-    ).then((result) => {
-      if (result.isConfirmed) {
-        this.close();
-      }
+    this.validarTipoCambioYContinuar(() => {
+      this.swaCustomService.swaConfirmation(
+        this.globalConstants.titleCerrar,
+        this.globalConstants.subTitleCerrar,
+        this.globalConstants.icoSwalQuestion
+      ).then((result) => {
+        if (result.isConfirmed) {
+          this.close();
+        }
+      });
     });
   }
 
@@ -258,36 +332,41 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
     if (!this.validateSelection()) return;
 
     this.isDisplayGenerandoVisor = true;
-    this.solicitudTrasladoService.getFormatoPdfByDocEntry(this.modeloSelected.docEntry)
-      .pipe(takeUntil(this.destroy$))
+
+    this.InventoryTransferRequestService
+      .getFormatoPdfByDocEntry(this.modeloSelected.docEntry)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplayGenerandoVisor = false;
+        })
+      )
       .subscribe({
         next: (resp: any) => {
-          switch (resp.type) {
-            case HttpEventType.DownloadProgress:
-              break;
-            case HttpEventType.Response:
-              this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
-              this.isDisplayGenerandoVisor = false;
-              this.isDisplayVisor = true;
-              break;
+          if (resp.type === HttpEventType.Response) {
+            this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
+            this.isDisplayVisor = true;
           }
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickImprimir', () => this.isDisplayGenerandoVisor = false, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'onClickImprimir', this.swaCustomService);
         }
       });
   }
 
   onClickTransferir(): void {
     if (!this.validateSelection()) return;
-    this.solicitudTrasladoService.getToTransferenciaByDocEntry(this.modeloSelected.docEntry)
+    this.InventoryTransferRequestService.getToTransferenciaByDocEntry(this.modeloSelected.docEntry)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (data) => {
-        this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create', JSON.stringify(data)]);
+        // respaldo para refresh
+        sessionStorage.setItem('SolicitudCopyTo',JSON.stringify(data));
+
+        this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create'], { state: { solicitud: data } });
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'onClickTransferir', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'onClickTransferir', this.swaCustomService);
       }
     });
   }

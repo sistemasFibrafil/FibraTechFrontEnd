@@ -98,7 +98,6 @@ export class MenuitemComponent implements OnInit, OnDestroy {
     }
 
     itemClick(event: Event) {
-      //debugger
         // avoid processing disabled items
         if (this.item.disabled) {
             event.preventDefault();

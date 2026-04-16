@@ -1,22 +1,24 @@
-import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { forkJoin, Subject, switchMap, takeUntil, tap } from 'rxjs';
-import { LayoutComponent } from 'src/app/layout/layout.component';
-import { TableColumn } from 'src/app/interface/common-ui.interface';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { finalize, forkJoin, Subject, switchMap, takeUntil, } from 'rxjs';
+import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 
-import { ISolicitudCompra, ISolicitudCompra1 } from '../../../interfaces/sap/solicitud-compra.interface';
+import { LayoutComponent } from '@app/layout/layout.component';
 
-import { UtilService } from 'src/app/services/util.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { SolicitudCompraService } from '../../../services/sap/solicitud-compra.service';
-import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/users.service';
-import { EmployeesInfoService } from 'src/app/modulos/modulo-recursos-humanos/services/employees-info.service';
-import { BranchesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/branchs.service';
-import { DepartmentsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/departments.service';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
+
+import { TableColumn } from '@app/interface/common-ui.interface';
+import { IPurchaseRequest, IPurchaseRequest1 } from '../../../interfaces/sap-business-one/purchase-request.interface';
+
+import { UtilService } from '@app/services/util.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
+import { EmployeesInfoService } from '@app/modulos/modulo-recursos-humanos/services/employees-info.service';
+import { UsersService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { BranchesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/branchs.service';
+import { DepartmentsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/departments.service';
 
 
 @Component({
@@ -25,28 +27,54 @@ import { DepartmentsService } from 'src/app/modulos/modulo-gestion/services/sap/
   styleUrls: ['./panel-solicitud-compra-view.component.css']
 })
 export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, AfterViewInit {
-  // Lifecycle management
-  /** Gestión de ciclo de vida y ajustes visuales auxiliares */
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                    = new Subject<void>();
-  isLoadingInitialData                         = false;
-  paddingTop                                   = '20px';
-  @ViewChild('notifyLabel') notifyLabel!       : ElementRef<HTMLElement>;
   private resizeObserver!                      : ResizeObserver;
 
-  // Forms
-  /** Formularios reactivos de la vista */
+  @ViewChild('notifyLabel') notifyLabel!       : ElementRef<HTMLElement>;
+  paddingTop                                   = '20px';
+
+
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
+  readonly titulo                              = 'Solicitud de Compra';
+  globalConstants                              : GlobalsConstantsForm = new GlobalsConstantsForm();
+
+
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
   modeloFormReq                                : FormGroup;
   modeloFormDoc                                : FormGroup;
   modeloFormCon                                : FormGroup;
   modeloFormPie                                : FormGroup;
 
-  // Configuration
-  /** Configuración general y constantes */
-  readonly titulo                              = 'Solicitud de Compra';
-  globalConstants                              : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  // Combos
-  /** Listas de soporte para dropdowns */
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
+  isDisplay                                    = false;
+  isLoadingInitialData                         = false;
+
+
+  // ===========================
+  // 🔹 5. TABLE CONFIG
+  // ===========================
+  columnas                                     : TableColumn[] = [];
+
+
+  // ===========================
+  // 🔹 6. DATA (CORE)
+  // ===========================
+  modeloLines                                  : IPurchaseRequest1[] = [];
+
+
+  // ===========================
+  // 🔹 7. COMBOS / LISTS
+  // ===========================
   reqTypesList                                 : SelectItem[] = [];
   docTypesList                                 : SelectItem[] = [];
   branchesList                                 : SelectItem[] = [];
@@ -55,24 +83,17 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
   requesterList                                : SelectItem[] = [];
   employeesInfoList                            : SelectItem[] = [];
 
-  // UI State
-  /** Estado de overlays y modales */
-  isDisplay                                    = false;
 
-  // Table configuration
-  /** Definición de columnas de la tabla */
-  columnas                                     : TableColumn[] = [];
-
-  // Data
-  /** Modelos de cabecera y detalle */
-  modelo                                       : ISolicitudCompra;
-  modeloLines                                  : ISolicitudCompra1[] = [];
+  // ===========================
+  // 🔹 8. DOC TYPE CONTROL
+  // ===========================
   docTypeSelected                              : any;
 
-  // Filters / Additional properties
-  /** Identificadores y auxiliares */
+
+  // ===========================
+  // 🔹 9. INDEXES (UI CONTROL)
+  // ===========================
   id                                           = 0;
-  docEntry                                     = 0;
 
 
   constructor(
@@ -86,27 +107,19 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     private readonly localDataService: LocalDataService,
     private readonly departmentsService: DepartmentsService,
     private readonly employeesInfoService: EmployeesInfoService,
-    private readonly solicitudCompraService: SolicitudCompraService,
+    private readonly purchaseRequestService: PurchaseRequestService,
     public  readonly utilService: UtilService,
   ) {}
 
-  // ===========================
-  // Lifecycle Hooks
-  // ===========================
+
+
+  //#region <<< 1. LIFECYCLE >>>
 
   /**
    * Inicializa formularios y carga datos iniciales para combos.
    */
   ngOnInit(): void {
     this.initializeComponent();
-  }
-
-  /**
-   * Limpia suscripciones/observadores para evitar fugas de memoria.
-   */
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   /**
@@ -124,16 +137,20 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     this.resizeObserver.observe(this.notifyLabel.nativeElement);
   }
 
+  /**
+   * Limpia suscripciones/observadores para evitar fugas de memoria.
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   /** Detecta redimensionamiento de ventana y vuelve a medir */
   @HostListener('window:resize')
   onWindowResize(): void {
     this.recalculate();
   }
 
-  /**
-   * Mide si el label se quiebra en múltiples líneas y
-   * actualiza el padding del checkbox en consecuencia.
-   */
   private recalculate(): void {
     // Espera a que el DOM se re-renderice
     setTimeout(() => {
@@ -149,93 +166,53 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     });
   }
 
+  //#endregion
 
-  // ===========================
-  // Initialization
-  // ===========================
+
+
+  //#region <<< 2. INITIALIZATION >>>
 
   private initializeComponent(): void {
-    // Construye formularios reactivos y columnas/menús de UI
+    // 1️⃣ Crear formularios
     this.buildForms();
-    this.onBuildColumn();
 
-
-    // Cargar todos los combos en paralelo y aplicar valores por defecto sin emitir eventos
+    // 2️⃣ Cargar datos base
     this.loadAllCombos();
+
+    // 3️⃣ Inicializar UI
+    this.onBuildColumn();
   }
 
   private buildForms(): void {
     // Define y compone grupos de formulario con validadores
     this.modeloFormReq = this.fb.group({
-      reqType                 : [{ value: '', disabled: true }, Validators.required],
-      reqName                 : [{ value: '', disabled: true }, Validators.required],
-      branch                  : [{ value: '', disabled: true }],
-      department              : [{ value: '', disabled: true }],
-      notify                  : [{ value: false, disabled: true }],
-      email                   : [{ value: '', disabled: true }]
+      reqType                 : [{ value: '', disabled: false }, Validators.required],
+      reqName                 : [{ value: '', disabled: false }, Validators.required],
+      branch                  : [{ value: '', disabled: false }],
+      department              : [{ value: '', disabled: false }],
+      notify                  : [{ value: false, disabled: false }],
+      email                   : [{ value: '', disabled: false }]
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      docStatus               : [{ value: 'Abierto', disabled: true }, Validators.required],
-      docDate                 : [{ value: '', disabled: true }, Validators.required],
-      docDueDate              : [{ value: '', disabled: true }, Validators.required],
-      taxDate                 : [{ value: '', disabled: true }, Validators.required],
-      reqDate                 : [{ value: '', disabled: true }, Validators.required]
+      docNum                  : [{ value: '', disabled: false }],
+      docStatus               : [{ value: 'Abierto', disabled: false }, Validators.required],
+      docDate                 : [{ value: '', disabled: false }, Validators.required],
+      docDueDate              : [{ value: '', disabled: false }, Validators.required],
+      taxDate                 : [{ value: '', disabled: false }, Validators.required],
+      reqDate                 : [{ value: '', disabled: false }, Validators.required]
     });
 
     this.modeloFormCon = this.fb.group({
-      docType                 : [{ value: '', disabled: true }, Validators.required]
+      docType                 : [{ value: '', disabled: false }, Validators.required]
     });
 
     this.modeloFormPie = this.fb.group({
-      employeeInfo            : [{ value: '', disabled: true }, Validators.required],
-      comments                : [{ value: '', disabled: true }]
+      employeeInfo            : [{ value: '', disabled: false }, Validators.required],
+      comments                : [{ value: '', disabled: false }]
     });
   }
 
-  private onBuildColumn(): void {
-    // Usar docTypeSelected si está disponible, sino leer del formulario
-    const docTyp = this.modeloFormCon.get('docType')?.value?.value;
-
-    if( docTyp === 'I'){
-      this.columnas = [
-        { field: 'itemCode',          header: 'Código' },
-        { field: 'dscription',        header: 'Descripción' },
-        { field: 'lineVendor',        header: 'Proveedor' },
-        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
-        { field: 'formatCode',        header: 'Cuenta mayor' },
-        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
-        { field: 'ocrCode',           header: 'Centro de costos' },
-        { field: 'whsCode',           header: 'Almacén' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
-        { field: 'unitMsr',           header: 'UM' },
-        { field: 'quantity',          header: 'Cantidad' },
-      ];
-    }
-    else{
-      this.columnas = [
-        { field: 'dscription',        header: 'Descripción' },
-        { field: 'lineVendor',        header: 'Proveedor' },
-        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
-        { field: 'formatCode',        header: 'Cuenta mayor' },
-        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
-        { field: 'ocrCode',           header: 'Centro de costos' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
-      ];
-    }
-  }
-  // ===========================
-  // Table Events
-  // ===========================
-
-  /**
-   * Carga en paralelo las listas de soporte (numeración, almacenes, tipos y empleados)
-   * y establece los valores por defecto en los formularios usando { emitEvent: false } para
-   * evitar triggers no deseados en valueChanges.
-   */
   private loadAllCombos(): void {
 
     // Cargar datos síncronos (LocalDataService)
@@ -256,8 +233,8 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
       next: (result: any) => {
         // Mapear requester list
         this.requesterList = result.requesterList.map(item => ({
-          label: item.u_NAME,
-          value: item.useR_CODE
+          label: item.userName,
+          value: item.userCode
         }));
 
         // Mapear branches list
@@ -284,44 +261,120 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
         this.loadData();
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
+
+  private onBuildColumn(): void {
+    // Usar docTypeSelected si está disponible, sino leer del formulario
+    const docTyp = this.modeloFormCon.get('docType')?.value?.value;
+
+    if( docTyp === 'I'){
+      this.columnas = [
+        { field: 'itemCode',          header: 'Código' },
+        { field: 'dscription',        header: 'Descripción' },
+        { field: 'lineVendor',        header: 'Proveedor' },
+        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
+        { field: 'formatCode',        header: 'Cuenta mayor' },
+        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
+        { field: 'ocrCode',           header: 'Centro de costos' },
+        { field: 'whsCode',           header: 'Almacén' },
+        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+        { field: 'unitMsr',           header: 'UM' },
+        { field: 'onHand',            header: 'Stock' },
+        { field: 'quantity',          header: 'Cantidad' },
+      ];
+    }
+    else{
+      this.columnas = [
+        { field: 'dscription',        header: 'Descripción' },
+        { field: 'lineVendor',        header: 'Proveedor' },
+        { field: 'pqtReqDate',        header: 'Fecha necesaria' },
+        { field: 'formatCode',        header: 'Cuenta mayor' },
+        { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
+        { field: 'ocrCode',           header: 'Centro de costos' },
+        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+      ];
+    }
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 3. GETTERS >>>
+
+  private get docType(): string {
+    return this.modeloFormCon.get('docType')?.value?.value;
+  }
+
+  get isItem(): boolean {
+    return this.docType === 'I';
+  }
+
+  get isService(): boolean {
+    return this.docType === 'S';
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 4. NAVIGATION >>>
+
+  onClickBack(): void {
+    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-list']);
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 19. DATA LOADING >>>
 
   private loadData(): void {
     this.route.params
     .pipe(
-      tap(params => this.id = +params['id']),
+      takeUntil(this.destroy$),
       switchMap(params => {
+        this.id = +params['id'];
+
+        // 🔥 aquí sí se activa de forma confiable
         this.isDisplay = true;
-        return this.solicitudCompraService.getByDocEntry(+params['id']);
-      }),
-      takeUntil(this.destroy$)
+
+        return this.purchaseRequestService
+          .getByDocEntry(this.id)
+          .pipe(
+            finalize(() => {
+              this.isDisplay = false;
+            })
+          );
+      })
     )
     .subscribe({
-      next: (data: ISolicitudCompra) => {
-        this.isDisplay = false;
-
+      next: (data: IPurchaseRequest) => {
         const normalizedLines = data.lines.map(line => ({
           ...line,
-          pqtReqDate: this.normalizeDateToDate(line.pqtReqDate)
+          pqtReqDate: this.utilService.normalizeDateOrToday(line.pqtReqDate)
         }));
 
-        this.modelo = {
+        const modelo = {
           ...data,
           lines: normalizedLines
         };
 
-        this.setFormValues(this.modelo);
+        this.setFormValues(modelo);
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadData', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
 
-  private setFormValues(value: ISolicitudCompra): void {
+  private setFormValues(value: IPurchaseRequest): void {
     // Activar flag de carga inicial para evitar que onChange events
     // modifiquen el modeloLines durante la carga
     this.isLoadingInitialData = true;
@@ -329,9 +382,6 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     // =========================================================================
     // PRIMER BLOQUE: Cargar formularios y propiedades del componente
     // =========================================================================
-
-    // Asignar propiedades del componente
-    this.docEntry                 = value.docEntry;
 
 
     // Buscar y asignar valores como SelectItem para los dropdowns de Almacenes
@@ -405,19 +455,5 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     this.isLoadingInitialData = false;
   }
 
-  private normalizeDateToDate(value: any): Date {
-    const date = value instanceof Date ? value : new Date(value);
-
-    if (isNaN(date.getTime())) {
-      // valor por defecto obligatorio (elige uno válido)
-      return new Date();
-    }
-
-    return date;
-  }
-
-  /** Navega de vuelta a la lista de solicitudes de compra */
-  onClickBack(): void {
-    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-list']);
-  }
+  //#endregion
 }

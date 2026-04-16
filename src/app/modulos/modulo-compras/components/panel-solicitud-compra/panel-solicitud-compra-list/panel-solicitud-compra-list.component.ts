@@ -2,19 +2,24 @@ import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { catchError, finalize, map, Observable, of, Subject, take, takeUntil } from 'rxjs';
 
-import { ISolicitudCompra } from '../../../interfaces/sap/solicitud-compra.interface';
-import { SolicitudCompraService } from '../../../services/sap/solicitud-compra.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { UtilService } from 'src/app/services/util.service';
-import { SolicitudCompraFilterModel } from '../../../models/sap/solicitud-compra.model';
-import { Subject, takeUntil } from 'rxjs';
-import { MenuItem } from 'src/app/interface/common-ui.interface';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
+
+import { ButtonAcces } from '@app/models/acceso-button.model';
+import { PurchaseRequestFilterModel } from '../../../models/sap-business-one/purchase-request.model';
+
+import { MenuItem } from '@app/interface/common-ui.interface';
+import { IPurchaseRequest } from '../../../interfaces/sap-business-one/purchase-request.interface';
+import { IExchangeRates } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+
+import { UtilService } from '@app/services/util.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { AccesoOpcionesService } from '@app/services/acceso-opciones.service';
+import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
+import { ExchangeRatesService } from '@app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
 
 interface DocStatus {
   statusCode  : string,
@@ -41,9 +46,9 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   columnas: any[];
   opciones: any = [];
 
-  modeloDelete: ISolicitudCompra;
-  modeloSelected: ISolicitudCompra;
-  modelo: ISolicitudCompra[] = [];
+  modeloDelete: IPurchaseRequest;
+  modeloSelected: IPurchaseRequest;
+  modelo: IPurchaseRequest[] = [];
 
   docStatus: DocStatus[];
   docStatusList: SelectItem[];
@@ -53,7 +58,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   rows                = 20;
   rowsPerPageOptions  = [20, 40, 60, 80, 100];
 
-  params: SolicitudCompraFilterModel = new SolicitudCompraFilterModel();
+  params: PurchaseRequestFilterModel = new PurchaseRequestFilterModel();
   isDisplay: Boolean = false;
   isClosing: boolean = false;
 
@@ -62,12 +67,13 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   (
     private router: Router,
     private fb: FormBuilder,
-    private readonly utilService: UtilService,
     private userContextService: UserContextService,
     private readonly swaCustomService: SwaCustomService,
     private readonly localDataService: LocalDataService,
-    private readonly solicitudCompraService: SolicitudCompraService,
+    private readonly exchangeRatesService: ExchangeRatesService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly purchaseRequestService: PurchaseRequestService,
+    public  readonly utilService: UtilService,
   ) {}
 
 
@@ -98,7 +104,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
     this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-com-panel-solicitud-compra-list');
 
     if (!this.buttonAcces.btnBuscar) {
-      this.getList();
+      this.loadData();
     }
   }
 
@@ -114,6 +120,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   onBuildColumn() {
     this.columnas = [
       { field: 'docNum',          header: 'Número' },
+      { field: 'docType',         header: 'Tipo documento' },
       { field: 'docDate',         header: 'Fecha de contabilización' },
       { field: 'docDueDate',      header: 'Fecha de entrega' },
       { field: 'taxDate',         header: 'Fecha de documento' },
@@ -143,7 +150,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
     return true;
   }
 
-  private updateMenuVisibility(modelo: ISolicitudCompra): void {
+  private updateMenuVisibility(modelo: IPurchaseRequest): void {
     const isOpen        = modelo.docStatus === 'O';
 
     this.opcionesMap.get('Ver')!.visible        = !this.buttonAcces.btnVer;
@@ -156,7 +163,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: ISolicitudCompra) {
+  onSelectedItem(modelo: IPurchaseRequest) {
     this.modeloSelected = modelo;
     this.updateMenuVisibility(modelo);
   }
@@ -167,58 +174,117 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   // ===========================
 
   private getListStatus(): void {
-    const statuses = this.localDataService.getListStatusDocumentInventory();
+    const statuses = this.localDataService.getListStatusDocuments();
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('docStatus')?.setValue(statuses);
   }
 
-  onSetParametro()
-  {
-    this.params = this.modeloForm.getRawValue();
-    const selectedStatuses = this.modeloForm.value.docStatus || [];
-    this.params.docStatus = selectedStatuses.map(x => x.code).join(',');
-  }
-
-  getList(): void {
-    this.isDisplay = true;
-    this.onSetParametro();
-    this.solicitudCompraService.getListByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: ISolicitudCompra[]) => {
-          this.isDisplay = false;
-          this.modelo = data;
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'getList', () => this.isDisplay = false, this.swaCustomService);
-        }
-      });
-  }
-
   onClickBuscar() {
-    this.getList();
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.isDisplay = true;
+
+    this.purchaseRequestService
+    .getListByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: IPurchaseRequest[]) => {
+        this.modelo = data;
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
+    });
+  }
+
+  private buildFilterParams(): PurchaseRequestFilterModel {
+    const {
+      startDate,
+      endDate,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
+
+    return {
+      startDate,
+      endDate,
+      docStatus: (docStatus || []).map(x => x.code).join(','),
+      searchText
+    };
+  }
+
+  private fetchTipoCambioRate(): Observable<IExchangeRates | null> {
+    const docDate: Date = new Date();
+    const sysCurrncy    = this.userContextService.getSysCurrncy();
+
+    if (!docDate) {
+      return of(null);
+    }
+
+    const params = {
+      rateDate: this.utilService.normalizeDateOrToday(docDate),
+      currency: '', // Se envía vacío por diseño (backend define moneda)
+      sysCurrncy
+    };
+
+    return this.exchangeRatesService.getByDocDateAndCurrency(params)
+    .pipe(
+      map(data => data ?? null),
+      catchError(() => of(null))
+    );
+  }
+
+  private validarTipoCambioYContinuar(continuar: () => void): void {
+    this.fetchTipoCambioRate()
+    .pipe(take(1))
+    .subscribe(rate => {
+      if (!rate || rate.sysRate === 0) {
+        this.swaCustomService.swaMsgInfo(
+          'Falta registrar el tipo de cambio de hoy en SAP Business One.'
+        );
+        return;
+      }
+
+      // ✅ Si pasa la validación
+      continuar();
+    });
   }
 
   onClickCreate() {
-    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-create']);
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-com/panel-solicitud-compra-create']);
+    });
   }
 
   onClickVer(){
     if (!this.validateSelection()) return;
-    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-view', this.modeloSelected.docEntry]);
+
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-com/panel-solicitud-compra-view', this.modeloSelected.docEntry]);
+    });
   }
 
-  onClickEditar(){
+  onClickEditar() {
     if (!this.validateSelection()) return;
-    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-edit', this.modeloSelected.docEntry]);
+
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-com/panel-solicitud-compra-edit', this.modeloSelected.docEntry]);
+    });
   }
 
   close() {
     this.isClosing = true;
-    const param: any = { id: this.modeloSelected.docEntry, docEntry: this.modeloSelected.docEntry, u_UsrUpdate: this.userContextService.getIdUsuario() };
-    this.solicitudCompraService.setClose(param)
+    const param: any = { id: this.modeloSelected.docEntry, docEntry: this.modeloSelected.docEntry, u_UsrClose: this.userContextService.getIdUsuario() };
+    this.purchaseRequestService.setClose(param)
     .subscribe({ next: ()=>{
-        this.getList();
+        this.loadData();
         this.isClosing = false;
         this.swaCustomService.swaMsgExito(null);
       },
@@ -229,18 +295,19 @@ export class PanelSolicitdCompraListComponent implements OnInit {
     });
   }
 
-  onClickCerrar()
-  {
+  onClickCerrar() {
     if (!this.validateSelection()) return;
 
-    this.swaCustomService.swaConfirmation(
-      this.globalConstants.titleCerrar,
-      this.globalConstants.subTitleCerrar,
-      this.globalConstants.icoSwalQuestion
-    ).then((result) => {
-      if (result.isConfirmed) {
-        this.close();
-      }
+    this.validarTipoCambioYContinuar(() => {
+      this.swaCustomService.swaConfirmation(
+        this.globalConstants.titleCerrar,
+        this.globalConstants.subTitleCerrar,
+        this.globalConstants.icoSwalQuestion
+      ).then((result) => {
+        if (result.isConfirmed) {
+          this.close();
+        }
+      });
     });
   }
 
@@ -248,7 +315,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
     if (!this.validateSelection()) return;
 
     // this.isDisplayGenerandoVisor = true;
-    // this.solicitudTrasladoService.getFormatoPdfByDocEntry(this.modeloSelected.docEntry)
+    // this.InventoryTransferRequestService.getFormatoPdfByDocEntry(this.modeloSelected.docEntry)
     // .pipe(takeUntil(this.destroy$))
     // .subscribe({
     //   next: (resp: any) => {

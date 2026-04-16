@@ -1,7 +1,7 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, Input } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
-import { ArticuloSapForSodimacBySkuModel } from 'src/app/modulos/modulo-inventario/models/articulo.model';
+import { ArticuloSapForSodimacBySkuModel } from 'src/app/modulos/modulo-inventario/models/items.model';
 
 
 @Component({
@@ -24,6 +24,8 @@ export class ModalSubirArchivoComponent implements OnInit {
   fileContent: string[] = [];
   fileName: string | undefined;
   selectedFile: any;
+
+  @Input() fileType: string;
 
   @Output() eventoAceptar = new EventEmitter<any>();
   @Output() eventoCancelar = new EventEmitter<boolean>();

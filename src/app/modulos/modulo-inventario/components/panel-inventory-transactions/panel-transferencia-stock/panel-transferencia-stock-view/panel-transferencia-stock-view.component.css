@@ -2,6 +2,3 @@ i {
   cursor: pointer;
 }
 
-::ng-deep .input-number input {
-  text-align: right;
-}

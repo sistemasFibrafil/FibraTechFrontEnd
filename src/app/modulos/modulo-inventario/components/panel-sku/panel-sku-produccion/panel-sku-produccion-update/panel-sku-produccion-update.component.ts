@@ -322,9 +322,7 @@ export class PanelSkuProduccionUpdateComponent implements OnInit {
         u_Percentage2
       }))
     };
-
-    debugger
-
+    
     this.oSKPService.setUpdate(this.modeloSave).pipe(
       finalize(() => {
         this.isSaving = false;

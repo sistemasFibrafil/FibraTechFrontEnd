@@ -1,23 +1,30 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Params, Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
 import { Subject, forkJoin } from 'rxjs';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { NavigationStart, Router } from '@angular/router';
+import { filter, finalize, takeUntil } from 'rxjs/operators';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+
+import { ItemsFindByListCodeModel } from 'src/app/modulos/modulo-inventario/models/items.model';
+import { InventoryTransferRequestPickingCreateModel } from 'src/app/modulos/modulo-inventario/models/picking.model';
+import { InventoryTransferRequest1CreateModel, InventoryTransferRequestCreateModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
+
 import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/articulo.interface';
-import { ISolicitudTraslado1 } from 'src/app/modulos/modulo-inventario/interfaces/solicitud-traslado.interface';
-import { SolicitudTrasladoCreateModel } from 'src/app/modulos/modulo-inventario/models/solicitud-traslado.model';
-import { ArticuloService } from 'src/app/modulos/modulo-inventario/services/articulo.service';
-import { SolicitudTrasladoService } from 'src/app/modulos/modulo-inventario/services/solicitud-traslado.service';
+import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
+import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+
+import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-import { UtilService } from 'src/app/services/util.service';
-import { NumeracionDocumentoService } from 'src/app/modulos/modulo-gestion/services/sap/inicializacion-sistema/numeracion-documento.service';
+import { IPicking } from 'src/app/modulos/modulo-inventario/interfaces/picking.inteface';
+import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
+import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { DocumentNumberingSeriesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series.service';
+
 
 
 @Component({
@@ -53,9 +60,11 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
   // UI State
   /** Estados de overlays, modales y banderas UI */
+  isLocked                                      = true;
   isSaving                                      = false;
   isDisplay                                     = false;
   isUploadItem                                  = false;
+  hasValidLines                                 = false;
   isDisplayUpload                               = false;
   isVisualizarArticulo                          = false;
   isVisualizarTipoOperacion                     = false;
@@ -70,34 +79,35 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
   // Data
   /** Modelos de detalle y selección */
-  modeloLines                                   : ISolicitudTraslado1[] = [];
-  modeloLinesSelected                           : ISolicitudTraslado1;
-  modeloLinesSelectedContext                    : ISolicitudTraslado1;
+  modeloLinesSelected                           : IInventoryTransferRequest1;
+  modeloLinesSelectedContext                    : IInventoryTransferRequest1;
+
+  modeloLines                                   : IInventoryTransferRequest1[] = [];
+  modeloPickingOriginalLines                    : IPicking[] = [];
 
   // Filters / Additional properties
   /** Identificadores y auxiliares */
   cardCode                                      = '';
-  cntctCode                                     = 0;
   itemCode                                      = '';
+  inactiveAlmacenItem                           = 'N';
+
+  cntctCode                                     = 0;
   indexArticulo                                 = 0;
   indexTipoOperacion                            = 0;
   indexAlmacenOrigen                            = 0;
   indexAlmacenDestino                           = 0;
-  inactiveAlmacenItem                           = 'N';
-  hasValidLines                                 = false;
 
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly route: ActivatedRoute,
-    private readonly userContextService: UserContextService,
+    private readonly itemsService: ItemsService,
     private readonly swaCustomService: SwaCustomService,
     private readonly warehousesService: WarehousesService,
-    private readonly articuloService: ArticuloService,
+    private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
-    private readonly solicitudTrasladoService: SolicitudTrasladoService,
-    private readonly numeracionDocumentoService: NumeracionDocumentoService,
     private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly documentNumberingSeriesService: DocumentNumberingSeriesService,
+    private readonly InventoryTransferRequestService: InventoryTransferRequestService,
     public  readonly utilService: UtilService,
   ) {}
 
@@ -107,13 +117,30 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
 
   ngOnInit(): void {
+    // 1️⃣ Inicializa UI
     this.initializeComponent();
+
+    // 2️⃣ Escucha flecha atrás / adelante
+    this.listenBrowserBack();
   }
 
   /** Limpia suscripciones para evitar fugas de memoria */
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearSession();
+  }
+
+  private listenBrowserBack(): void {
+    this.router.events
+    .pipe(
+      filter((e): e is NavigationStart => e instanceof NavigationStart),
+      filter(e => e.navigationTrigger === 'popstate'),
+      takeUntil(this.destroy$)
+    )
+    .subscribe(() => {
+      this.clearSession();
+    });
   }
 
   // ===========================
@@ -129,99 +156,18 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.loadAllCombos();
   }
 
-  /**
-   * Carga en paralelo las listas de soporte (numeración, almacenes, tipos y empleados)
-   * y establece los valores por defecto en los formularios usando { emitEvent: false } para
-   * evitar triggers no deseados en valueChanges.
-   */
-  private loadAllCombos(): void {
-    const paramNumero     : any = { objectCode: '1250000001' };
-    const paramAlmacen    : any = { inactive: 'N' };
-    const paramTipoTras   : any = { tableID: 'OWTQ', aliasID: 'FIB_TIP_TRAS' };
-    const paramMotivo     : any = { tableID: 'OWTQ', aliasID: 'BPP_MDMT' };
-    const paramTipoSalida : any = { tableID: 'OWTQ', aliasID: 'BPP_MDTS' };
-
-    // Mostrar spinner mientras cargan los combos
-    this.isDisplay = true;
-
-    forkJoin({
-      numero          : this.numeracionDocumentoService.getNumero(paramNumero),
-      almacenes       : this.warehousesService.getListByInactive(paramAlmacen),
-      tipoTraslado    : this.camposDefinidoUsuarioService.getList(paramTipoTras),
-      motivoTraslado  : this.camposDefinidoUsuarioService.getList(paramMotivo),
-      tipoSalida      : this.camposDefinidoUsuarioService.getList(paramTipoSalida),
-      salesEmployee   : this.salesPersonsService.getList()
-    })
-    .pipe(
-      takeUntil(this.destroy$),
-      finalize(() => { this.isDisplay = false; })
-    )
-    .subscribe({
-      next: (res) => {
-        // Numeracion
-        this.modeloFormDoc.patchValue({ docNum: res.numero.nextNumber }, { emitEvent: false });
-
-        // Almacenes
-        const whsData = (res.almacenes || []) as any[];
-        this.warehouseList = whsData.map(i => ({ label: i.fullDescr, value: i.whsCode }));
-        const dftWhs = this.userContextService.getDfltWhs();
-        if (dftWhs) {
-          const defaultWhs = whsData.find(i => i.whsCode === dftWhs);
-          if (defaultWhs) {
-            this.modeloFormDoc.get('filler').setValue({ label: defaultWhs.fullDescr, value: defaultWhs.whsCode }, { emitEvent: false });
-            this.modeloFormDoc.get('toWhsCode').setValue({ label: defaultWhs.fullDescr, value: defaultWhs.whsCode }, { emitEvent: false });
-          }
-        }
-
-
-        // Tipo Traslado
-        const tipoTrasData = (res.tipoTraslado || []) as any[];
-        this.tipoTrasladoList = tipoTrasData.map(i => ({ label: i.descr, value: i.fldValue }));
-        const defaultTipo = tipoTrasData.find(i => i.fldValue === '01');
-        if (defaultTipo) {
-          this.modeloFormOtr.get('u_FIB_TIP_TRAS').setValue({ label: defaultTipo.descr, value: defaultTipo.fldValue }, { emitEvent: false });
-        }
-
-        // Motivo Traslado
-        const motivoData = (res.motivoTraslado || []) as any[];
-        this.motivoTrasladoList = motivoData.map(i => ({ label: i.descr, value: i.fldValue }));
-        const defaultMotivo = motivoData.find(i => i.fldValue === '04');
-        if (defaultMotivo) {
-          this.modeloFormOtr.get('u_BPP_MDMT').setValue({ label: defaultMotivo.descr, value: defaultMotivo.fldValue }, { emitEvent: false });
-        }
-
-        // Tipo Salida
-        const tipoSalidaData = (res.tipoSalida || []) as any[];
-        this.tipoSalidaList = tipoSalidaData.map(i => ({ label: i.descr, value: i.fldValue }));
-        const defaultTipoSalida = tipoSalidaData.find(i => i.fldValue === 'TSI');
-        if (defaultTipoSalida) {
-          this.modeloFormOtr.get('u_BPP_MDTS').setValue({ label: defaultTipoSalida.descr, value: defaultTipoSalida.fldValue }, { emitEvent: false });
-        }
-
-        // Sales Employee
-        this.salesEmployeesList = (res.salesEmployee || []).map((i: any) => ({ label: i.slpName, value: i.slpCode }));
-
-        // AHORA SÍ cargar datos - los combos están listos
-        this.loadData();
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => { this.isDisplay = false; }, this.swaCustomService);
-      }
-    });
-  }
-
   private buildForms(): void {
     /** Construye los formularios con validadores requeridos */
     this.modeloFormSn = this.fb.group({
-      cardCode                : [{ value: '', disabled: true }],
-      cardName                : [{ value: '', disabled: true }],
-      cntctCode               : [{ value: '', disabled: true }],
-      address                 : [{ value: '', disabled: true }]
+      cardCode                : [{ value: '', disabled: false }],
+      cardName                : [{ value: '', disabled: false }],
+      cntctCode               : [{ value: '', disabled: false }],
+      address                 : [{ value: '', disabled: false }]
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      docStatus               : [{ value: 'Abierto', disabled: true }, Validators.required],
+      docNum                  : [{ value: '', disabled: false }],
+      docStatus               : [{ value: 'Abierto', disabled: false }, Validators.required],
       docDate                 : [new Date(), Validators.required],
       docDueDate              : [new Date(), Validators.required],
       taxDate                 : [new Date(), Validators.required],
@@ -285,7 +231,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.updateMenuContextVisibility();
   }
 
-  onClickContextMenuAddLine(modelo: ISolicitudTraslado1)
+  onClickContextMenuAddLine(modelo: IInventoryTransferRequest1)
   {
     /** Agrega una nueva línea después de la línea seleccionada en el menú contextual */
     // Manejar casos donde el objeto 'modelo' no es pasado correctamente
@@ -300,7 +246,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.addLine(insertIndex);
   }
 
-  onClickContextMenuDelete(modelo: ISolicitudTraslado1)
+  onClickContextMenuDelete(modelo: IInventoryTransferRequest1)
   {
     /** Elimina la línea seleccionada en el menú contextual */
     const index = this.modeloLines.indexOf(modelo);
@@ -326,7 +272,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: ISolicitudTraslado1): void {
+  onSelectedItem(modelo: IInventoryTransferRequest1): void {
     /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility();
@@ -343,7 +289,11 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
     if (index > -1) {
+      // Eliminar la línea del modelo
       this.modeloLines.splice(index, 1);
+
+      // Eliminar también de modeloPickingOriginalLines las que correspondan al itemCode y fromWhsCod de la línea eliminada
+      this.modeloPickingOriginalLines.filter(x => x.u_ItemCode === this.modeloLinesSelected.itemCode && x.u_FromWhsCod === this.modeloLinesSelected.fromWhsCod).forEach(x => this.modeloPickingOriginalLines.splice(this.modeloPickingOriginalLines.indexOf(x), 1));
     }
 
     if (this.modeloLines.length === 0) {
@@ -381,6 +331,138 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     if (deleteLineOption) deleteLineOption.visible = hasLines;
   }
 
+  /**
+   * Carga en paralelo las listas de soporte (numeración, almacenes, tipos y empleados)
+   * y establece los valores por defecto en los formularios usando { emitEvent: false } para
+   * evitar triggers no deseados en valueChanges.
+   */
+  private loadAllCombos(): void {
+    const paramNumero     : any = { objectCode: '1250000001', docSubType:'--' };
+    const paramAlmacen    : any = { inactive: 'N' };
+    const paramTipoTras   : any = { tableID: 'OWTQ', aliasID: 'FIB_TIP_TRAS' };
+    const paramMotivo     : any = { tableID: 'OWTQ', aliasID: 'BPP_MDMT' };
+    const paramTipoSalida : any = { tableID: 'OWTQ', aliasID: 'BPP_MDTS' };
+
+    // Mostrar spinner mientras cargan los combos
+    this.isDisplay = true;
+
+    forkJoin({
+      numero          : this.documentNumberingSeriesService.getNumero(paramNumero),
+      almacenes       : this.warehousesService.getListByInactive(paramAlmacen),
+      tipoTraslado    : this.camposDefinidoUsuarioService.getList(paramTipoTras),
+      motivoTraslado  : this.camposDefinidoUsuarioService.getList(paramMotivo),
+      tipoSalida      : this.camposDefinidoUsuarioService.getList(paramTipoSalida),
+      salesEmployee   : this.salesPersonsService.getList()
+    })
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isDisplay = false; })
+    )
+    .subscribe({
+      next: (res) => {
+        // Numeracion
+        this.modeloFormDoc.patchValue({ docNum: res.numero.nextNumber }, { emitEvent: false });
+
+        // Almacenes
+        const whsData = (res.almacenes || []) as any[];
+        this.warehouseList = whsData.map(i => ({ label: i.fullDescr, value: i.whsCode }));
+        const dftWhs = this.userContextService.getDfltWhs();
+        if (dftWhs) {
+          const defaultWhs = whsData.find(i => i.whsCode === dftWhs);
+          if (defaultWhs) {
+            this.modeloFormDoc.get('filler').setValue({ label: defaultWhs.fullDescr, value: defaultWhs.whsCode }, { emitEvent: false });
+            this.modeloFormDoc.get('toWhsCode').setValue({ label: defaultWhs.fullDescr, value: defaultWhs.whsCode }, { emitEvent: false });
+          }
+        }
+
+
+        // Tipo Traslado
+        const tipoTrasData = (res.tipoTraslado || []) as any[];
+        this.tipoTrasladoList = tipoTrasData.map(i => ({ label: i.descr, value: i.fldValue }));
+        const defaultTipo = tipoTrasData.find(i => i.fldValue === '01');
+        if (defaultTipo) {
+          this.modeloFormOtr.get('u_FIB_TIP_TRAS').setValue({ label: defaultTipo.descr, value: defaultTipo.fldValue }, { emitEvent: false });
+        }
+
+        // Motivo Traslado
+        const motivoData = (res.motivoTraslado || []) as any[];
+        this.motivoTrasladoList = motivoData.map(i => ({ label: i.descr, value: i.fldValue }));
+        const defaultMotivo = motivoData.find(i => i.fldValue === '04');
+        if (defaultMotivo) {
+          this.modeloFormOtr.get('u_BPP_MDMT').setValue({ label: defaultMotivo.descr, value: defaultMotivo.fldValue }, { emitEvent: false });
+        }
+
+        // Tipo Salida
+        const tipoSalidaData = (res.tipoSalida || []) as any[];
+        this.tipoSalidaList = tipoSalidaData.map(i => ({ label: i.descr, value: i.fldValue }));
+        const defaultTipoSalida = tipoSalidaData.find(i => i.fldValue === 'TSI');
+        if (defaultTipoSalida) {
+          this.modeloFormOtr.get('u_BPP_MDTS').setValue({ label: defaultTipoSalida.descr, value: defaultTipoSalida.fldValue }, { emitEvent: false });
+        }
+
+        // Sales Employee
+        this.salesEmployeesList = (res.salesEmployee || []).map((i: any) => ({ label: i.slpName, value: i.slpCode }));
+
+        // AHORA SÍ cargar datos - los combos están listos
+        this.loadData();
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
+      }
+    });
+  }
+
+  private loadData(): void {
+    const mode = history.state?.mode;
+
+    // 🆕 CREAR NUEVO → no necesita data
+    if (mode === 'create') {
+      return;
+    }
+
+    // 📋 COPIA
+    let tomaInventario = history.state?.tomaInventario;
+
+    if (!tomaInventario) {
+      const cache = sessionStorage.getItem('TomaInventarioCopyTo');
+      tomaInventario = cache ? JSON.parse(cache) : null;
+    }
+
+    if (!tomaInventario) {
+      this.swaCustomService.swaMsgInfo('La información de solicitud se perdió. Vuelva a iniciar el proceso.');
+      this.onClickBack();
+      return;
+    }
+
+    this.setFormValues(tomaInventario);
+  }
+
+  private setFormValues(value: IInventoryTransferRequest): void {
+    const isDisabled = value.pickingLines.length > 0;
+
+    // Setear valor
+    this.modeloFormDoc.patchValue(
+      {
+        u_FIB_IsPkg: isDisabled,
+      },
+      { emitEvent: false }
+    );
+
+    // Habilitar / Deshabilitar
+    const control = this.modeloFormDoc.get('u_FIB_IsPkg');
+
+    if (isDisabled) {
+      control?.disable({ emitEvent: false });
+    } else {
+      control?.enable({ emitEvent: false });
+    }
+
+
+    this.modeloLines                = value.lines.map(line => ({ ...line }));
+    this.modeloPickingOriginalLines = value.pickingLines.map(line => ({ ...line }));
+    this.updateHasValidLines();
+  }
+
   // Verifica si todas las líneas son válidas
   private updateHasValidLines(): void {
     this.hasValidLines =
@@ -390,28 +472,8 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
   private addLine(index: number): void {
     /** Inserta una nueva línea vacía en el índice especificado */
-    this.modeloLines.splice(index, 0, { lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', u_tipoOpT12Nam: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, openQty: 0 });
+    this.modeloLines.splice(index, 0, { lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', u_tipoOpT12Nam: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, u_FIB_LinStPkg: 'O', openQty: 0 });
     this.updateHasValidLines();
-  }
-
-  private loadData(): void {
-    /** Carga los datos iniciales desde los parámetros de ruta */
-    this.route.params
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((params: Params) => {
-        if (params['json']) {
-          try {
-            this.modeloLines = JSON.parse(params['json']);
-            this.updateHasValidLines();
-          } catch (error) {
-            this.swaCustomService.swaMsgError('Los datos para la solicitud son inválidos.');
-            this.onClickBack();
-          }
-        } else {
-          this.swaCustomService.swaMsgInfo('No se encontraron datos para la solicitud.');
-          this.onClickBack();
-        }
-      });
   }
 
   // ===========================
@@ -419,7 +481,6 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
   // ===========================
 
   onSelectedSocioNegocio(value: any): void {
-    /** Actualiza los datos del socio de negocio seleccionado */
     this.cardCode = value.cardCode;
     this.cntctCode = value.cntctCode;
     this.modeloFormSn.patchValue({
@@ -466,6 +527,10 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
         x.fromWhsCod = whsCode;
       }
     });
+
+    this.modeloPickingOriginalLines.forEach(x => {
+      x.u_FromWhsCod = whsCode;
+    });
   }
 
   onChangeAlmacenDestino(event: any): void {
@@ -494,6 +559,10 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
       if (x.itemCode !== '') {
         x.whsCode = whsCode;
       }
+    });
+
+    this.modeloPickingOriginalLines.forEach(x => {
+      x.u_WhsCode = whsCode;
     });
   }
 
@@ -548,7 +617,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
     for (let index = 0; index < data.length; index++) {
       const element = data[index];
-      const item: ISolicitudTraslado1 = {
+      const item: IInventoryTransferRequest1 = {
         lineStatus      : 'O',
         itemCode        : element.itemCode,
         dscription      : element.itemName,
@@ -569,34 +638,36 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
   }
 
   getListByCode(itemCode: string): void {
-    /** Busca artículos por código desde el servicio */
     this.isDisplay = true;
 
-    const params = {
-      itemCode,
-      cardCode          : '',
-      currency          : '',
-      slpCode           : 0,
-      codTipoOperacion  : '11'
-    };
-
-    this.articuloService.getListByCode(params)
-    .pipe(takeUntil(this.destroy$))
+    this.itemsService.getListByCode(this.buildFilterParams(itemCode))
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isDisplay = false)
+    )
     .subscribe({
-      next: (data: IArticulo[]) => {
-        this.isDisplay = false;
-        if(this.isUploadItem) {
-          // Modo carga masiva
-          this.setItems(data);
-        } else {
-          // Modo selección individual
-          this.setItem(data);
-        }
-      },
+      next: (data: IArticulo[]) => this.handleArticuloResponse(data),
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListByCode', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
       }
     });
+  }
+
+  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
+    return {
+      itemCode,
+      cardCode            : '',
+      currency            : '',
+      operationTypeCode   : '11',
+      warehouseProduction : 'Y',
+      warehouseLogistics  : '',
+    };
+  }
+
+  private handleArticuloResponse(data: IArticulo[]): void {
+    this.isUploadItem
+    ? this.setItems(data)
+    : this.setItem(data);
   }
 
   onSelectedArticulo(value: any): void {
@@ -637,32 +708,30 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     };
 
     readFileAsText(fileObj)
-      .then((content) => {
-        // Normalizar saltos, limpiar y obtener códigos únicos
-        const codes = Array.from(new Set(
-          (content || '')
-            .split(/\r?\n/)
-            .map(s => (s || '').trim().replace(/\r/g, ''))
-            .filter(Boolean)
-            .map(s => s.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '').trim())
-        ));
+    .then((content) => {
+      // Normalizar saltos, limpiar y obtener códigos únicos
+      const codes = Array.from(new Set(
+        (content || '')
+          .split(/\r?\n/)
+          .map(s => (s || '').trim().replace(/\r/g, ''))
+          .filter(Boolean)
+          .map(s => s.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '').trim())
+      ));
 
-        if (codes.length === 0) {
-          this.swaCustomService.swaMsgInfo('No se encontraron códigos válidos en el archivo.');
-          return;
-        }
+      if (codes.length === 0) {
+        this.swaCustomService.swaMsgInfo('No se encontraron códigos válidos en el archivo.');
+        return;
+      }
 
-        debugger
+      // Si hay muchos códigos, podríamos hacer chunking aquí — por ahora concatenamos
+      const itemCode = codes.join(',');
 
-        // Si hay muchos códigos, podríamos hacer chunking aquí — por ahora concatenamos
-        const itemCode = codes.join(',');
-
-        // Ejecutar la búsqueda existente
-        this.getListByCode(itemCode);
-      })
-      .catch((err) => {
-        this.utilService.handleErrorSingle(err, 'onClickUpload', () => {}, this.swaCustomService);
-      });
+      // Ejecutar la búsqueda existente
+      this.getListByCode(itemCode);
+    })
+    .catch((err) => {
+      this.utilService.handleErrorSingle(err, 'onClickUpload', this.swaCustomService);
+    });
   }
 
   onClickCloseArticulo(): void {
@@ -670,14 +739,14 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.isVisualizarArticulo = false;
   }
 
-  onOpenAlmacenOrigenItem(value: ISolicitudTraslado1, index: number): void {
+  onOpenAlmacenOrigenItem(value: IInventoryTransferRequest1, index: number): void {
     /** Abre el modal para seleccionar almacén origen de la línea indicada */
     this.indexAlmacenOrigen = index;
     this.itemCode = value.itemCode;
     this.isVisualizarAlmacenOrigen = !this.isVisualizarAlmacenOrigen;
   }
 
-  onOpenAlmacenDestinoItem(value: ISolicitudTraslado1, index: number): void {
+  onOpenAlmacenDestinoItem(value: IInventoryTransferRequest1, index: number): void {
     /** Abre el modal para seleccionar almacén destino de la línea indicada */
     this.indexAlmacenDestino = index;
     this.itemCode = value.itemCode;
@@ -686,12 +755,33 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
   onSelectedAlmacenOrigenItem(value: any): void {
     /** Maneja la selección de almacén origen desde el modal */
-    this.modeloLines[this.indexAlmacenOrigen].fromWhsCod = value.whsCode;
+    const currentLine = this.modeloLines[this.indexAlmacenOrigen];
+
+    currentLine.fromWhsCod = value.whsCode;
+
+    // Actualizar modeloPickingOriginalLines relacionadas
+    if (this.modeloPickingOriginalLines.length > 0) {
+      this.modeloPickingOriginalLines
+        .filter(x => x.u_ItemCode === currentLine.itemCode && x.u_FromWhsCod === currentLine.fromWhsCod)
+        .forEach(x => x.u_FromWhsCod = value.whsCode);
+    }
+
     this.isVisualizarAlmacenOrigen = false;
   }
 
   onSelectedAlmacenDestinoItem(value: any): void {
     /** Maneja la selección de almacén destino desde el modal */
+    const currentLine = this.modeloLines[this.indexAlmacenDestino];
+
+    currentLine.whsCode = value.whsCode;
+
+    // Actualizar modeloPickingOriginalLines relacionadas
+    if (this.modeloPickingOriginalLines.length > 0) {
+      this.modeloPickingOriginalLines
+        .filter(x => x.u_ItemCode === currentLine.itemCode && x.u_FromWhsCod === currentLine.fromWhsCod)
+        .forEach(x => x.u_WhsCode = value.whsCode);
+    }
+
     this.modeloLines[this.indexAlmacenDestino].whsCode = value.whsCode;
     this.isVisualizarAlmacenDestino = false;
   }
@@ -731,7 +821,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
   //============================= FIN: TIPO DE OPERACION ==================================================================
   //=======================================================================================================================
 
-  onChangeQuantity(value: ISolicitudTraslado1, index: number): void {
+  onChangeQuantity(value: IInventoryTransferRequest1, index: number): void {
     /** Actualiza cantidades en la línea con validación de decimales */
     if (value.itemCode === '') {
       this.modeloLines[index].quantity = 0;
@@ -780,55 +870,113 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     return true;
   }
 
-  private buildModelToSave(): SolicitudTrasladoCreateModel {
-    /** Construye el modelo de solicitud de traslado para enviar al backend */
-    const formValues = {
+  private mergeForms() {
+    return {
       ...this.modeloFormSn.getRawValue(),
       ...this.modeloFormDoc.getRawValue(),
       ...this.modeloFormOtr.getRawValue(),
       ...this.modeloFormPie.getRawValue()
     };
+  }
 
-    const userId = this.userContextService.getIdUsuario();
+  private mapLinesCreate(): InventoryTransferRequest1CreateModel[] {
+    /** helpers para evitar repetición */
+    const u = this.utilService;
+    const p = (v:any)=>u.normalizePrimitive(v);
+    const n = (v:any)=>u.normalizeNumber(v);
+
+    return this.modeloLines.map<InventoryTransferRequest1CreateModel>(line => ({
+      itemCode       : p(line.itemCode),
+      dscription     : p(line.dscription),
+      fromWhsCod     : p(line.fromWhsCod),
+      whsCode        : p(line.whsCode),
+
+      unitMsr        : p(line.unitMsr),
+      quantity       : n(line.quantity),
+
+      u_FIB_LinStPkg : p(line.u_FIB_LinStPkg),
+      u_FIB_OpQtyPkg : n(line.u_FIB_OpQtyPkg),
+      u_tipoOpT12    : p(line.u_tipoOpT12)
+    }));
+  }
+
+  private mapPickingLines(userId:number): InventoryTransferRequestPickingCreateModel[] {
+    /** helpers para evitar repetición */
+    const u = this.utilService;
+    const p = (v:any)=>u.normalizePrimitive(v);
+    const n = (v:any)=>u.normalizeNumber(v);
+
+    return this.modeloPickingOriginalLines.map<InventoryTransferRequestPickingCreateModel>(line => ({
+      u_ItemCode   : p(line.u_ItemCode),
+      u_Dscription : p(line.u_Dscription),
+      u_CodeBar    : p(line.u_CodeBar),
+      u_FromWhsCod : p(line.u_FromWhsCod),
+      u_WhsCode    : p(line.u_WhsCode),
+
+      u_UnitMsr    : p(line.u_UnitMsr),
+      u_Quantity   : n(line.u_Quantity),
+      u_WeightKg   : n(line.u_WeightKg),
+
+      u_Status     : p(line.u_Status),
+      u_UsrCreate  : n(userId)
+    }));
+  }
+
+  private buildModelToSave(): InventoryTransferRequestCreateModel {
+    /** helpers para evitar repetición */
+    const u               = this.utilService;
+    const p               = (v:any)=>u.normalizePrimitive(v);
+    const n               = (v:any)=>u.normalizeNumber(v);
+    const d               = (v:any)=>u.normalizeDateOrToday(v);
+    const val             = (v:any)=>v?.value ?? v;
+
+    /** combinar tod  os los formularios */
+    const f               = this.mergeForms();
+
+    const userId          = this.userContextService.getIdUsuario();
+
+    const hasPicking      = this.modeloPickingOriginalLines.length > 0;
+    const u_FIB_IsPkg     = f.u_FIB_IsPkg ? 'Y' : (hasPicking ? 'Y' : 'N');
+    const u_FIB_DocStPkg  = hasPicking ? 'C' : 'O';
+
+    const lines           = this.mapLinesCreate();
+    const pickingLines    = this.mapPickingLines(userId)
+
 
     return {
-      ...new SolicitudTrasladoCreateModel(),
-      cardCode            : formValues.cardCode,
-      cardName            : formValues.cardName,
-      cntctCode           : formValues.cntctCode || 0,
-      address             : formValues.address,
-      docDate             : this.utilService.normalizeDate(formValues.docDate),
-      docDueDate          : this.utilService.normalizeDate(formValues.docDueDate),
-      taxDate             : this.utilService.normalizeDate(formValues.taxDate),
-      u_FIB_IsPkg         : formValues.u_FIB_IsPkg ? 'Y' : 'N',
-      filler              : formValues.filler?.value || formValues.filler || '',
-      toWhsCode           : formValues.toWhsCode?.value || formValues.toWhsCode || '',
-      u_FIB_TIP_TRAS      : formValues.u_FIB_TIP_TRAS?.value || formValues.u_FIB_TIP_TRAS || '',
-      u_BPP_MDMT          : formValues.u_BPP_MDMT?.value || formValues.u_BPP_MDMT || '',
-      u_BPP_MDTS          : formValues.u_BPP_MDTS?.value || formValues.u_BPP_MDTS || '',
-      slpCode             : formValues.slpCode?.value || formValues.slpCode || -1,
-      jrnlMemo            : formValues.jrnlMemo,
-      comments            : formValues.comments,
-      u_UsrCreate         : userId,
-      lines               : this.modeloLines
-      .filter(line => line.itemCode !== '')
-      .map(line => ({
-        itemCode          : line.itemCode,
-        dscription        : line.dscription,
-        fromWhsCod        : line.fromWhsCod,
-        whsCode           : line.whsCode,
-        u_tipoOpT12       : line.u_tipoOpT12,
-        unitMsr           : line.unitMsr,
-        quantity          : line.quantity,
-        openQty           : line.openQty,
-        u_FIB_OpQtyPkg    : line.u_FIB_OpQtyPkg,
-        idUsuarioCreate   : userId
-      }))
+      ...new InventoryTransferRequestCreateModel(),
+
+      docDate         : d(f.docDate),
+      docDueDate      : d(f.docDueDate),
+      taxDate         : d(f.taxDate),
+
+      u_FIB_IsPkg     : u_FIB_IsPkg,
+      u_FIB_DocStPkg  : u_FIB_DocStPkg,
+
+      cardCode        : p(f.cardCode),
+      cardName        : p(f.cardName),
+      cntctCode       : n(f.cntctCode),
+      address         : p(f.address),
+
+      filler          : p(val(f.filler)),
+      toWhsCode       : p(val(f.toWhsCode)),
+
+      u_FIB_TIP_TRAS  : p(val(f.u_FIB_TIP_TRAS)),
+      u_BPP_MDMT      : p(val(f.u_BPP_MDMT)),
+      u_BPP_MDTS      : p(val(f.u_BPP_MDTS)),
+
+      slpCode         : n(val(f.slpCode) ?? -1),
+      jrnlMemo        : p(f.jrnlMemo),
+      comments        : p(f.comments),
+
+      u_UsrCreate     : userId,
+
+      lines,
+      pickingLines
     };
   }
 
   private save(): void {
-    // Persiste el documento al servicio backend si los detalles son válidos
     if (!this.validateSave()) {
       return;
     }
@@ -837,7 +985,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
 
     const modeloToSave = this.buildModelToSave();
 
-    this.solicitudTrasladoService.setCreate(modeloToSave)
+    this.InventoryTransferRequestService.setCreate(modeloToSave)
     .pipe(
       takeUntil(this.destroy$),
       finalize(() => { this.isSaving = false; })
@@ -848,7 +996,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
         this.onClickBack();
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'save', () => { this.isSaving = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
       }
     });
   }
@@ -868,6 +1016,10 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
         this.save();
       }
     });
+  }
+
+  private clearSession(): void {
+    sessionStorage.removeItem('TomaInventarioCopyTo');
   }
 
   onClickBack(): void {

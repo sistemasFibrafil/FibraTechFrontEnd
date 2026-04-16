@@ -5,16 +5,16 @@ import { LayoutComponent } from '../../../../../layout/layout.component';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from '../../../../../constants/globals-constants-form';
 
-import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/articulo.interface';
-import { IGrupoArticulo } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/grupo-articulo-sap.interface';
+import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
+import { IBusinessPartners } from 'src/app/modulos/modulo-socios-negocios/interfaces/business-partners.interface';
+import { IGrupoArticulo } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/grupo-articulo-sap.interface';
 import { IForcastVenta, IForcastVentaConSinOc, IForcastVentaEstado, IForcastVentaNegocio } from '../../../interfaces/web/forcast-venta.interface';
 
 import { UserContextService } from 'src/app/services/user-context.service';
 import { SwaCustomService } from '../../../../../services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { ForCastVentaService } from '../../../services/web/forcast-venta.service';
-import { GrupoArticuloService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/grupo-articulo-sap.service';
-import { ISocioNegocio } from 'src/app/modulos/modulo-socios-negocios/interfaces/socio-segocio.interface';
+import { GrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/grupo-articulo-sap.service';
 
 
 
@@ -47,7 +47,7 @@ export class PanelForcastCreateComponent implements OnInit {
 
   // MODAL: CLiente
   cardCode: string = '';
-  clienteSeleccionado: ISocioNegocio;
+  clienteSeleccionado: IBusinessPartners;
 
 
   constructor
@@ -58,7 +58,7 @@ export class PanelForcastCreateComponent implements OnInit {
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
     private userContextService: UserContextService,
-    private grupoArticuloService: GrupoArticuloService,
+    private grupoItemsService: GrupoItemsService,
     private forCastVentaService: ForCastVentaService
   ) {}
 
@@ -117,7 +117,7 @@ export class PanelForcastCreateComponent implements OnInit {
 
   getListGrupoArticulo() {
     this.listGrupoArticulo = [];
-    this.grupoArticuloService.getList()
+    this.grupoItemsService.getList()
     .subscribe({next:(data: IGrupoArticulo[]) =>{
         this.listGrupoArticulo = data;
       },error:(e)=>{

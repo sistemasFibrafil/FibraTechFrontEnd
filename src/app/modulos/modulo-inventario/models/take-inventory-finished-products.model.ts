@@ -18,6 +18,21 @@ export class TakeInventoryFinishedProductsFilterModel {
   usuario   : string
   whsCode   : string
   item      : string;
+
+  constructor(){
+      this.startDate  = null;
+      this.endDate    = null;
+      this.usuario    = '';
+      this.whsCode    = '';
+      this.item       = '';
+  }
+}
+export class TakeInventoryFinishedProductsToCopyFindModel {
+  startDate : Date;
+  endDate   : Date;
+  usuario   : string
+  whsCode   : string
+  item      : string;
   itemCode  : string;
 
   constructor(){

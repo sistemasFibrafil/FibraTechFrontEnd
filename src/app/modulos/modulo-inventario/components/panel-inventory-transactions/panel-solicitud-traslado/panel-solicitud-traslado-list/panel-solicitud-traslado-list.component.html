@@ -50,7 +50,8 @@
           [showCurrentPageReport]="true"
           [rowsPerPageOptions]="rowsPerPageOptions"
           styleClass="{{globalConstants.cStyleTableGridLines}}"
-          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+          >
           <!-- Header -->
           <ng-template pTemplate="header" let-columns>
             <tr>
@@ -64,29 +65,28 @@
           <!-- body -->
           <ng-template pTemplate = "body" let-modelo let-ri = "rowIndex">
             <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo?.docStatus === 'C'}">
-              <td class="custom-td-2">
+              <td class="custom-td-8">
                 <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                 </p-splitButton>
               </td>
-              <td class="custom-td-10">
-                <span class="p-column-title">Número: </span> {{modelo.docNum}}
+              <td class="p-fluid">
+                {{modelo.docNum}}
               </td>
-              <td class="custom-td-10">
-                <span class="p-column-title">Picking?</span>
+              <td class="custom-td-20">
                 <span class="label" style="background:#17a2b8" *ngIf="modelo?.u_FIB_IsPkg === 'Y'">Sí</span>
                 <span class="label" style="background:#dc3545" *ngIf="modelo?.u_FIB_IsPkg !== 'Y'">No</span>
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">Fecha de contabilización: </span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+                {{modelo.docDate | date: 'dd/MM/yyyy'}}
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">Fecha de entrega: </span> {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
+                {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">De almacén: </span> {{modelo.filler}}
+                {{modelo.filler}}
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">Almacén destino: </span> {{modelo.toWhsCode}}
+                {{modelo.toWhsCode}}
               </td>
             </tr>
           </ng-template>

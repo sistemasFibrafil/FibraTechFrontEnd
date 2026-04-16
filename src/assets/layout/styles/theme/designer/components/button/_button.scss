@@ -44,7 +44,7 @@
                 background: $plainButtonHoverBgColor;
                 color: $plainButtonTextColor;
             }
-    
+
             &:enabled:active {
                 background: $plainButtonActiveBgColor;
                 color: $plainButtonTextColor;
@@ -76,7 +76,7 @@
                 background: $plainButtonHoverBgColor;
                 color: $plainButtonTextColor;
             }
-    
+
             &:enabled:active {
                 background: $plainButtonActiveBgColor;
                 color: $plainButtonTextColor;
@@ -89,7 +89,7 @@
     }
 
     .p-button-icon-left {
-         margin-right: $inlineSpacing;
+      margin-right: $inlineSpacing;
     }
 
     .p-button-icon-right {
@@ -110,7 +110,7 @@
         height: $fontSize;
         line-height: $fontSize;
         color: $buttonBg;
-        background-color: $buttonTextColor; 
+        background-color: $buttonTextColor;
     }
 
     &.p-button-raised {
@@ -169,14 +169,14 @@
     .p-button {
         width: 100%;
     }
-    
+
     .p-button-icon-only {
         width: $buttonIconOnlyWidth;
     }
 
     .p-buttonset {
         display: flex;
-        
+
         .p-button {
             flex: 1;
         }
@@ -203,7 +203,7 @@
         color: $secondaryButtonTextActiveColor;
         border-color: $secondaryButtonActiveBorderColor;
     }
-    
+
     &.p-button-outlined {
         background-color: transparent;
         color: $secondaryButtonBg;
@@ -361,7 +361,7 @@
     color: $warningButtonTextColor;
     background: $warningButtonBg;
     border: $warningButtonBorder;
-    
+
     &:enabled:hover {
         background: $warningButtonHoverBg;
         color: $warningButtonTextHoverColor;

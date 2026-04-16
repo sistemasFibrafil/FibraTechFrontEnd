@@ -3,21 +3,21 @@ import { Router } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { MessageService, SelectItem } from 'primeng/api';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { TakeInventorySparePartsCreateModel, TakeInventorySparePartsDeleteModel, TakeInventorySparePartsFindModel, TakeInventorySparePartsModel, TakeInventorySparePartsUpdateModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-spare-parts.model';
+
 import { TableColumn } from 'src/app/interface/common-ui.interface';
+import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
 
 import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/warehouses.interface';
-import { TakeInventorySparePartsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-spare-parts.service';
-import { TakeInventorySparePartsCreateModel, TakeInventorySparePartsDeleteModel, TakeInventorySparePartsFindModel, TakeInventorySparePartsModel, TakeInventorySparePartsUpdateModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-spare-parts.model';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
+import { TakeInventorySparePartsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-spare-parts.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
 
 
 @Component({
@@ -49,7 +49,6 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
   modeloDelete                                  : TakeInventorySparePartsModel;
   modeloList                                    : TakeInventorySparePartsModel[] = [];
   modelocloned                                  : { [s: string]: TakeInventorySparePartsModel; } = {};
-  params                                        : TakeInventorySparePartsFindModel = new TakeInventorySparePartsFindModel();
 
 
   @ViewChild('codeBarInput')
@@ -133,7 +132,7 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
           }
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadWarehouseList', () => {}, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'loadWarehouseList', this.swaCustomService);
         }
     });
   }
@@ -157,16 +156,14 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
     }
   }
 
-  private setParams(): void {
-    // El combo de almacenes siempre estará lleno, así que leemos directamente el control
-    const warehouse = this.modeloForm.get('warehouse').value;
-    const warehouseValue = warehouse?.value ?? warehouse;
+  private buildFilterParams(): TakeInventorySparePartsFindModel {
+    const warehouseControl = this.modeloForm.get('warehouse')?.value;
+    const warehouseValue = warehouseControl?.value ?? warehouseControl;
 
-    // Enviar la fecha al backend (solo día).
-    this.params = {
-      u_CreateDate : this.utilService.normalizeDate(new Date()),
-      u_WhsCode    : warehouseValue,
-      u_UsrCreate  : this.userContextService.getIdUsuario()
+    return {
+      u_CreateDate: this.utilService.normalizeDateOrToday(new Date()),
+      u_WhsCode   : warehouseValue,
+      u_UsrCreate : this.userContextService.getIdUsuario()
     };
   }
 
@@ -176,8 +173,8 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
     if(!warehouse?.value) return;
 
     this.isDisplay = true;
-    this.setParams();
-    this.takeInventorySparePartsService.getListCurrentDate(this.params)
+
+    this.takeInventorySparePartsService.getListCurrentDate(this.buildFilterParams())
     .pipe(
       finalize(() => { this.isDisplay = false; })
     )
@@ -186,7 +183,7 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
         this.modeloList = data;
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListCurrentDate', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListCurrentDate', this.swaCustomService);
       }
     });
   }
@@ -312,8 +309,7 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
       next: () => {
         // Después de actualizar, recargar la lista para reflejar cambios desde el backend
         try {
-          this.setParams();
-          this.takeInventorySparePartsService.getListCurrentDate(this.params)
+          this.takeInventorySparePartsService.getListCurrentDate(this.buildFilterParams())
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (data: any[]) => {
@@ -360,8 +356,7 @@ export class PanelTakeInventorySparePartsCreateComponent implements OnInit, OnDe
     next: () => {
         // Después de eliminar, recargar la lista desde el backend
         try {
-          this.setParams();
-          this.takeInventorySparePartsService.getListCurrentDate(this.params)
+          this.takeInventorySparePartsService.getListCurrentDate(this.buildFilterParams())
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (data: any[]) => {

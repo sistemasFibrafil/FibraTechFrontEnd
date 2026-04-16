@@ -41,242 +41,130 @@
     <!-- Grilla de Datos     -->
     <p-panel header="Lista de {{subtitulo}}">
       <p-table
-      [value]="reporteList"
-      [scrollable]="true"
-      scrollDirection="both"
-      scrollHeight="500px"
-      [rowHover]="true"
-      [autoLayout]="true"
-      [responsive]="true"
-      [showCurrentPageReport]="true"
-      styleClass="{{globalConstants.cStyleTableGridLines}}"
-      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
-        <!-- Header -->
-        <ng-template pTemplate="header" let-columns>
-          <tr>
-            <th style="width: 200px" pFrozenColumn pSortableColumn="cardCode" class="custom-header">
-              <p-sortIcon field="cardCode"></p-sortIcon>
-              Código de Cliente
-            </th>
-            <th style="width: 250px" pFrozenColumn pSortableColumn="cardName" class="custom-header">
-              <p-sortIcon field="cardName"></p-sortIcon>
-              Nombre de Cliente
-            </th>
-            <th style="width: 200px" pSortableColumn="tipoDocumento" class="custom-header">
-              <p-sortIcon field="tipoDocumento"></p-sortIcon>
-              Tipo de Documento
-            </th>
-            <th style="width: 230px" pSortableColumn="fecContabilizacion" class="custom-header">
-              <p-sortIcon field="fecContabilizacion"></p-sortIcon>
-              Fecha de Contabilización
-            </th>
-            <th style="width: 220px" pSortableColumn="numeroDocumento" class="custom-header">
-              <p-sortIcon field="numeroDocumento"></p-sortIcon>
-              Número de Documento
-            </th>
-            <th style="width: 170px" pSortableColumn="numeroGuia" class="custom-header">
-              <p-sortIcon field="numeroGuia"></p-sortIcon>
-              Número de Guía
-            </th>
-            <th style="width: 180px" pSortableColumn="numeroPedido" class="custom-header">
-              <p-sortIcon field="numeroPedido"></p-sortIcon>
-              Número de Pedido
-            </th>
-            <th style="width: 180px" pSortableColumn="fechaPedido" class="custom-header">
-              <p-sortIcon field="fechaPedido"></p-sortIcon>
-              Fecha de Pedido
-            </th>
-            <th style="width: 200px" pSortableColumn="nomVendedor" class="custom-header">
-              <p-sortIcon field="nomVendedor"></p-sortIcon>
-              Vendedor
-            </th>
-            <th style="width: 250px" pSortableColumn="itemCode" class="custom-header">
-              <p-sortIcon field="itemCode"></p-sortIcon>
-              Código de Artículo
-            </th>
-            <th style="width: 300px" pSortableColumn="itemName" class="custom-header">
-              <p-sortIcon field="itemName"></p-sortIcon>
-              Nombre de Artículo
-            </th>
-            <th style="width: 200px" pSortableColumn="nomGrupo" class="custom-header">
-              <p-sortIcon field="nomGrupo"></p-sortIcon>
-              Grupo
-            </th>
-            <th style="width: 100px" pSortableColumn="unidadMedida" class="custom-header">
-              <p-sortIcon field="unidadMedida"></p-sortIcon>
-              UM
-            </th>
-            <th style="width: 150px" pSortableColumn="cantidad" class="custom-header">
-              <p-sortIcon field="cantidad"></p-sortIcon>
-              Cantidad
-            </th>
-            <th style="width: 150px" pSortableColumn="pesoItem" class="custom-header">
-              <p-sortIcon field="pesoItem"></p-sortIcon>
-              Peso Item
-            </th>
-            <th style="width: 180px" pSortableColumn="pesoPromedioKg" class="custom-header">
-              <p-sortIcon field="pesoPromedioKg"></p-sortIcon>
-              Peso Promedio Kg
-            </th>
-            <th style="width: 150px" pSortableColumn="peso" class="custom-header">
-              <p-sortIcon field="peso"></p-sortIcon>
-              Peso
-            </th>
-            <th style="width: 150px" pSortableColumn="rolloVendido" class="custom-header">
-              <p-sortIcon field="rolloVendido"></p-sortIcon>
-              Rol Vendido
-            </th>
-            <th style="width: 150px" pSortableColumn="kgVendido" class="custom-header">
-              <p-sortIcon field="kgVendido"></p-sortIcon>
-              kg Vendido
-            </th>
-            <th style="width: 150px" pSortableColumn="toneladaVendida" class="custom-header">
-              <p-sortIcon field="toneladaVendida"></p-sortIcon>
-              Tn Vendida
-            </th>
-            <th style="width: 120px" pSortableColumn="codMoneda" class="custom-header">
-              <p-sortIcon field="codMoneda"></p-sortIcon>
-              Moneda
-            </th>
-            <th style="width: 100px" pSortableColumn="tipoCambio" class="custom-header">
-              <p-sortIcon field="tipoCambio"></p-sortIcon>
-              TC
-            </th>
-            <th style="width: 150px" pSortableColumn="precio" class="custom-header is-number">
-              <p-sortIcon field="precio"></p-sortIcon>
-              Precio
-            </th>
-            <th style="width: 150px" pSortableColumn="precioKg" class="custom-header">
-              <p-sortIcon field="precioKg"></p-sortIcon>
-              Precio Kg
-            </th>
-            <th style="width: 150px" pSortableColumn="costoSOL" class="custom-header">
-              <p-sortIcon field="costoSOL"></p-sortIcon>
-              Costo SOL
-            </th>
-            <th style="width: 150px" pSortableColumn="costoUSD" class="custom-header">
-              <p-sortIcon field="costoUSD"></p-sortIcon>
-              Costo USD
-            </th>
-            <th style="width: 200px" pSortableColumn="totalCostoItemSOL" class="custom-header">
-              <p-sortIcon field="totalCostoItemSOL"></p-sortIcon>
-              Total Costo Item SOL
-            </th>
-            <th style="width: 200px" pSortableColumn="totalItemUSD" class="custom-header">
-              <p-sortIcon field="totalItemUSD"></p-sortIcon>
-              Total Costo Item USD
-            </th>
-            <th style="width: 150px" pSortableColumn="totalItemSOL" class="custom-header">
-              <p-sortIcon field="totalItemSOL"></p-sortIcon>
-              Total Item SOL
-            </th>
-            <th style="width: 150px" pSortableColumn="totalItemUSD" class="custom-header">
-              <p-sortIcon field="totalItemUSD"></p-sortIcon>
-              Total Item USD
-            </th>
-          </tr>
-        </ng-template>
-        <!-- body -->
-        <ng-template pTemplate="body" let-modelo>
-          <tr class="p-selectable-row">
-            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden" pFrozenColumn>
-              <span class="p-column-title">Código de Cliente</span> {{modelo.cardCode}}
-            </td>
-            <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden" pFrozenColumn>
-              <span class="p-column-title">Nombre de Cliente</span> {{modelo.cardName}}
-            </td>
-            <td style="width: 200px">
-              <span class="p-column-title">Tipo de Documento</span> {{modelo.tipoDocumento}}
-            </td>
-            <td style="width: 230px">
-              <span class="p-column-title">Fecha de Contabilización</span> {{modelo.fecContabilizacion | date: 'dd/MM/yyyy'}}
-            </td>
-            <td style="width: 220px">
-              <span class="p-column-title">Número de Documento</span> {{modelo.numeroDocumento}}
-            </td>
-            <td style="width: 170px">
-              <span class="p-column-title">Número de Guía</span> {{modelo.numeroGuia}}
-            </td>
-            <td style="width: 180px">
-              <span class="p-column-title">Número de Pedido</span> {{modelo.numeroPedido}}
-            </td>
-            <td style="width: 180px">
-              <span class="p-column-title">Fecha de Pedido</span> {{modelo.fechaPedido | date: 'dd/MM/yyyy'}}
-            </td>
-            <td style="width: 200px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
-              <span class="p-column-title">Vendedor</span> {{modelo.nomVendedor}}
-            </td>
-            <td style="width: 250px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
-              <span class="p-column-title">Código de Artículo</span> {{modelo.itemCode}}
-            </td>
-            <td style="width: 300px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
-              <span class="p-column-title">Nombre de Artículo</span> {{modelo.itemName}}
-            </td>
-            <td style="width: 200px">
-              <span class="p-column-title">Grupo</span> {{modelo.nomGrupo}}
-            </td>
-            <td style="width: 100px">
-              <span class="p-column-title">UM</span> {{modelo.unidadMedida}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Cantidad</span> {{modelo.cantidad | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Peso Item</span> {{modelo.pesoItem | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 180px">
-              <span class="p-column-title">Peso Promedio Kg</span> {{modelo.pesoPromedioKg | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Peso</span> {{modelo.peso | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Rol Vendido</span> {{modelo.rolloVendido | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">kg Vendido</span> {{modelo.kgVendido | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Tn Vendida</span> {{modelo.toneladaVendida | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 120px">
-              <span class="p-column-title">Moneda</span> {{modelo.codMoneda}}
-            </td>
-            <td style="width: 100px">
-              <span class="p-column-title">TC</span> {{modelo.tipoCambio | number: '.3':'en-EN'}}
-            </td>
-            <td style="width: 150px;">
-              <span class="p-column-title">Precio</span> {{modelo.precio | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Precio Kg</span> {{modelo.precioKg | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Costo SOL</span> {{modelo.costoSOL| number: '.3':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Costo USD</span> {{modelo.costoUSD| number: '.3':'en-EN'}}
-            </td>
-            <td style="width: 200px">
-              <span class="p-column-title">Total Costo Item SOL</span> {{modelo.totalCostoItemSOL | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 200px">
-              <span class="p-column-title">Total Costo Item USD</span> {{modelo.totalCostoItemUSD | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Total Item SOL</span> {{modelo.totalItemSOL | number: '.2':'en-EN'}}
-            </td>
-            <td style="width: 150px">
-              <span class="p-column-title">Total Item USD</span> {{modelo.totalItemUSD | number: '.2':'en-EN'}}
-            </td>
-          </tr>
-        </ng-template>
-        <!-- emptymessage -->
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td style="width: 5280px" colspan="23">{{globalConstants.currentTableEmptyMessage}}</td>
-          </tr>
-        </ng-template>
+        [value]="modelo"
+        [columns]="columnas"
+        [rows]="rows"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        selectionMode="single"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+      >
+      <!-- Header -->
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+            <p-sortIcon field="{{col.field}}"></p-sortIcon>
+            {{col.header}}
+          </th>
+        </tr>
+      </ng-template>
+      <!-- body -->
+      <ng-template pTemplate="body" let-modelo>
+        <tr class="p-selectable-row">
+          <td class="p-fluid">
+            {{modelo.cardCode}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.cardName}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.tipoDocumento}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.fecContabilizacion | date: 'dd/MM/yyyy'}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.numeroDocumento}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.numeroGuia}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.numeroPedido}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.fechaPedido | date: 'dd/MM/yyyy'}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.nomVendedor}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.itemCode}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.itemName}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.nomGrupo}}
+          </td>
+          <td class="p-fluid">
+            {{modelo.unidadMedida}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.cantidad | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.pesoItem | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.pesoPromedioKg | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.peso | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.rolloVendido | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.kgVendido | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.toneladaVendida | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.codMoneda}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.tipoCambio | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.precio | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.precioKg | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.costoSOL| number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.costoUSD| number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.totalCostoItemSOL | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.totalCostoItemUSD | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.totalItemSOL | number: '.2':'en-EN'}}
+          </td>
+          <td class="custom-td-numero">
+            {{modelo.totalItemUSD | number: '.2':'en-EN'}}
+          </td>
+        </tr>
+      </ng-template>
+      <!-- emptymessage -->
+      <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length">{{globalConstants.currentTableEmptyMessage}}</td>
+        </tr>
+      </ng-template>
       </p-table>
     </p-panel>
 </div>

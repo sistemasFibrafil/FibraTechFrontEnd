@@ -1,25 +1,25 @@
-import { saveAs } from 'file-saver';
 import { Subject } from 'rxjs';
-import { SelectItem } from 'primeng/api';
-import { takeUntil } from 'rxjs/operators';
+import { saveAs } from 'file-saver';
 import { Router } from '@angular/router';
+import { SelectItem } from 'primeng/api';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+
+import { IArticuloReporte } from '../../../interfaces/items.interface';
+import { IGrupoArticulo, ISubGrupoArticulo, ISubGrupoArticulo2 } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/grupo-articulo-sap.interface';
+
+import { UtilService } from 'src/app/services/util.service';
+import { ItemsService } from '../../../services/items.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IArticuloReporte } from '../../../interfaces/articulo.interface';
-import { IGrupoArticulo, ISubGrupoArticulo2, ISubGrupoArticulo } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/grupo-articulo-sap.interface';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { ArticuloService } from '../../../services/articulo.service';
-import { GrupoArticuloService } from '../../../../modulo-gestion/services/sap/definiciones/inventario/grupo-articulo-sap.service';
-import { SubGrupoArticuloService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/sub-grupo-articulo-sap.service';
-import { SubGrupoArticulo2Service } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/sub-grupo-articulo2-sap.service';
-import { UtilService } from 'src/app/services/util.service';
-
+import { GrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/grupo-articulo-sap.service';
+import { SubGrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/sub-grupo-articulo-sap.service';
+import { SubGrupoArticulo2Service } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/sub-grupo-articulo2-sap.service';
 
 
 @Component({
@@ -49,7 +49,6 @@ export class PanelArticuloByGrupoSubGrupoFiltroComponent implements OnInit, OnDe
 
   // Resultados y parámetros
   reporteList         : IArticuloReporte[];
-  params              : FilterRequestModel = new FilterRequestModel();
   columnas            : any[];
 
   // Fecha y archivo de exportación
@@ -58,14 +57,14 @@ export class PanelArticuloByGrupoSubGrupoFiltroComponent implements OnInit, OnDe
 
 
   constructor(
-    private router: Router,
-    private fb: FormBuilder,
-    private datePipe: DatePipe,
-    private readonly swaCustomService: SwaCustomService,
-    private readonly accesoOpcionesService: AccesoOpcionesService,
-  private ArticuloService: ArticuloService,
-  private grupoArticuloService: GrupoArticuloService,
-  private subGrupoArticuloService: SubGrupoArticuloService,
+  private router: Router,
+  private fb: FormBuilder,
+  private datePipe: DatePipe,
+  private readonly swaCustomService: SwaCustomService,
+  private readonly accesoOpcionesService: AccesoOpcionesService,
+  private itemsService: ItemsService,
+  private grupoItemsService: GrupoItemsService,
+  private subGrupoItemsService: SubGrupoItemsService,
   private subGrupoArticulo2Service: SubGrupoArticulo2Service,
   private readonly utilService: UtilService) {}
 
@@ -110,29 +109,27 @@ export class PanelArticuloByGrupoSubGrupoFiltroComponent implements OnInit, OnDe
   }
 
   getListGrupoArticulo() {
-    this.grupoArticuloService.getList().pipe(takeUntil(this.destroy$)).subscribe({
+    this.grupoItemsService.getList().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: IGrupoArticulo[]) => {
         this.grupoArticuloList = data.map(i => ({ label: i.itmsGrpNam, value: i.itmsGrpCod }));
         const codes = data.map(i => i.itmsGrpCod);
         this.modeloForm.get('msGrupo')?.setValue(codes);
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getListGrupoArticulo', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListGrupoArticulo', this.swaCustomService);
       }
     });
   }
 
   getListSubGrupoArticulo() {
-    this.subGrupoArticuloService.getList().pipe(takeUntil(this.destroy$)).subscribe({
+    this.subGrupoItemsService.getList().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: ISubGrupoArticulo[]) => {
         this.subGrupoArticuloList = data.map(i => ({ label: i.name, value: i.code }));
         const codes = data.map(i => i.code);
         this.modeloForm.get('msSubGrupo')?.setValue(codes);
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getListSubGrupoArticulo', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListSubGrupoArticulo', this.swaCustomService);
       }
     });
   }
@@ -145,67 +142,86 @@ export class PanelArticuloByGrupoSubGrupoFiltroComponent implements OnInit, OnDe
         this.modeloForm.get('msSubGrupo2')?.setValue(codes);
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getListSubGrupoArticulo2', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListSubGrupoArticulo2', this.swaCustomService);
       }
     });
   }
 
   onToBuscar() {
-    this.onListar();
+    this.loadData();
   }
 
-  onSetParametro()
-  {
-    this.params = this.modeloForm.getRawValue();
 
-    const grupoVals: string[] = this.modeloForm.controls['msGrupo']?.value || [];
-    const subGrupoVals: string[] = this.modeloForm.controls['msSubGrupo']?.value || [];
-    const subGrupo2Vals: string[] = this.modeloForm.controls['msSubGrupo2']?.value || [];
+  private buildFilterParams(): any {
+  const formValue = this.modeloForm.getRawValue();
 
-    this.params.cod1 = (grupoVals && grupoVals.length > 0) ? grupoVals.join(',') : '';
-    this.params.cod2 = (subGrupoVals && subGrupoVals.length > 0) ? subGrupoVals.join(',') : '';
-    this.params.cod3 = (subGrupo2Vals && subGrupo2Vals.length > 0) ? subGrupo2Vals.join(',') : '';
+  const grupoVals: string[]    = formValue.msGrupo ?? [];
+  const subGrupoVals: string[] = formValue.msSubGrupo ?? [];
+  const subGrupo2Vals: string[] = formValue.msSubGrupo2 ?? [];
 
-    this.params.val1 = this.modeloForm.controls['excluirInactivos'].value === true ? 1 : 0;
-    this.params.val2 = this.modeloForm.controls['excluirSinStock'].value  === true ? 1 : 0;
-    this.params.val4 = this.modeloForm.controls['invntItem'].value        === true ? 1 : 0;
-    this.params.val3 = this.modeloForm.controls['sellItem'].value         === true ? 1 : 0;
-    this.params.val5 = this.modeloForm.controls['prchseItem'].value       === true ? 1 : 0;
-  }
+  return {
+    ...formValue,
 
-  onListar() {
-    this.isDisplay = true;
-    this.reporteList = [];
-    this.onSetParametro();
-    this.ArticuloService.getListArticuloByGrupoSubGrupoFiltro(this.params).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data: IArticuloReporte[]) => {
+    cod1: grupoVals.length > 0 ? grupoVals.join(',') : '',
+    cod2: subGrupoVals.length > 0 ? subGrupoVals.join(',') : '',
+    cod3: subGrupo2Vals.length > 0 ? subGrupo2Vals.join(',') : '',
+
+    val1: formValue.excluirInactivos === true ? 1 : 0,
+    val2: formValue.excluirSinStock  === true ? 1 : 0,
+    val3: formValue.sellItem         === true ? 1 : 0,
+    val4: formValue.invntItem        === true ? 1 : 0,
+    val5: formValue.prchseItem       === true ? 1 : 0
+  };
+}
+
+loadData(): void {
+  this.isDisplay = true;
+  this.reporteList = [];
+
+  this.itemsService
+    .getListArticuloByGrupoSubGrupoFiltro(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
         this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: IArticuloReporte[]) => {
         this.reporteList = data;
       },
       error: (e) => {
-        this.isDisplay = false;
-        this.utilService.handleErrorSingle(e, 'getListArticuloByGrupoSubGrupoFiltro', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
 
-  onToExcel() {
+  onToExcel(): void {
     this.isDisplay = true;
-    this.onSetParametro();
-    this.ArticuloService.getListArticuloExcelByGrupoSubGrupoFiltro(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          saveAs(new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), this.nombreArchivo);
-          this.isDisplay = false;
-          this.swaCustomService.swaMsgExito(null);
-        },
-        error: (e) => {
-          this.isDisplay = false;
-          this.utilService.handleErrorSingle(e, 'getListArticuloExcelByGrupoSubGrupoFiltro', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+
+    this.itemsService
+    .getListArticuloExcelByGrupoSubGrupoFiltro(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (response: any) => {
+        saveAs(
+          new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }),
+          this.nombreArchivo
+        );
+
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'onToExcel', this.swaCustomService);
+      }
+    });
   }
 
   onToSalir()

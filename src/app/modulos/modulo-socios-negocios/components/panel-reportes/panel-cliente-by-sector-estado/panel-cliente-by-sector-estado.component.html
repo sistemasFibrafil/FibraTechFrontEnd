@@ -63,8 +63,7 @@
             <td class="p-fluid">{{modelo.cardName}}</td>
             <td class="p-fluid">{{modelo.unidadNegocio}}</td>
             <td class="custom-td-numero">{{modelo.creditLine | number: '.2':'en-EN'}}</td>
-            <td class="custom-td-4">
-              <span class="p-column-title">Estado</span>
+            <td class="custom-td-20">
               <span class="label" style="background:green" *ngIf="modelo.codStatus == 'Y'">{{modelo.nomStatus}}</span>
               <span class="label" style="background:red"   *ngIf="modelo.codStatus == 'N'">{{modelo.nomStatus}}</span>
             </td>

@@ -66,15 +66,29 @@
           <!-- body -->
           <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
             <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo?.docStatus === 'C'}">
-              <td class="custom-td-2">
+              <td class="custom-td-8">
                 <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                 </p-splitButton>
               </td>
-              <td class="custom-td-10"> {{modelo.docNum}} </td>
-              <td class="p-fluid"> {{modelo.docDate | date: 'dd/MM/yyyy'}} </td>
-              <td class="p-fluid"> {{modelo.docDueDate | date: 'dd/MM/yyyy'}} </td>
-              <td class="p-fluid"> {{modelo.taxDate | date: 'dd/MM/yyyy'}} </td>
-              <td class="p-fluid"> {{modelo.reqDate | date: 'dd/MM/yyyy'}} </td>
+              <td class="p-fluid">
+                {{modelo.docNum}}
+              </td>
+              <td class="custom-td-20">
+                <span class="label badge-articulos" *ngIf="modelo?.docType === 'I'">Artículos</span>
+                <span class="label badge-servicios" *ngIf="modelo?.docType === 'S'">Servicios</span>
+              </td>
+              <td class="p-fluid">
+                {{modelo.docDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                {{modelo.reqDate | date: 'dd/MM/yyyy'}}
+              </td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">

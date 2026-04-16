@@ -4,19 +4,19 @@ import { Router } from '@angular/router';
 import { MessageService, SelectItem } from 'primeng/api';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { finalize, forkJoin, switchMap, takeUntil } from 'rxjs';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 
-import { UtilService } from 'src/app/services/util.service';
-import { UserContextService } from 'src/app/services/user-context.service';
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { TakeInventorySparePartsDeleteModel, TakeInventorySparePartsModel, TakeInventorySparePartsUpdateModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-spare-parts.model';
 
-import { TakeInventorySparePartsDeleteModel, TakeInventorySparePartsFilterModel, TakeInventorySparePartsModel, TakeInventorySparePartsUpdateModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-spare-parts.model';
-import { TakeInventorySparePartsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-spare-parts.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
+import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { UserContextService } from 'src/app/services/user-context.service';
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { UsuarioService } from 'src/app/modulos/modulo-seguridad/services/usuario.service';
+import { TakeInventorySparePartsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-spare-parts.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
 
 
 @Component({
@@ -29,7 +29,7 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
   private readonly destroy$                     = new Subject<void>();
 
   // Forms
-  modeloForm                                   : FormGroup;
+  modeloForm                                    : FormGroup;
 
   // Configuration
   readonly titulo                               = 'Repuesto';
@@ -48,7 +48,6 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
   modeloDelete                                  : TakeInventorySparePartsModel;
   modeloList                                    : TakeInventorySparePartsModel[] = [];
   modelocloned                                  : { [s: string]: TakeInventorySparePartsModel; } = {};
-  params                                        : TakeInventorySparePartsFilterModel = new TakeInventorySparePartsFilterModel();
   fileName                                      = 'Toma de inventario - repuestos-' + this.utilService.fecha_DD_MM_YYYY();
 
 
@@ -90,10 +89,10 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
 
   private buildForms(): void {
     this.modeloForm = this.fb.group({
-      rangeDates                : [ [this.utilService.currentDate(), this.utilService.currentDate()], [Validators.required, this.rangeDatesValidator.bind(this)] ],
-      usuario                   : ['', Validators.required],
-      warehouse                 : ['', Validators.required],
-      item                      : ['']
+      rangeDates    : [ [this.utilService.currentDate(), this.utilService.currentDate()], [Validators.required, this.rangeDatesValidator.bind(this)] ],
+      usuario       : ['', Validators.required],
+      warehouse     : ['', Validators.required],
+      item          : ['']
     });
 
     this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-inv-panel-take-inventory-spare-parts-list');
@@ -168,8 +167,7 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
         }
 
         // Preparar parámetros para la búsqueda y devolver la petición de la lista
-        this.setParams();
-        return this.takeInventorySparePartsService.getListByFilter(this.params);
+        return this.takeInventorySparePartsService.getListByFilter(this.buildFilterParams());
       }),
       finalize(() => { this.isDisplay = false; })
     )
@@ -178,44 +176,56 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
         this.modeloList = data;
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
 
-  private setParams(): void {
+  private buildFilterParams(): any {
     const formValue = this.modeloForm.getRawValue();
 
-    const usuarios    = Array.isArray(formValue.usuario) ? formValue.usuario.join(',') : formValue.usuario;
-    const warehouses  = Array.isArray(formValue.warehouse) ? formValue.warehouse.join(',') : formValue.warehouse;
+    const usuarios = Array.isArray(formValue.usuario)
+      ? formValue.usuario.join(',')
+      : formValue.usuario;
 
-    // Obtener fechas desde rangeDates si existe (espera [start, end])
+    const warehouses = Array.isArray(formValue.warehouse)
+      ? formValue.warehouse.join(',')
+      : formValue.warehouse;
+
+    // Obtener fechas desde rangeDates si existe ([start, end])
     const range = formValue.rangeDates;
-    const startRaw = Array.isArray(range) && range.length > 0 ? range[0] : formValue.startDate;
-    const endRaw = Array.isArray(range) && range.length > 1 ? range[1] : formValue.endDate;
+    const startRaw = Array.isArray(range) && range.length > 0
+      ? range[0]
+      : formValue.startDate;
 
-    this.params =
-    {
+    const endRaw = Array.isArray(range) && range.length > 1
+      ? range[1]
+      : formValue.endDate;
+
+    return {
       ...formValue,
-      startDate : this.utilService.normalizeDate(startRaw),
-      endDate   : this.utilService.normalizeDate(endRaw),
+      startDate : this.utilService.normalizeDateOrToday(startRaw),
+      endDate   : this.utilService.normalizeDateOrToday(endRaw),
       usuario   : usuarios,
       whsCode   : warehouses
     };
   }
 
-  private getList(): void {
-    this.isDisplay = true;
-    this.setParams();
-    this.takeInventorySparePartsService.getListByFilter(this.params)
-    .pipe(takeUntil(this.destroy$))
+  private loadData(): void {
+      this.isDisplay = true;
+
+    this.takeInventorySparePartsService
+    .getListByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isDisplay = false)
+    )
     .subscribe({
       next: (data: TakeInventorySparePartsModel[]) => {
-        this.isDisplay = false;
         this.modeloList = data;
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getList', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
@@ -225,29 +235,35 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
   // ===========================
 
   onClickSearch(): void {
-    this.getList();
+    this.loadData();
   }
 
   onClickExcel(): void {
     this.isDisplay = true;
-    this.setParams();
-    this.takeInventorySparePartsService.getExcelByFilter(this.params)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response: any) => {
-        saveAs(
-          new Blob([response], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          }),
-          this.fileName
-        );
-        this.isDisplay = false;
-        this.swaCustomService.swaMsgExito(null);
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'onClickSummaryExcel', () => { this.isDisplay = false; }, this.swaCustomService);
-      }
-    });
+
+    this.takeInventorySparePartsService
+      .getExcelByFilter(this.buildFilterParams())
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplay = false;
+        })
+      )
+      .subscribe({
+        next: (response: any) => {
+          saveAs(
+            new Blob([response], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            }),
+            this.fileName
+          );
+
+          this.swaCustomService.swaMsgExito(null);
+        },
+        error: (e) => {
+          this.utilService.handleErrorSingle(e, 'onClickSummaryExcel', this.swaCustomService);
+        }
+      });
   }
 
   onClickCreate(): void {
@@ -288,8 +304,7 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
       next: () => {
         // Después de actualizar, recargar la lista para reflejar cambios desde el backend
         try {
-          this.setParams();
-          this.takeInventorySparePartsService.getListByFilter(this.params)
+          this.takeInventorySparePartsService.getListByFilter(this.buildFilterParams())
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (data: any[]) => {
@@ -336,8 +351,7 @@ export class PanelTakeInventorySparePartsListComponent implements OnInit, OnDest
     next: () => {
         // Recargar la lista desde el backend usando el filtro actual
         try {
-          this.setParams();
-          this.takeInventorySparePartsService.getListByFilter(this.params)
+          this.takeInventorySparePartsService.getListByFilter(this.buildFilterParams())
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (data: TakeInventorySparePartsModel[]) => {

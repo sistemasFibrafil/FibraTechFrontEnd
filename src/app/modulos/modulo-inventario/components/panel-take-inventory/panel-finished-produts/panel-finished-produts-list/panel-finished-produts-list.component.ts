@@ -1,26 +1,25 @@
 import Swal from 'sweetalert2';
-import { forkJoin } from 'rxjs';
-import { Subject } from 'rxjs';
-import { finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { saveAs } from 'file-saver';
+import { Subject, forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
+import { SelectItem } from 'primeng/api';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { TakeInventoryFinishedProductsFilterModel, TakeInventoryFinishedProductsToCopyFindModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-finished-products.model';
+
+import { ITakeInventoryFinishedProducts, ITakeInventoryFinishedProducts1 } from 'src/app/modulos/modulo-inventario/interfaces/take-inventory-finished-products.interface';
 
 import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-
-import { SelectItem } from 'primeng/api';
-import { Router } from '@angular/router';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { TakeInventoryFinishedProductsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-finished-products.service';
-import { ITakeInventoryFinishedProducts, ITakeInventoryFinishedProducts1 } from 'src/app/modulos/modulo-inventario/interfaces/take-inventory-finished-products.interface';
-import { TakeInventoryFinishedProductsFilterModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-finished-products.model';
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { UsuarioService } from 'src/app/modulos/modulo-seguridad/services/usuario.service';
-
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { TakeInventoryFinishedProductsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-finished-products.service';
 
 
 @Component({
@@ -31,11 +30,9 @@ import { UsuarioService } from 'src/app/modulos/modulo-seguridad/services/usuari
 export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDestroy {
   // Lifecycle management
   private readonly destroy$                     = new Subject<void>();
-
   // Forms
-  modeloForm                                   : FormGroup;
+  modeloForm                                    : FormGroup;
   modeloFormModal                               : FormGroup;
-
   // Configuration
   readonly titulo                               = 'Producto terminado';
   buttonAcces                                   : ButtonAcces = new ButtonAcces();
@@ -47,22 +44,24 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
   isVisualizar                                  = false;
 
   // Table configuration
-  columnas                                      : any[] = [];
-  columnasModal                                 : any[] = [];
-  opciones                                      : any[] = [];
-  opciones2                                     : any[] = [];
-  opciones3                                     : any[] = [];
+
   usuarioList                                   : SelectItem[] = [];
   warehouseList                                 : SelectItem[] = [];
 
+  columnas                                      : any[] = [];
+  opciones                                      : any[] = [];
+  opciones2                                     : any[] = [];
+  opciones3                                     : any[] = [];
+  columnasModal                                 : any[] = [];
+
   // Data
-  modelo                                        : ITakeInventoryFinishedProducts[] = [];
-  modeloModal                                   : ITakeInventoryFinishedProducts1[] = [];
   modeloDelete                                  : ITakeInventoryFinishedProducts;
   modeloSelected                                : ITakeInventoryFinishedProducts;
   modeloModalSeleted                            : ITakeInventoryFinishedProducts1;
+
+  modelo                                        : ITakeInventoryFinishedProducts[] = [];
+  modeloModal                                   : ITakeInventoryFinishedProducts1[] = [];
   modeloCopyToSelected                          : ITakeInventoryFinishedProducts[] = [];
-  params                                        : TakeInventoryFinishedProductsFilterModel = new TakeInventoryFinishedProductsFilterModel();
 
 
   constructor(
@@ -99,6 +98,10 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
     this.buildColumns();
     this.buildMenuOptions();
     this.loadAllCombos();
+
+    if (!this.buttonAcces.btnBuscar) {
+      this.loadData();
+    }
   }
 
   private buildForms(): void {
@@ -150,8 +153,8 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
 
   private buildMenuOptions(): void {
     this.opciones = [
-      { label: 'Eliminar', icon: 'pi pi-trash', command: () => this.onClickDelete() },
-      { label: 'Visualizar', icon: 'pi pi-eye', command: () => this.onClickVisualize() }
+      { label: 'Ver',      icon: 'pi pi-eye',   command: () => this.onClickView() },
+      { label: 'Eliminar', icon: 'pi pi-trash', command: () => this.onClickDelete() }
     ];
     this.opciones2 = [
       { label: 'Resumido ítem',  icon: 'pi pi-download', command: () => this.onClickSummaryItemExcel() },
@@ -170,7 +173,6 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
   private loadAllCombos(): void {
     const paramAlmacen: any = { inactive: 'N' };
 
-    // Mostrar spinner mientras cargan los combos y la lista resultante
     this.isDisplay = true;
 
     forkJoin({
@@ -179,67 +181,71 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
     })
     .pipe(
       takeUntil(this.destroy$),
-      switchMap(res => {
+      finalize(() => { this.isDisplay = false; })
+    )
+    .subscribe({
+      next: res => {
         // Usuarios
         const usuarioData = (res.usuarios || []) as any[];
-        this.usuarioList = usuarioData.map(i => ({ label: i.nombreCompleto, value: i.idUsuario }));
+        this.usuarioList = usuarioData.map(i => ({
+          label: i.nombreCompleto,
+          value: i.idUsuario
+        }));
+
         const idUsuarioActual = this.userContextService.getIdUsuario();
         const defaultUsuario = usuarioData.find(i => i.idUsuario === idUsuarioActual);
+
         if (defaultUsuario) {
-          this.modeloForm.get('usuario').setValue([defaultUsuario.idUsuario], { emitEvent: false });
+          this.modeloForm.get('usuario')?.setValue([defaultUsuario.idUsuario], { emitEvent: false });
         }
 
         // Almacenes
         const activos = (res.almacenes || []) as any[];
-        this.warehouseList = activos.map(a => ({ label: a.fullDescr, value: a.whsCode }));
+        this.warehouseList = activos.map(a => ({
+          label: a.fullDescr,
+          value: a.whsCode
+        }));
 
-        // Seleccionar por defecto todos los códigos de almacén (sin emitir eventos)
+        // Seleccionar todos por defecto
         const defaultSelectedCodes = activos.map(a => a.whsCode);
         this.modeloForm.get('warehouse')?.setValue(defaultSelectedCodes, { emitEvent: false });
-
-        // Preparar parámetros para la búsqueda y devolver la petición de la lista
-        this.setParams();
-        return this.takeInventoryFinishedProductsService.getListByFilter(this.params);
-      }),
-      finalize(() => { this.isDisplay = false; })
-    )
-    .subscribe({
-      next: (data: ITakeInventoryFinishedProducts[]) => {
-        this.modelo = data;
       },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => { this.isDisplay = false; }, this.swaCustomService);
+      error: e => {
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
 
-  private setParams(): void {
-    const formValue = this.modeloForm.getRawValue();
 
-    const usuarios = Array.isArray(formValue.usuario) ? formValue.usuario.join(',') : formValue.usuario;
-    const warehouse= Array.isArray(formValue.warehouse) ? formValue.warehouse.join(',') : formValue.warehouse;
-    const itemCode = (this.modeloCopyToSelected || []).map(x => x.itemCode).join(',');
+  private buildFilterParams(): TakeInventoryFinishedProductsFilterModel {
+    const {
+      rangeDates,
+      startDate,
+      endDate,
+      usuario,
+      warehouse,
+      item
+    } = this.modeloForm.getRawValue();
 
-    // Obtener fechas desde rangeDates si existe (espera [start, end])
-    const range = formValue.rangeDates;
-    const startRaw = Array.isArray(range) && range.length > 0 ? range[0] : formValue.startDate;
-    const endRaw = Array.isArray(range) && range.length > 1 ? range[1] : formValue.endDate;
+    const range = rangeDates ?? [];
 
-    this.params =
-    {
-      ...formValue,
-      startDate : this.utilService.normalizeDate(startRaw),
-      endDate   : this.utilService.normalizeDate(endRaw),
-      usuario   : usuarios,
-      whsCode   : warehouse,
-      itemCode  : itemCode
+    const startRaw = range[0] ?? startDate;
+    const endRaw   = range[1] ?? endDate;
+
+    return {
+      startDate: this.utilService.normalizeDateOrToday(startRaw),
+      endDate: this.utilService.normalizeDateOrToday(endRaw),
+      usuario: (usuario || []).join(','),
+      whsCode: (warehouse || []).join(','),
+      item: this.utilService.normalizePrimitive(item)
     };
   }
 
-  private getList(): void {
+  private loadData(): void {
     this.isDisplay = true;
-    this.setParams();
-    this.takeInventoryFinishedProductsService.getListByFilter(this.params)
+
+    this.takeInventoryFinishedProductsService
+    .getListByFilter(this.buildFilterParams())
     .pipe(
       takeUntil(this.destroy$),
       finalize(() => { this.isDisplay = false; })
@@ -249,7 +255,7 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
         this.modelo = data;
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getList', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
@@ -259,73 +265,91 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
   // ===========================
 
   onClickSearch(): void {
-    this.getList();
+    this.loadData();
   }
 
   onClickSummaryItemExcel(): void {
     this.isDisplay = true;
-    this.setParams();
-    this.takeInventoryFinishedProductsService.getSummaryItemExcelByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          saveAs(
-            new Blob([response], {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            }),
-            'Toma de inventario-resumido por artículo-' + this.utilService.fecha_DD_MM_YYYY()
-          );
-          this.isDisplay = false;
-          this.swaCustomService.swaMsgExito(null);
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickSummaryItemExcel', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+
+    this.takeInventoryFinishedProductsService
+    .getSummaryItemExcelByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (response: any) => {
+        saveAs(
+          new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }),
+          'Toma de inventario-resumido por artículo-' + this.utilService.fecha_DD_MM_YYYY()
+        );
+
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'onClickSummaryItemExcel', this.swaCustomService);
+      }
+    });
   }
 
   onClickSummaryUserExcel(): void {
     this.isDisplay = true;
-    this.setParams();
-    this.takeInventoryFinishedProductsService.getSummaryUserExcelByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          saveAs(
-            new Blob([response], {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            }),
-            'Toma de inventario-resumido por usuario-' + this.utilService.fecha_DD_MM_YYYY()
-          );
-          this.isDisplay = false;
-          this.swaCustomService.swaMsgExito(null);
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickSummaryUserExcel', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+
+    this.takeInventoryFinishedProductsService
+    .getSummaryUserExcelByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (response: any) => {
+        saveAs(
+          new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }),
+          'Toma de inventario-resumido por usuario-' + this.utilService.fecha_DD_MM_YYYY()
+        );
+
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'onClickSummaryUserExcel', this.swaCustomService);
+      }
+    });
   }
 
   onClickDetailedExcel(): void {
     this.isDisplay = true;
-    this.setParams();
-    this.takeInventoryFinishedProductsService.getDetailedExcelByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          saveAs(
-            new Blob([response], {
-              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            }),
-            'Toma de inventario-detallado-' + this.utilService.fecha_DD_MM_YYYY()
-          );
-          this.isDisplay = false;
-          this.swaCustomService.swaMsgExito(null);
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickDetailedExcel', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+
+    this.takeInventoryFinishedProductsService
+    .getDetailedExcelByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (response: any) => {
+        saveAs(
+          new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          }),
+          'Toma de inventario-detallado-' + this.utilService.fecha_DD_MM_YYYY()
+        );
+
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'onClickDetailedExcel', this.swaCustomService);
+      }
+    });
   }
 
   onClickCreate(): void {
@@ -338,24 +362,30 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
 
   private delete(): void {
     this.isDeleting = true;
+
     const params: any = {
-      docEntry    : this.modeloSelected.docEntry,
-      isDelete    : 'Y',
-      usrDelete   : this.userContextService.getIdUsuario(),
-      deleteDate  : this.utilService.fechaApi_POST(new Date()),
-      deleteTime  : this.utilService.horaMinutoToInt(new Date()),
+      docEntry   : this.modeloSelected.docEntry,
+      isDelete   : 'Y',
+      usrDelete  : this.userContextService.getIdUsuario(),
+      deleteDate : this.utilService.fechaApi_POST(new Date()),
+      deleteTime : this.utilService.horaMinutoToInt(new Date()),
     };
 
-    this.takeInventoryFinishedProductsService.setDelete(params)
-      .pipe(takeUntil(this.destroy$))
+    this.takeInventoryFinishedProductsService
+      .setDelete(params)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDeleting = false;
+        })
+      )
       .subscribe({
         next: () => {
-          this.getList();
-          this.isDeleting = false;
+          this.loadData();
           this.swaCustomService.swaMsgExito(null);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'delete', () => { this.isDeleting = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'delete', this.swaCustomService);
         }
       });
   }
@@ -372,7 +402,7 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
     });
   }
 
-  onClickVisualize(): void {
+  onClickView(): void {
     this.isVisualizar = !this.isVisualizar;
     this.loadModalData();
   }
@@ -394,7 +424,8 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
       codeBar: codeBar
     };
 
-    this.takeInventoryFinishedProductsService.getListByItemCode(value)
+    this.takeInventoryFinishedProductsService
+    .getListByItemCode(value)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: ITakeInventoryFinishedProducts1[]) => {
@@ -437,8 +468,6 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
       deleteTime  : this.utilService.horaMinutoToInt(new Date()),
     };
 
-    debugger;
-
     this.takeInventoryFinishedProductsService.setDeleteLine(params)
       .pipe(
         takeUntil(this.destroy$),
@@ -446,12 +475,12 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
       )
       .subscribe({
         next: () => {
-          this.getList();
+          this.loadData();
           this.loadModalData();
           this.showModalSuccess(null);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'deleteRow', () => { this.isDeleting = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'deleteRow', this.swaCustomService);
         }
       });
   }
@@ -504,23 +533,48 @@ export class TakeInventoryFinishedProductsListComponent implements OnInit, OnDes
       target: document.getElementById('modal')
     });
 
-    return swalWithBootstrapButtons.fire(
-      this.globalConstants.msgInfoSummary,
-      message,
-      'error'
-    );
+    return swalWithBootstrapButtons.fire(this.globalConstants.msgInfoSummary, message, 'error');
+  }
+
+  private buildFindParams(): TakeInventoryFinishedProductsToCopyFindModel {
+    const {
+      rangeDates,
+      startDate,
+      endDate,
+      usuario,
+      warehouse,
+      item
+    } = this.modeloForm.getRawValue();
+
+    const range = rangeDates ?? [];
+
+    const startRaw = range[0] ?? startDate;
+    const endRaw   = range[1] ?? endDate;
+
+    return {
+      startDate : this.utilService.normalizeDateOrToday(startRaw),
+      endDate   : this.utilService.normalizeDateOrToday(endRaw),
+      usuario   : (usuario || []).join(','),
+      whsCode   : (warehouse || []).join(','),
+      item      : this.utilService.normalizePrimitive(item),
+      itemCode  : (this.modeloCopyToSelected ?? []).map(x => x.itemCode).join(',')
+    };
   }
 
   onClickToCopy(): void {
     if (!this.modeloCopyToSelected) return;
-    this.takeInventoryFinishedProductsService.getToCopy(this.params)
+
+    this.takeInventoryFinishedProductsService.getToCopy(this.buildFindParams())
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (data) => {
-        this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-create', JSON.stringify(data)]);
+        // respaldo para refresh
+        sessionStorage.setItem('TomaInventarioCopyTo',JSON.stringify(data));
+
+        this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-create'], { state: { mode: 'copy', tomaInventario: data } });
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'onClickToCopy', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'onClickToCopy', this.swaCustomService);
       }
     });
   }

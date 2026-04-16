@@ -5,20 +5,19 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { LayoutComponent } from '../../../../../layout/layout.component';
 import { ConstantesVarios } from '../../../../../constants/ConstantesVarios';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
-import { ConstantesGenerales } from '../../../../../constants/Constantes-generales';
 import { GlobalsConstantsForm } from '../../../../../constants/globals-constants-form';
 
 import { PerfilModel } from '../../../models/pefil.model';
 import { UsuarioModel } from '../../../models/usuario.model';
-import { ParametroSistemaModel } from '../../../models/parametro-sistema.model';
 
 import { PerfilService } from '../../../services/perfil.service';
 import { UtilService } from '../../../../../services/util.service';
 import { UsuarioService } from '../../../services/usuario.service';
-import { SeguridadService } from '../../../services/seguridad.service';
 import { SwaCustomService } from '../../../../../services/swa-custom.service';
 import { CifrarDataService } from '../../../../../services/cifrar-data.service';
-import { UsersService } from '../../../../modulo-gestion/services/sap/definiciones/general/users.service';
+import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+
 
 
 @Component({
@@ -33,10 +32,10 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
   globalConstants       : GlobalsConstantsForm = new GlobalsConstantsForm();
   modeloForm            : FormGroup;
   modelo                : UsuarioModel = new UsuarioModel();
-  modeloSistema         : ParametroSistemaModel = new ParametroSistemaModel();
   modeloPerfil          : PerfilModel = new PerfilModel();
   userSapList           : SelectItem[] = [];
-  listItemPerfil        : SelectItem[] = [];
+  perfilList            : SelectItem[] = [];
+  salesPersonsList      : SelectItem[] = [];
   // Imagen
   sellersPermitString   : string;
   sellersPermitFile     :  any;
@@ -51,9 +50,9 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
     private usersService: UsersService,
     private perfilService: PerfilService,
     private usuarioService: UsuarioService,
-    private seguridadService: SeguridadService,
     private cifrarDataService: CifrarDataService,
     private readonly swaCustomService: SwaCustomService,
+    private readonly salesPersonsService: SalesPersonsService,
   ) {}
 
   ngOnInit() {
@@ -76,6 +75,7 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
         'numeroDocumento'   : new FormControl('', Validators.compose([Validators.required])),
         'numeroTelefono'    : new FormControl(''),
         'userSap'           : new FormControl('', Validators.compose([Validators.required])),
+        'salesEmployees'    : new FormControl('', Validators.compose([Validators.required])),
         'activo'            : new FormControl({value: true, disabled: true}, Validators.compose([Validators.required])),
         'usuario'           : new FormControl('', Validators.compose([Validators.required, Validators.maxLength(20), Validators.minLength(2)])),
         'password'          : new FormControl('', Validators.compose([Validators.maxLength(15), Validators.minLength(4)])),
@@ -91,27 +91,14 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
 
   private loadAllCombos(): void {
     forkJoin({
-      parametroSistema: this.seguridadService.getParametroSistemaPorId(),
       users: this.usersService.getList(),
-      perfilList: this.perfilService.getList()
+      perfiles: this.perfilService.getList(),
+      salesPersons: this.salesPersonsService.getList(),
     }).subscribe({
-      next: (data: any) => {
-        // Mapear parametro sistema
-        if (data.parametroSistema) {
-          this.modeloSistema = data.parametroSistema;
-        }
-
-        // Mapear user SAP list
-        this.userSapList = data.users.map(item => ({
-          label: item.u_NAME,
-          value: item.userid
-        }));
-
-        // Mapear perfil list
-        this.listItemPerfil = data.perfilList.map(item => ({
-          label: item.descripcionPerfil,
-          value: item.idPerfil
-        }));
+      next: (res: any) => {
+        this.userSapList      = (res.users || []).map(item => ({ label: item.userName, value: item.userId }));
+        this.salesPersonsList = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+        this.perfilList       = (res.perfiles || []).map(item => ({ label: item.descripcionPerfil, value: item.idPerfil }));
       },
       error: (e) => {
         this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
@@ -172,17 +159,7 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
     this.modelo.imagen = this.modeloForm.controls['foto'].value;
     this.modelo.usuario = this.utilService.convertirMayuscula(this.modeloForm.controls['usuario'].value);
 
-    if (this.modeloSistema.tipoAutenticacion === 'AUTO-NORMAL') {
-      let password = this.modeloForm.controls['password'].value === null || this.modeloForm.controls['password'].value === undefined || this.modeloForm.controls['password'].value === '' ? '' : this.modeloForm.controls['password'].value;
-      if (password === '') {
-        this.swaCustomService.swaMsgInfo('INGRESAR CONTRASEÑA');
-        return;
-      }
-
-      this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
-    } else {
-      this.modelo.clave = this.cifrarDataService.encrypt(ConstantesGenerales.PASSWORD_DEFAULT);
-    }
+    this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
 
     this.modelo.email = this.utilService.convertirMayuscula(this.modeloForm.controls['email'].value);
 

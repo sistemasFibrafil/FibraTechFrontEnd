@@ -3,10 +3,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
-import { IPicking } from '../interfaces/picking.inteface';
 import { PickingCopyToFindModel, PickingCreateModel, PickingDeleteModel, PickingFilterModel, PickingFindModel, PickingPrintModel, PickingReleaseModel } from '../models/picking.model';
-import { ISolicitudTraslado } from '../interfaces/solicitud-traslado.interface';
 
+import { IPicking } from '../interfaces/picking.inteface';
+import { IInventoryTransferRequest } from '../interfaces/inventory-transfer-request.interface';
+import { IOrdersQuery } from '../../modulo-ventas/interfaces/sap-business-one/orders.interface';
 
 @Injectable({providedIn: 'root'})
 export class PickingService {
@@ -59,9 +60,19 @@ export class PickingService {
     return this.http.get<IPicking[]>(`${environment.url_api_fib}Picking/GetListByTarget/`,{params: params});
   }
 
-  getToCopy(value: PickingCopyToFindModel) {
+  getToCopyTransferRequest(value: PickingCopyToFindModel) {
     const param: string = JSON.stringify(value);
-    return this.http.post<ISolicitudTraslado>(`${environment.url_api_fib}Picking/GetToCopy/`, param);
+    return this.http.post<IInventoryTransferRequest>(`${environment.url_api_fib}Picking/GetToCopyTransferRequest/`, param);
+  }
+
+  getToCopyOrder(value: PickingCopyToFindModel) {
+    const param: string = JSON.stringify(value);
+    return this.http.post<IOrdersQuery>(`${environment.url_api_fib}Picking/GetToCopyOrder/`, param);
+  }
+
+  getToCopyInvoice(value: PickingCopyToFindModel) {
+    const param: string = JSON.stringify(value);
+    return this.http.post<IOrdersQuery>(`${environment.url_api_fib}Picking/GetToCopyInvoice/`, param);
   }
 
   setCreate(value: PickingCreateModel) {

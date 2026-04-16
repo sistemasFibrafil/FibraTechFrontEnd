@@ -1,23 +1,36 @@
+import { Observable, Subject } from 'rxjs';
 import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { UtilService } from 'src/app/services/util.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
+import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
-import { PickingService } from 'src/app/modulos/modulo-inventario/services/picking.service';
 import { IPicking } from '../../../interfaces/picking.inteface';
 import { PickingCopyToFindModel, PickingFilterModel } from '../../../models/picking.model';
-import { SolicitudTrasladoService } from '../../../services/solicitud-traslado.service';
 
+import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { LocalDataService } from 'src/app/services/local-data.service';
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { PickingService } from 'src/app/modulos/modulo-inventario/services/picking.service';
+import { InventoryTransferRequestService } from '../../../services/inventory-transfer-request.service';
+
+enum PickingBaseType {
+  solicitud = '1250000001',
+  order     = '17',
+  invoice   = '13',
+}
+
+interface PickingCopyLine {
+  u_BaseEntry: number;
+  u_BaseType: number;
+  u_BaseLine: number;
+  u_FIB_IsPkg: string;
+}
 
 @Component({
   selector: 'app-inv-panel-picking-list',
@@ -46,23 +59,28 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   // Table configuration
   columnas                                      : TableColumn[];
   columnasModal                                 : TableColumn[];
-  opciones1                                     : MenuItem[];
-  opciones2                                     : MenuItem[];
+
+  rowMenuOptions                                : MenuItem[];
+  selectionMenuOptions                          : MenuItem[];
+
   objTypeList                                   : SelectItem[] = [];
   docStatusList                                 : SelectItem[] = [];
 
   // Data
-  modelo                                        : IPicking[] = [];
-  modeloSelected                                : IPicking;
-  pickingSelected                               : IPicking[] = [];
-  params                                        : PickingFilterModel = new PickingFilterModel();
   paramsCopyTo                                  : PickingCopyToFindModel = new PickingCopyToFindModel();
 
+  modeloSelected                                : IPicking;
+
+  modelo                                        : IPicking[] = [];
+  pickingSelected                               : IPicking[] = [];
+
   // Modal data
-  modeloModal                                   : IPicking[] = [];
   modeloModalSeleted                            : IPicking;
+
   sourceProducts                                : any[] = [];
   targetProducts                                : any[] = [];
+
+  modeloModal                                   : IPicking[] = [];
   sourceNotPicking                              : IPicking[] = [];
   targetNotPicking                              : IPicking[] = [];
 
@@ -74,12 +92,12 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly pickingService: PickingService,
     private readonly localDataService: LocalDataService,
     private readonly swaCustomService: SwaCustomService,
-    private readonly pickingService: PickingService,
-    private readonly solicitudTrasladoService: SolicitudTrasladoService,
-    public readonly utilService: UtilService
+    private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly InventoryTransferRequestService: InventoryTransferRequestService,
+    public  readonly utilService: UtilService
   ) {
     this.isRowSelectable = this.isRowSelectable.bind(this);
   }
@@ -90,6 +108,16 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeComponent();
+
+    this.modeloForm.get('objType')?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() => this.onObjTypeChange());
+  }
+
+  private onObjTypeChange(): void {
+    this.updateSelectionMenuByObjType();
+    this.pickingSelected = [];
+    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -104,9 +132,10 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   private initializeComponent(): void {
     this.buildForms();
     this.buildColumns();
-    this.buildMenuOptions();
     this.loadTypeDocuments();
     this.loadStatusList();
+    this.buildMenuOptions();
+    this.updateSelectionMenuByObjType();
 
     if (!this.buttonAcces.btnBuscar) {
       this.loadData();
@@ -138,26 +167,37 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
       { field: 'u_ItemCode',      header: 'Código' },
       { field: 'u_Dscription',    header: 'Descripción' },
       { field: 'u_UnitMsr',       header: 'UM' },
+      { field: 'u_NumBulk',       header: 'N° bulto' },
+      { field: 'u_WeightKg',      header: 'Kg' },
       { field: 'u_Quantity',      header: 'Cantidad' },
-      { field: 'u_WeightKg',      header: 'Peso' }
     ];
 
     this.columnasModal = [
       { field: 'u_ItemCode',      header: 'Código' },
       { field: 'u_CodeBar',       header: 'Barcode' },
       { field: 'u_IsReleased',    header: 'Liberado' },
+      { field: 'u_UnitMsr',       header: 'UM' },
+      { field: 'u_WeightKg',      header: 'Kg' },
       { field: 'u_Quantity',      header: 'Cantidad' },
-      { field: 'u_WeightKg',      header: 'Peso' }
     ];
   }
 
   private buildMenuOptions(): void {
-    this.opciones1 = [
-      { value: '1', label: 'Eliminar', icon: 'pi pi-trash', command: () => this.onClickEliminar() },
-      { value: '2', label: 'Visualizar', icon: 'pi pi-eye', command: () => this.onClickVisualizar() }
+    this.buildRowMenuOptions();
+    this.buildBulkMenuOptions();
+  }
+
+  private buildRowMenuOptions(): void {
+    this.rowMenuOptions = [
+      { value: '1', label: 'ver',       icon: 'pi pi-eye',    command: () => this.onClickView() },
+      { value: '2', label: 'Eliminar',  icon: 'pi pi-trash',  command: () => this.onClickDelete() }
     ];
-    this.opciones2 = [
-      { value: '1',  label: 'Despacho', icon: 'pi pi-cart-plus', command: () => this.onClickToCopy() }
+  }
+
+  private buildBulkMenuOptions(): void {
+    this.selectionMenuOptions = [
+      { value: '1',  label: 'Transferencia',  icon: 'pi pi-cart-plus', command: () => this.onClickToCopyTransferRequest() },
+      { value: '2',  label: 'Despacho',       icon: 'pi pi-cart-plus', command: () => this.onClickToCopyOrder() },
     ];
   }
 
@@ -175,7 +215,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   }
 
   private loadStatusList(): void {
-    const statuses = this.localDataService.getListStatusDocumentInventory();
+    const statuses = this.localDataService.getListStatusDocuments();
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('docStatus').setValue(statuses);
   }
@@ -184,43 +224,54 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   // Data Operations
   // ===========================
 
-  private setParameters(): void {
-    const formValue = this.modeloForm.getRawValue();
-    const selectedStatuses = formValue.docStatus || [];
+  private buildFilterParams(): PickingFilterModel {
+    const {
+      startDate,
+      endDate,
+      objType,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
 
-    this.params = {
-      startDate : formValue.startDate,
-      endDate   : formValue.endDate,
-      objType   : formValue.objType?.value,
-      status    : selectedStatuses.map(x => x.code).join(','),
-      searchText: formValue.searchText
+    return {
+      startDate,
+      endDate,
+      objType: objType?.value,
+      status: (docStatus || []).map(x => x.code).join(','),
+      searchText
     };
   }
 
   private loadData(): void {
-    this.setParameters();
     this.isDisplay = true;
 
-    this.pickingService.getListByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: IPicking[]) => {
-          this.isDisplay = false;
-          this.modelo = data;
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadData', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+    this.pickingService
+    .getListByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: IPicking[]) => {
+        this.modelo = data;
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
+    });
   }
 
   onClickBuscar(): void {
+    this.pickingSelected = [];
     this.loadData();
   }
 
   onClickCreate(): void {
     this.router.navigate(['/main/modulo-inv/panel-picking-create']);
   }
+
   onClickRelease(): void {
     this.router.navigate(['/main/modulo-inv/panel-picking-release']);
   }
@@ -232,8 +283,8 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
 
   private updateMenuVisibility(modelo: IPicking): void {
     const isDocClosed = modelo.u_Status === 'C';
-    const deleteOption = this.opciones1.find(x => x.label === 'Eliminar');
-    const viewOption = this.opciones1.find(x => x.label === 'Visualizar');
+    const viewOption = this.rowMenuOptions.find(x => x.label === 'Ver');
+    const deleteOption = this.rowMenuOptions.find(x => x.label === 'Eliminar');
 
     if (deleteOption) deleteOption.visible = !this.buttonAcces.btnEliminar && !isDocClosed;
     if (viewOption) viewOption.visible = !this.buttonAcces.btnVer;
@@ -247,6 +298,31 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
     return data.u_Status === 'C';
   }
 
+  private updateSelectionMenuByObjType(): void {
+    const objType = this.modeloForm.get('objType')?.value?.value;
+
+    const transferencia = this.selectionMenuOptions.find(x => x.label === 'Transferencia');
+    const despacho      = this.selectionMenuOptions.find(x => x.label === 'Despacho');
+
+    // reset defensivo
+    if (transferencia) transferencia.visible = false;
+    if (despacho) despacho.visible = false;
+
+    switch (objType) {
+      case PickingBaseType.solicitud:
+        if (transferencia) transferencia.visible = true;
+        break;
+
+      case PickingBaseType.order:
+        if (despacho) despacho.visible = true;
+        break;
+
+      case PickingBaseType.invoice:
+        if (despacho) despacho.visible = true;
+        break;
+    }
+  }
+
   // ===========================
   // Delete Operations
   // ===========================
@@ -255,8 +331,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
     const params: any = {
       u_BaseEntry: this.modeloSelected.u_BaseEntry,
       u_BaseType: this.modeloSelected.u_BaseType,
-      u_BaseLine: this.modeloSelected.u_BaseLine,
-      u_IsReturned: this.modeloSelected.u_IsReturned
+      u_BaseLine: this.modeloSelected.u_BaseLine
     };
 
     this.isDeleting = true;
@@ -272,12 +347,12 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
           this.swaCustomService.swaMsgExito(null);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'delete', () => { this.isDeleting = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'delete', this.swaCustomService);
         }
       });
   }
 
-  onClickEliminar(): void {
+  onClickDelete(): void {
     this.swaCustomService.swaConfirmation(
       this.globalConstants.titleEliminar,
       this.globalConstants.subTitleEliminar,
@@ -293,7 +368,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   // Modal Operations
   // ===========================
 
-  onClickVisualizar(): void {
+  onClickView(): void {
     this.isVisualizar = !this.isVisualizar;
     this.loadModalData();
   }
@@ -303,32 +378,46 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   }
 
   private loadModalData(): void {
+    if (!this.modeloSelected) {
+      return;
+    }
+
     this.isDisplay = true;
     this.modeloModal = [];
 
-    const { u_CodeBar } = this.modeloFormBusqueda.value;
-    const value: any = {
-      u_Status: this.modeloSelected.u_Status,
-      u_BaseEntry: this.modeloSelected.u_BaseEntry,
-      u_BaseType: this.modeloSelected.u_BaseType,
-      u_BaseLine: this.modeloSelected.u_BaseLine,
-      u_IsReturned: this.modeloSelected.u_IsReturned,
-      u_CodeBar: u_CodeBar
-    };
+    const params = this.buildModalFilterParams();
 
-    this.pickingService.getListByBaseEntry(value)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: IPicking[]) => {
-          this.isDisplay = false;
-          this.modeloModal = data;
-        },
-        error: (e) => {
-          this.modeloModal = [];
-          this.isDisplay = false;
-          this.showModalError(e.error?.resultadoDescripcion || 'Ocurrió un error inesperado.');
-        }
-      });
+    this.pickingService
+    .getListByBaseEntry(params)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: IPicking[]) => {
+        this.modeloModal = data;
+      },
+      error: (e) => {
+        this.modeloModal = [];
+        this.showModalError(
+          e?.error?.resultadoDescripcion ?? 'Ocurrió un error inesperado.'
+        );
+      }
+    });
+  }
+
+  private buildModalFilterParams(): any {
+    const { u_CodeBar } = this.modeloFormBusqueda.getRawValue();
+
+    return {
+      u_Status    : this.modeloSelected.u_Status,
+      u_BaseEntry : this.modeloSelected.u_BaseEntry,
+      u_BaseType  : this.modeloSelected.u_BaseType,
+      u_BaseLine  : this.modeloSelected.u_BaseLine,
+      u_CodeBar
+    };
   }
 
   onClickRowDelete(modelo: IPicking): void {
@@ -417,13 +506,8 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
       target: document.getElementById('modal')
     });
 
-    return swalWithBootstrapButtons.fire(
-      this.globalConstants.msgInfoSummary,
-      message,
-      'error'
-    );
+    return swalWithBootstrapButtons.fire(this.globalConstants.msgInfoSummary, message, 'error');
   }
-
 
   // ===========================
   // Not Picking Operations
@@ -432,17 +516,22 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   private loadNotPickingItems(): void {
     this.isDisplay = true;
 
-    this.solicitudTrasladoService.getListNotPicking()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: IPicking[]) => {
-          this.isDisplay = false;
-          this.sourceNotPicking = data;
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadNotPickingItems', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+    this.InventoryTransferRequestService
+    .getListNotPicking()
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: IPicking[]) => {
+        this.sourceNotPicking = data;
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadNotPickingItems', this.swaCustomService);
+      }
+    });
   }
 
   private confirmAddItemNotPicking(): void {
@@ -464,70 +553,79 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   // Copy to Transfer Operations
   // ===========================
 
-  private copyToTransfer(): void {
-    if (this.pickingSelected.length === 0) return;
+  private mapPickingLines(list: IPicking[]): PickingCopyLine[] {
+    if (!list || list.length === 0) {
+      return [];
+    }
 
-    this.paramsCopyTo.u_BaseEntry = this.pickingSelected[0].u_BaseEntry;
-    this.paramsCopyTo.u_BaseType = this.pickingSelected[0].u_BaseType;
-    this.paramsCopyTo.lines = this.pickingSelected.map(p => ({
-      u_BaseEntry: p.u_BaseEntry,
-      u_BaseType: p.u_BaseType,
-      u_BaseLine: p.u_BaseLine,
-      u_FIB_IsPkg: p.u_FIB_IsPkg,
-      u_IsReturned: p.u_IsReturned
+    return list.map((p: IPicking): PickingCopyLine => ({
+      u_BaseEntry : p.u_BaseEntry,
+      u_BaseType  : p.u_BaseType,
+      u_BaseLine  : p.u_BaseLine,
+      u_FIB_IsPkg : p.u_FIB_IsPkg
     }));
-
-    this.executeCopyToTransfer();
   }
 
-  onClickToCopy(): void {
+  private copyToTransfer(): void {
+    if (!this.pickingSelected || this.pickingSelected.length === 0) {
+      return;
+    }
+
+    // Cabecera
+    this.paramsCopyTo.u_BaseEntry = this.pickingSelected[0].u_BaseEntry;
+    this.paramsCopyTo.u_BaseType  = this.pickingSelected[0].u_BaseType;
+
+    // 🔹 AQUÍ se aplica el mapper
+    this.paramsCopyTo.lines = this.mapPickingLines(this.pickingSelected);
+
+    this.executeCopyToTransferStock();
+  }
+
+  onClickToCopyTransferRequest(): void {
     this.confirmAddItemNotPicking();
   }
 
   private copyToTransferWithNotPicking(): void {
-    if (!this.pickingSelected || this.pickingSelected.length === 0) return;
+    if (!this.pickingSelected || this.pickingSelected.length === 0) {
+      return;
+    }
 
+    // Cabecera
     this.paramsCopyTo.u_BaseEntry = this.pickingSelected[0].u_BaseEntry;
-    this.paramsCopyTo.u_BaseType = this.pickingSelected[0].u_BaseType;
+    this.paramsCopyTo.u_BaseType  = this.pickingSelected[0].u_BaseType;
 
-    const linesFromSelected = this.pickingSelected.map(p => ({
-      u_BaseEntry: p.u_BaseEntry,
-      u_BaseType: p.u_BaseType,
-      u_BaseLine: p.u_BaseLine,
-      u_FIB_IsPkg: p.u_FIB_IsPkg,
-      u_IsReturned: p.u_IsReturned
-    }));
+    // 🔹 Aplicación del mapper en ambos orígenes
+    const linesFromSelected    = this.mapPickingLines(this.pickingSelected);
+    const linesFromNotPicking = this.mapPickingLines(this.targetNotPicking);
 
-    const linesFromNotPicking = (this.targetNotPicking || []).map(p => ({
-      u_BaseEntry: p.u_BaseEntry,
-      u_BaseType: p.u_BaseType,
-      u_BaseLine: p.u_BaseLine,
-      u_FIB_IsPkg: p.u_FIB_IsPkg,
-      u_IsReturned: p.u_IsReturned
-    }));
+    // 🔹 Unión limpia y segura
+    this.paramsCopyTo.lines = [
+      ...linesFromSelected,
+      ...linesFromNotPicking
+    ];
 
-    // Merge both sets of lines instead of overwriting
-    this.paramsCopyTo.lines = [...linesFromSelected, ...linesFromNotPicking];
-
-    this.executeCopyToTransfer();
+    this.executeCopyToTransferStock();
   }
 
-  private executeCopyToTransfer(): void {
+  private executeCopyToTransferStock(): void {
     this.isDisplay = true;
 
-    this.pickingService.getToCopy(this.paramsCopyTo)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => { this.isDisplay = false; })
-      )
-      .subscribe({
-        next: (data) => {
-          this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create', JSON.stringify(data)]);
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'executeCopyToTransfer', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+    this.pickingService.getToCopyTransferRequest(this.paramsCopyTo)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isDisplay = false; })
+    )
+    .subscribe({
+      next: (data) => {
+        // respaldo para refresh
+        sessionStorage.setItem('SolicitudCopyTo',JSON.stringify(data));
+
+        this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create'], { state: { mode: 'copy', solicitud: data } });
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'executeCopyToTransferStock', this.swaCustomService);
+      }
+    });
   }
 
   onClickAceptAddItemNotPincking(): void {
@@ -537,5 +635,55 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
 
   onClickCloseAddItemNotPincking(): void {
     this.isAddItemNotPicking = false;
+  }
+  
+  onClickToCopyOrder(): void {
+    this.copyToDespacho();
+  }
+
+  private buildFilterCopyParams(): any {
+    return {
+      u_BaseEntry: this.pickingSelected[0].u_BaseEntry,
+      u_BaseType: this.pickingSelected[0].u_BaseType,
+      lines: this.mapPickingLines(this.pickingSelected)
+    };
+  }
+
+  private copyToDespacho(): void {
+    const objType = this.modeloForm.get('objType')?.value?.value;
+
+    const serviceMap: Record<number, () => Observable<any>> = {
+      [PickingBaseType.order]: () =>
+        this.pickingService.getToCopyOrder(this.buildFilterCopyParams()),
+
+      [PickingBaseType.invoice]: () =>
+        this.pickingService.getToCopyInvoice(this.buildFilterCopyParams())
+    };
+
+    const request = serviceMap[objType];
+
+    if (!request) return;
+
+    this.executeCopy(request);
+  }
+
+  private executeCopy(requestFn: () => Observable<any>): void {
+    this.isDisplay = true;
+
+    requestFn()
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => (this.isDisplay = false))
+    )
+    .subscribe({
+      next: (data) => {
+        sessionStorage.setItem('ordenVentaCopyTo', JSON.stringify(data));
+
+        this.router.navigate(['/main/modulo-ven/panel-entrega-create'], { state: { mode: 'copy', ordenVenta: data } });
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'executeCopyToDespacho', this.swaCustomService);
+      }
+    });
   }
 }

@@ -1,7 +1,8 @@
+import { SelectItem } from 'primeng/api';
 import { DatePipe } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { SelectItem } from 'primeng/api';
+import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +33,10 @@ export class UtilService {
 
   fecha_DD_MM_YYYY(): string {
     return this.datePipe.transform(new Date(), 'dd-MM-yyyy');
+  }
+
+  fechaHoraArchivo(): string {
+    return this.datePipe.transform(new Date(), 'yyyyMMdd_HHmmss') ?? '';
   }
 
   fecha_AAAAMMDD(fecha: string | Date): string {
@@ -140,31 +145,37 @@ export class UtilService {
     return d.toISOString();
   }
 
-  /**
-   * Normaliza una fecha eliminando la conversión de zona horaria
-   * Útil para evitar el problema de +1/-1 día al enviar fechas a APIs
-   * @param date - Fecha a normalizar (Date o string)
-   * @returns Date normalizada con solo año, mes y día (sin hora ni zona horaria)
-   *
-   * @example
-   * // Usuario selecciona 13-10-2025 en el calendario
-   * const normalizedDate = this.utilService.normalizeDate(formValues.docDate);
-   * // Resultado: 13-10-2025 (sin cambio de día por zona horaria)
-   */
-  normalizeDate(date: Date | string): Date {
-    // Si ya es un objeto Date, crear una nueva instancia sin conversión de zona horaria
-    if (date instanceof Date) {
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-    // Si es un string, parsear y crear fecha local
-    const parsedDate = new Date(date);
-    return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+  normalizeDateOrToday(value: any): Date {
+    const date = value instanceof Date ? value : new Date(value);
+
+    if (isNaN(date.getTime())) return new Date();
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  normalizeDate(value: any): Date | null {
+    if (!value) return null;
+
+    const date = value instanceof Date ? value : new Date(value);
+
+    if (isNaN(date.getTime())) return null;
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  findSelectItem<T extends { value: any }>(
+    list: T[] | null | undefined,
+    value: any
+  ): T | null {
+    if (!list || value === undefined || value === null) return null;
+
+    return list.find(item => item.value === value) || null;
   }
 
   /**
    * Opción B: Devuelve una cadena en formato `YYYY-MM-DD` (sin hora ni zona horaria).
    * Útil cuando la API espera una fecha simple en texto sin desfaces por zona horaria.
-   * No modifica la función existente `normalizeDate`.
+   * No modifica la función existente `normalizeDateOrToday`.
    * @param date Date | string
    * @returns string con formato 'yyyy-MM-dd'
    */
@@ -188,7 +199,7 @@ export class UtilService {
    * Devuelve un objeto `Date` con la porción de hora/minuto/segundo puesta a 0
    * (medianoche local). Útil para mantener el tipo `Date` en formularios/objetos
    * pero evitar horas no deseadas.
-   * Esta función no modifica `normalizeDate`.
+   * Esta función no modifica `normalizeDateOrToday`.
    * @param date Date | string
    */
   normalizeDateToLocalDate(date: Date | string): Date {
@@ -283,7 +294,6 @@ export class UtilService {
   }
 
   onRedondearDecimal(numero: any, decimales: number): number {
-    debugger;
   const n = String(numero ?? '').replace(',', '.');
   if (!n || isNaN(Number(n))) return 0;
 
@@ -392,122 +402,248 @@ export class UtilService {
     : value;
   }
 
-  /**
-   * Manejo centralizado de errores con soporte para errores de validación
-   * @param error - El objeto de error recibido
-   * @param context - Contexto donde ocurrió el error (ej: 'save', 'getList')
-   * @param resetFlag - Callback para resetear flags de carga
-   * @param swaService - Servicio para mostrar mensajes al usuario
-   *
-   * @example
-   * // Uso básico
-   * this.utilService.handleErrorSingle(e, 'save', () => this.isSaving = false, this.swaCustomService);
-   *
-   * @example
-   * // Uso con múltiples flags
-   * this.utilService.handleErrorSingle(e, 'getList', () => { this.isDisplay = false; this.isLoading = false; }, this.swaCustomService);
-   */
-  handleErrorSingle(
-    error: any,
-    context: string,
-    resetFlag: () => void,
-    swaService?: any
-  ): string {
-    // If the backend returned a Blob (text/plain or json as blob), read it and show its content
+  handleErrorSingle(error: any, context: string, swaService?: any): string | void {
+    // ============================
+    // 1️⃣ ERROR COMO BLOB
+    // ============================
     if (error?.error instanceof Blob) {
-      if (resetFlag && typeof resetFlag === 'function') {
-        resetFlag();
-      }
-
       error.error.text().then((text: string) => {
         let blobMsg = text || 'Ocurrió un error inesperado.';
 
         try {
           const parsed = JSON.parse(text);
+
           if (parsed?.errors) {
             const allErrors = Object.values(parsed.errors).flat() as string[];
-            blobMsg = allErrors.length > 0 ? allErrors.join('<br>') : (parsed.title || blobMsg);
-          } else {
+            blobMsg = allErrors.length > 0
+              ? allErrors.join('<br>')
+              : parsed.title || blobMsg;
+          }
+          else if (Array.isArray(parsed)) {
+            blobMsg = parsed.map((e: any) => e.message).join('<br>');
+          }
+          else {
             blobMsg = parsed?.resultadoDescripcion || parsed?.message || blobMsg;
           }
-        } catch (err) {
-          // not JSON, keep plain text
+        } catch {
+          // texto plano
         }
 
-        if (context) {
+        if (context && !environment.production) {
           console.error(`Error en ${context}:`, blobMsg, error);
-        } else {
-          console.error('Error:', blobMsg, error);
         }
 
-        if (swaService && typeof swaService.swaMsgError === 'function') {
-          swaService.swaMsgError(blobMsg);
-        }
-      }).catch(() => {
-        console.error('Error leyendo el Blob de error', error);
-        if (resetFlag && typeof resetFlag === 'function') {
-          resetFlag();
-        }
-        if (swaService && typeof swaService.swaMsgError === 'function') {
-          swaService.swaMsgError(error?.message || 'Ocurrió un error inesperado.');
-        }
+        swaService?.swaMsgError?.(blobMsg);
       });
 
       return;
     }
 
-    let errorMsg: string;
+    // ============================
+    // 2️⃣ BACKEND DEVUELVE ARRAY
+    // ============================
+    if (Array.isArray(error?.error)) {
+      const mensajes = error.error
+        .map((e: any) => e?.message)
+        .filter(Boolean);
 
-    // Manejar errores de validación (e.error.errors)
+      const errorMsg = mensajes.length > 0
+        ? mensajes.join('<br>')
+        : 'Ocurrió un error de validación.';
+
+      if (context && !environment.production) {
+        console.error(`Error en ${context}:`, errorMsg, error);
+      }
+
+      swaService?.swaMsgError?.(errorMsg);
+      return errorMsg;
+    }
+
+    // ============================
+    // 3️⃣ ASP.NET CORE CLÁSICO
+    // ============================
     if (error?.error?.errors) {
       const allErrors = Object.values(error.error.errors).flat() as string[];
-      errorMsg = allErrors.length > 0
+
+      const errorMsg = allErrors.length > 0
         ? allErrors.join('<br>')
-        : (error.error.title || 'Ocurrió un error de validación.');
-    }
-    // Manejar errores estándar
-    else {
-      errorMsg = error?.error?.resultadoDescripcion
-        || error?.error?.message
-        || error?.message
-        || 'Ocurrió un error inesperado.';
+        : error.error.title || 'Ocurrió un error de validación.';
+
+      if (context && !environment.production) {
+        console.error(`Error en ${context}:`, errorMsg, error);
+      }
+
+      swaService?.swaMsgError?.(errorMsg);
+      return errorMsg;
     }
 
-    // Log en consola para debugging
-    if (context) {
+    // ============================
+    // 4️⃣ ERROR ESTÁNDAR
+    // ============================
+    const errorMsg =
+      error?.error?.resultadoDescripcion ||
+      error?.error?.message ||
+      error?.message ||
+      'Ocurrió un error inesperado.';
+
+    if (context && !environment.production) {
       console.error(`Error en ${context}:`, errorMsg, error);
-    } else {
-      console.error('Error:', errorMsg, error);
     }
 
-    // Resetear el flag usando el callback
-    if (resetFlag && typeof resetFlag === 'function') {
-      resetFlag();
-    }
-
-    // Mostrar mensaje al usuario si se proporciona el servicio
-    if (swaService && typeof swaService.swaMsgError === 'function') {
-      swaService.swaMsgError(errorMsg);
-    }
-
+    swaService?.swaMsgError?.(errorMsg);
     return errorMsg;
   }
 
-  formatNumericFormControl(form: FormGroup, controlName: string, precision: number): void {
+  formatNumericFormControl1(form: FormGroup, controlName: string, precision: number, emitEvent: boolean = false ): void {
     const control = form.get(controlName);
-    if (!control || control.value === null || control.value === undefined) {
-      return;
-    }
+    if (!control) return;
 
-    const valueStr = String(control.value).replace(/,/g, '').trim();
-    const numberValue = Number(valueStr);
+    const valueStr = String(control.value ?? '').replace(/,/g, '').trim();
 
-    if (isNaN(numberValue)) {
-      return;
-    }
+    // Si está vacío, lo normalizamos a 0
+    const numberValue = valueStr === '' ? 0 : Number(valueStr);
+    if (isNaN(numberValue)) return;
 
     const formattedValue = this.onRedondearDecimalConCero(numberValue, precision);
 
-    control.setValue(formattedValue, { emitEvent: false });
+    // Evita setear lo mismo y disparar cosas innecesarias
+    if (String(control.value) === String(formattedValue)) return;
+
+    control.setValue(formattedValue, { emitEvent });
+  }
+
+  onNumericInput1(modeloForm: FormGroup, controlName: string, decimals: number, emitEvent: boolean = false): void {
+    const control = modeloForm.get(controlName);
+    if (!control) return;
+
+    let value = String(control.value ?? '');
+    value = value.replace(/[^0-9.]/g, '');
+
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    const parts2 = value.split('.');
+    if (parts2.length === 2) {
+      value = parts2[0] + '.' + parts2[1].slice(0, decimals);
+    }
+
+    if (String(control.value) === value) return;
+
+    control.setValue(value, { emitEvent });
+  }
+
+  normalizePrimitive(value: any): any {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value.trim(); // opcional pero recomendado
+    return value;
+  }
+
+  normalizeNumber(value: any): number {
+    if (value === null || value === undefined || value === '') return 0;
+    return Number(String(value).replace(/,/g, '').trim()) || 0;
+  }
+
+  normalizeDateChange(value: any): string | null {
+    if (!value) return null;
+
+    const date = value instanceof Date ? value : new Date(value);
+
+    return isNaN(date.getTime())
+      ? null
+      : date.toISOString().substring(0, 10); // yyyy-mm-dd
+  }
+
+  hasFormChanged(form: FormGroup, snapshot: any): boolean {
+    const current = this.normalizeForCompare(form.getRawValue());
+    const original = this.normalizeForCompare(snapshot);
+
+    return JSON.stringify(current) !== JSON.stringify(original);
+  }
+
+  private normalizeForCompare(obj: any): any {
+    if (obj === null || obj === undefined) return '';
+
+    // 🔥 CLAVE: manejar Date correctamente
+    if (obj instanceof Date) {
+      return this.normalizeDateChange(obj);
+    }
+
+    if (typeof obj === 'object') {
+
+      // 🔥 SelectItem
+      if ('value' in obj && 'label' in obj) {
+        return obj.value ?? '';
+      }
+
+      if (Array.isArray(obj)) {
+        return obj.map(x => this.normalizeForCompare(x));
+      }
+
+      const result: any = {};
+
+      for (const key in obj) {
+
+        if (key === 'numAtCard') continue;
+
+        result[key] = this.normalizeForCompare(obj[key]);
+      }
+
+      return result;
+    }
+
+    return obj;
+  }
+
+  showIcon(modelo: any, isItem: boolean, isService: boolean): boolean {
+    const p = (v: any) => this.normalizePrimitive(v);
+
+    const lineStatus = p(modelo.lineStatus);
+    const itemCode   = p(modelo.itemCode);
+    const dscription = p(modelo.dscription);
+
+    if (lineStatus === 'C') return false;
+
+    // Caso 1: Tipo Item
+    if (isItem) {
+      return !!itemCode;
+    }
+
+    // Caso 2: Tipo Servicio
+    if (isService) {
+      return !!dscription;
+    }
+
+    return false;
+  }
+
+  mapJoin<T>(arr: T[] | null | undefined, key: keyof T): string {
+    return (arr ?? [])
+      .map(x => x?.[key])
+      .filter(Boolean)
+      .join(',');
+  }
+
+  mapLine(linea: any, wddStatus?: string) {
+    const status = wddStatus ?? ''; // 🔥 evita undefined/null
+
+    const isClosed =
+      linea?.lineStatus === 'C' ||
+      status === 'P' ||
+      status === 'A' ||
+      status === 'Y';
+
+    return {
+      ...linea,
+      isClosed,
+      isOpen: !isClosed
+    };
+  }
+
+  patchForm<T>(form: FormGroup, data: Partial<T>): void {
+    if (!form || !data) return;
+
+    form.patchValue(data, { emitEvent: false });
   }
 }

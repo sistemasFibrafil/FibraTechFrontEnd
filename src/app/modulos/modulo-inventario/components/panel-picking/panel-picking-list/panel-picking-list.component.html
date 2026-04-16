@@ -72,45 +72,48 @@
         <!-- body -->
         <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
           <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo.u_Status === 'C'}">
-            <td class="custom-td-2">
-              <p-splitButton icon="pi pi-cog" [model] = "opciones1" (onDropdownClick) = "onClickRowSelected(modelo)" appendTo = "body">
+            <td class="custom-td-8">
+              <p-splitButton icon="pi pi-cog" [model] = "rowMenuOptions" (onDropdownClick) = "onClickRowSelected(modelo)" appendTo = "body">
               </p-splitButton>
             </td>
             <td class="custom-td-2">
               <p-tableCheckbox [disabled]="isOutOfStock(modelo)" [value]="modelo"></p-tableCheckbox>
             </td>
-            <td class="custom-td-center">
+            <td class="p-fluid">
               {{modelo.u_BaseNum}}
             </td>
-            <td class="custom-td-center">
+            <td class="p-fluid">
               {{modelo.u_DocDate | date: 'dd/MM/yyyy'}}
             </td>
-            <td class="custom-td-center">
+            <td class="p-fluid">
               {{modelo.u_DocDueDate | date: 'dd/MM/yyyy'}}
             </td>
-            <td class="custom-td-center">
+            <td class="custom-td-5">
               {{modelo.u_BaseLine + 1 }}
             </td>
-            <td>
+            <td class="p-fluid">
               {{modelo.u_ItemCode}}
             </td>
-            <td>
+            <td class="p-fluid">
               {{modelo.u_Dscription}}
             </td>
-            <td>
+            <td class="p-fluid">
               {{modelo.u_UnitMsr}}
+            </td>
+            <td class="custom-td-numero">
+              {{modelo.u_NumBulk | number: '.3':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              {{modelo.u_WeightKg | number: '.3':'en-EN'}}
             </td>
             <td class="custom-td-numero">
               {{modelo.u_Quantity | number: '.3':'en-EN'}}
             </td>
-            <td class="custom-td-numero">
-              {{modelo.u_WeightKg | number: '.3':'en-EN'}}
-                </td>
           </tr>
         </ng-template>
-        <ng-template pTemplate="emptymessage">
+        <ng-template pTemplate="emptymessage" let-columns>
           <tr>
-            <td colspan="11">{{globalConstants.currentTableEmptyMessage}}</td>
+            <td [attr.colspan]="columns.length + 2">{{globalConstants.currentTableEmptyMessage}}</td>
           </tr>
         </ng-template>
       </p-table>
@@ -118,7 +121,7 @@
       <p-footer>
         <div class="grid p-fluid">
           <div class="col-12 md:col-3 ">
-            <p-splitButton [disabled]='pickingSelected?.length <= 0' label="Copiar a" icon="pi pi-copy" [model] = "opciones2" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+            <p-splitButton [disabled]='pickingSelected?.length <= 0' label="Copiar a" icon="pi pi-copy" [model] = "selectionMenuOptions" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
           </div>
         </div>
       </p-footer>
@@ -165,7 +168,7 @@
       </ng-template>
       <!-- body -->
       <ng-template pTemplate="body" let-modelo let-editing="editing">
-        <tr class="p-selectable-row">
+        <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo.u_Status === 'C'}">
           <td class="p-fluid">
             {{modelo.u_ItemCode}}
           </td>
@@ -176,13 +179,16 @@
             <span class="label" style="background:green" *ngIf="modelo.u_IsReleased === 'N'">No</span>
             <span class="label" style="background:red"   *ngIf="modelo.u_IsReleased === 'Y'">Sí</span>
           </td>
-          <td class="custom-td-numero">
-            {{modelo.u_Quantity | number: '.3':'en-EN'}}
+          <td class="custom-td-10">
+            {{modelo?.u_UnitMsr | uppercase}}
           </td>
           <td class="custom-td-numero">
             {{modelo.u_WeightKg | number: '.3':'en-EN'}}
           </td>
-          <td class="custom-td-2">
+          <td class="custom-td-numero">
+            {{modelo.u_Quantity | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-5">
             <button pButton [disabled]="modelo.u_Status === 'O'? false : true" icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onClickRowDelete(modelo)"></button>
           </td>
         </tr>

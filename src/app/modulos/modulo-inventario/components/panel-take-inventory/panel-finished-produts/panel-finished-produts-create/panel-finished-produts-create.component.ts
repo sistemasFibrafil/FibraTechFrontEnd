@@ -1,19 +1,21 @@
-import { Router } from '@angular/router';
-import { MessageService, SelectItem } from 'primeng/api';
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { Router } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs/operators';
+import { MessageService, SelectItem } from 'primeng/api';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { UtilService } from 'src/app/services/util.service';
-import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
 
-import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/warehouses.interface';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { ITakeInventoryFinishedProducts } from 'src/app/modulos/modulo-inventario/interfaces/take-inventory-finished-products.interface';
 import { TakeInventoryFinishedProductsCreateModel, TakeInventoryFinishedProductsFindModel } from 'src/app/modulos/modulo-inventario/models/take-inventory-finished-products.model';
+
+import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
+import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
+import { ITakeInventoryFinishedProducts } from 'src/app/modulos/modulo-inventario/interfaces/take-inventory-finished-products.interface';
+
+import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { UserContextService } from 'src/app/services/user-context.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
 import { TakeInventoryFinishedProductsService } from 'src/app/modulos/modulo-inventario/services/take-inventory-finished-products.service';
 
 
@@ -123,7 +125,7 @@ export class TakeInventoryFinishedProductsCreateComponent implements OnInit, OnD
           this.warehouseList = data.map(item => ({ label: item.fullDescr, value: item.whsCode }));
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadWarehouseList', () => {}, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'loadWarehouseList', this.swaCustomService);
         }
     });
   }
@@ -162,7 +164,7 @@ export class TakeInventoryFinishedProductsCreateComponent implements OnInit, OnD
     // Enviar la fecha al backend (solo día).
     this.params = {
       whsCode     : warehouseValue,
-      createDate  : this.utilService.normalizeDate(new Date()),
+      createDate  : this.utilService.normalizeDateOrToday(new Date()),
       usrCreate   : this.userContextService.getIdUsuario()
     };
   }
@@ -183,7 +185,7 @@ export class TakeInventoryFinishedProductsCreateComponent implements OnInit, OnD
         this.modelo = data;
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListCurrentDate', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListCurrentDate', this.swaCustomService);
       }
     });
   }
@@ -222,7 +224,7 @@ export class TakeInventoryFinishedProductsCreateComponent implements OnInit, OnD
     if (!codeBar) { return; }
 
     const modeloToSave: TakeInventoryFinishedProductsCreateModel = {
-      createDate  : this.utilService.normalizeDate(new Date()),
+      createDate  : this.utilService.normalizeDateOrToday(new Date()),
       whsCode     : warehouseValue,
       codeBar     : codeBar,
       usrCreate   : this.userContextService.getIdUsuario()

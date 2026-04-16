@@ -21,9 +21,9 @@ const model = {
 3. Si tu zona horaria es UTC-5 (Perú/Colombia), una fecha "2025-10-13T00:00:00Z" se convierte a "2025-10-12T19:00:00" localmente
 4. Al enviar al servidor, puede redondear al día siguiente o anterior
 
-### Solución: Usar `utilService.normalizeDate()`
+### Solución: Usar `utilService.normalizeDateOrToday()`
 
-El servicio `UtilService` incluye el método `normalizeDate()` que:
+El servicio `UtilService` incluye el método `normalizeDateOrToday()` que:
 - Extrae solo **año, mes y día**
 - Elimina información de **hora y zona horaria**
 - **Preserva la fecha exacta** seleccionada por el usuario
@@ -39,7 +39,7 @@ constructor(
 ) {}
 ```
 
-### 2. Usar normalizeDate() al Construir Modelos
+### 2. Usar normalizeDateOrToday() al Construir Modelos
 
 ```typescript
 // ✅ CORRECTO - Preserva la fecha exacta
@@ -47,9 +47,9 @@ private buildModelToSave(): ModeloCreate {
   const formValues = this.form.getRawValue();
   
   return {
-    docDate: this.utilService.normalizeDate(formValues.docDate),
-    docDueDate: this.utilService.normalizeDate(formValues.docDueDate),
-    taxDate: this.utilService.normalizeDate(formValues.taxDate),
+    docDate: this.utilService.normalizeDateOrToday(formValues.docDate),
+    docDueDate: this.utilService.normalizeDateOrToday(formValues.docDueDate),
+    taxDate: this.utilService.normalizeDateOrToday(formValues.taxDate),
     // ... otros campos
   };
 }
@@ -60,13 +60,13 @@ private buildModelToSave(): ModeloCreate {
 #### Formularios de Creación
 ```typescript
 // panel-solicitud-traslado-create.component.ts
-private buildModelToSave(): SolicitudTrasladoCreateModel {
+private buildModelToSave(): InventoryTransferRequestCreateModel {
   const formValues = this.form.getRawValue();
   
   return {
-    docDate: this.utilService.normalizeDate(formValues.docDate),      // ✅
-    docDueDate: this.utilService.normalizeDate(formValues.docDueDate), // ✅
-    taxDate: this.utilService.normalizeDate(formValues.taxDate),       // ✅
+    docDate: this.utilService.normalizeDateOrToday(formValues.docDate),      // ✅
+    docDueDate: this.utilService.normalizeDateOrToday(formValues.docDueDate), // ✅
+    taxDate: this.utilService.normalizeDateOrToday(formValues.taxDate),       // ✅
     // ...
   };
 }
@@ -74,16 +74,16 @@ private buildModelToSave(): SolicitudTrasladoCreateModel {
 
 #### Formularios de Actualización
 ```typescript
-private buildModelToSave(): SolicitudTrasladoUpdateModel {
+private buildModelToSave(): InventoryTransferRequestUpdateModel {
   const formValues = {
     ...this.modeloFormCab2.getRawValue(),
     ...this.modeloFormCab3.getRawValue()
   };
   
   return {
-    docDate: this.utilService.normalizeDate(formValues.docDate),      // ✅
-    docDueDate: this.utilService.normalizeDate(formValues.docDueDate), // ✅
-    taxDate: this.utilService.normalizeDate(formValues.taxDate),       // ✅
+    docDate: this.utilService.normalizeDateOrToday(formValues.docDate),      // ✅
+    docDueDate: this.utilService.normalizeDateOrToday(formValues.docDueDate), // ✅
+    taxDate: this.utilService.normalizeDateOrToday(formValues.taxDate),       // ✅
     // ...
   };
 }
@@ -93,8 +93,8 @@ private buildModelToSave(): SolicitudTrasladoUpdateModel {
 ```typescript
 onClickSearch(): void {
   const params = {
-    startDate: this.utilService.normalizeDate(this.form.value.startDate), // ✅
-    endDate: this.utilService.normalizeDate(this.form.value.endDate),     // ✅
+    startDate: this.utilService.normalizeDateOrToday(this.form.value.startDate), // ✅
+    endDate: this.utilService.normalizeDateOrToday(this.form.value.endDate),     // ✅
     // ...
   };
   
@@ -102,7 +102,7 @@ onClickSearch(): void {
 }
 ```
 
-## Cuándo Usar normalizeDate()
+## Cuándo Usar normalizeDateOrToday()
 
 ### ✅ SIEMPRE Usar En:
 - Construcción de modelos para enviar a APIs (`buildModelToSave()`)
@@ -117,7 +117,7 @@ onClickSearch(): void {
 
 ## Referencia de API
 
-### `utilService.normalizeDate(date: Date | string): Date`
+### `utilService.normalizeDateOrToday(date: Date | string): Date`
 
 **Parámetros:**
 - `date`: Fecha a normalizar (puede ser `Date` o `string`)
@@ -128,7 +128,7 @@ onClickSearch(): void {
 **Ejemplo:**
 ```typescript
 const userSelectedDate = new Date('2025-10-13T00:00:00Z');
-const normalized = this.utilService.normalizeDate(userSelectedDate);
+const normalized = this.utilService.normalizeDateOrToday(userSelectedDate);
 console.log(normalized); // 2025-10-13 00:00:00 (hora local, sin conversión UTC)
 ```
 
@@ -149,12 +149,12 @@ docDate: new Date(formValues.docDate)
 
 ### Después (sin problema)
 ```typescript
-docDate: this.utilService.normalizeDate(formValues.docDate)
+docDate: this.utilService.normalizeDateOrToday(formValues.docDate)
 ```
 
 ## Archivos de Referencia
 
-Los siguientes componentes ya implementan correctamente `normalizeDate()`:
+Los siguientes componentes ya implementan correctamente `normalizeDateOrToday()`:
 
 - `panel-solicitud-traslado-create.component.ts`
 - `panel-solicitud-traslado-update.component.ts`
@@ -163,4 +163,4 @@ Puedes usarlos como referencia al migrar otros componentes.
 
 ---
 
-**Nota**: Si encuentras un componente que aún usa `new Date(formValues.fecha)` en la construcción de modelos, considera actualizarlo a `this.utilService.normalizeDate(formValues.fecha)` para prevenir bugs de zona horaria.
+**Nota**: Si encuentras un componente que aún usa `new Date(formValues.fecha)` en la construcción de modelos, considera actualizarlo a `this.utilService.normalizeDateOrToday(formValues.fecha)` para prevenir bugs de zona horaria.

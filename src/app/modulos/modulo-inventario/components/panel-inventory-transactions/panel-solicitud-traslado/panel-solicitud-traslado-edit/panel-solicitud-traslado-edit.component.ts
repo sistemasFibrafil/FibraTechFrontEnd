@@ -1,22 +1,26 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { Subject, forkJoin } from 'rxjs';
-import { finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { Subject, forkJoin, merge } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/articulo.interface';
-import { ISolicitudTraslado, ISolicitudTraslado1 } from 'src/app/modulos/modulo-inventario/interfaces/solicitud-traslado.interface';
-import { SolicitudTraslado1UpdateModel, SolicitudTrasladoUpdateModel } from 'src/app/modulos/modulo-inventario/models/solicitud-traslado.model';
-import { ArticuloService } from 'src/app/modulos/modulo-inventario/services/articulo.service';
-import { SolicitudTrasladoService } from 'src/app/modulos/modulo-inventario/services/solicitud-traslado.service';
+import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+
+import { InventoryTransferRequest1UpdateModel, InventoryTransferRequestUpdateModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
+
+import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
+import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+
+import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-import { UtilService } from 'src/app/services/util.service';
+import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
+import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+
 
 @Component({
   selector: 'app-inv-panel-solicitud-traslado-edit',
@@ -52,8 +56,11 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
   // UI State
   /** Estados de overlays y modales */
+  isLocked                                      = true;
   isSaving                                      = false;
   isDisplay                                     = false;
+  hasValidLines                                 = false;
+  hasRealChanges                                = false;
   isVisualizarArticulo                          = false;
   isVisualizarTipoOperacion                     = false;
   isVisualizarAlmacenOrigen                     = false;
@@ -66,43 +73,42 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
   // Data
   /** Modelos de cabecera y detalle */
-  modelo                                        : ISolicitudTraslado;
-  modeloLinesSelected                           : ISolicitudTraslado1;
-  modeloLines                                   : ISolicitudTraslado1[] = [];
-  modeloLinesEliminar                           : ISolicitudTraslado1[] = [];
-  modeloLinesOriginal                           : ISolicitudTraslado1[] = [];
+  modeloLinesSelected                           : IInventoryTransferRequest1;
+
+  modeloLines                                   : IInventoryTransferRequest1[] = [];
+  modeloLinesEliminar                           : IInventoryTransferRequest1[] = [];
+  modeloLinesOriginal                           : IInventoryTransferRequest1[] = [];
 
   // Filters / Additional properties
   /** Identificadores y auxiliares */
+  cardCode                                      = '';
+  itemCode                                      = '';
+  inactiveAlmacenItem                           = 'N';
+
   id                                            = 0;
   docEntry                                      = 0;
-  cardCode                                      = '';
   cntctCode                                     = 0;
-  itemCode                                      = '';
   indexArticulo                                 = 0;
   indexTipoOperacion                            = 0;
   indexAlmacenOrigen                            = 0;
   indexAlmacenDestino                           = 0;
-  inactiveAlmacenItem                           = 'N';
-  hasValidLines                                 = false;
 
   // Change Detection
   /** Seguimiento de cambios reales */
   initialSnapshot!                              : any;
-  hasRealChanges                                = false;
 
 
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly route: ActivatedRoute,
-    private readonly articuloService: ArticuloService,
+    private readonly itemsService: ItemsService,
     private readonly swaCustomService: SwaCustomService,
     private readonly warehousesService: WarehousesService,
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
-    private readonly solicitudTrasladoService: SolicitudTrasladoService,
     private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly InventoryTransferRequestService: InventoryTransferRequestService,
     public  readonly utilService: UtilService
   ) {}
 
@@ -136,15 +142,15 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
   private buildForms(): void {
     this.modeloFormSn = this.fb.group({
-      cardCode                : [{ value: '', disabled: true }],
-      cardName                : [{ value: '', disabled: true }],
-      cntctCode               : [{ value: '', disabled: true }],
-      address                 : [{ value: '', disabled: true }]
+      cardCode                : [{ value: '', disabled: false }],
+      cardName                : [{ value: '', disabled: false }],
+      cntctCode               : [{ value: '', disabled: false }],
+      address                 : [{ value: '', disabled: false }]
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      docStatus               : [{ value: 'Abierto', disabled: true }, Validators.required],
+      docNum                  : [{ value: '', disabled: false }],
+      docStatus               : [{ value: 'Abierto', disabled: false }, Validators.required],
       docDate                 : [new Date(), Validators.required],
       docDueDate              : [new Date(), Validators.required],
       taxDate                 : [new Date(), Validators.required],
@@ -190,7 +196,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: ISolicitudTraslado1): void {
+  onSelectedItem(modelo: IInventoryTransferRequest1): void {
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility(modelo);
   }
@@ -268,35 +274,42 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
         this.loadData();
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
 
   private loadData(): void {
     this.route.params
-      .pipe(
-        tap(params => this.id = +params['id']),
-        switchMap(params => {
-          this.isDisplay = true;
-          return this.solicitudTrasladoService.getByDocEntry(+params['id']);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (data: ISolicitudTraslado) => {
-          this.isDisplay = false;
-          this.modelo = data;
-          this.modeloLinesOriginal = JSON.parse(JSON.stringify(data.lines));
-          this.setFormValues(this.modelo);
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadData', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
+    .pipe(
+      takeUntil(this.destroy$),
+      switchMap(params => {
+        this.id = +params['id'];
+
+        // 🔥 aquí sí se activa de forma confiable
+        this.isDisplay = true;
+
+        return this.InventoryTransferRequestService
+          .getByDocEntry(this.id)
+          .pipe(
+            finalize(() => {
+              this.isDisplay = false;
+            })
+          );
+      })
+    )
+    .subscribe({
+      next: (data: IInventoryTransferRequest) => {
+        this.modeloLinesOriginal = structuredClone(data.lines);
+        this.setFormValues(data);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
+    });
   }
 
-  private setFormValues(value: ISolicitudTraslado): void {
+  private setFormValues(value: IInventoryTransferRequest): void {
     // Activar flag de carga inicial para evitar que onChange events
     // modifiquen el modeloLines durante la carga
     this.isLoadingInitialData = true;
@@ -306,6 +319,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     // =========================================================================
 
     // Asignar propiedades del componente
+    this.isLocked                 = value.docStatus !== 'O';
     this.docEntry                 = value.docEntry;
     this.cardCode                 = value.cardCode;
     this.cntctCode                = value.cntctCode;
@@ -313,10 +327,10 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     // Actualizar formulario Socio de Negocio
     this.modeloFormSn.patchValue(
       {
-        cardCode                  : value.cardCode,
-        cardName                  : value.cardName,
+        cardCode                  : this.utilService.normalizePrimitive(value.cardCode),
+        cardName                  : this.utilService.normalizePrimitive(value.cardName),
         cntctCode                 : value.cntctCode,
-        address                   : value.address
+        address                   : this.utilService.normalizePrimitive(value.address)
       },
       { emitEvent: false }
     );
@@ -340,20 +354,6 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
       { emitEvent: false }
     );
 
-    // Habilitar o deshabilitar controles del formulario basados en el estado del documento
-    // Para evitar 'changed after checked' manejamos el estado del control desde el componente
-    const isEditable = value.docStatus === 'O';
-    const docControls = ['u_FIB_IsPkg','docDate', 'docDueDate', 'taxDate', 'filler', 'toWhsCode','employeeInfo'];
-    for (const ctrlName of docControls) {
-      const ctrl = this.modeloFormDoc.get(ctrlName);
-      if (!ctrl) { continue; }
-      if (isEditable) {
-        ctrl.enable({ emitEvent: false });
-      } else {
-        ctrl.disable({ emitEvent: false });
-      }
-    }
-
     // Buscar y asignar valores como SelectItem para campos definidos por usuario
     const tipoTrasladoItem        = this.tipoTrasladoList.find(item => item.value === value.u_FIB_TIP_TRAS);
     const motivoTrasladoItem      = this.motivoTrasladoList.find(item => item.value === value.u_BPP_MDMT);
@@ -376,8 +376,8 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.modeloFormPie.patchValue(
       {
         slpCode                   : slpCodeItem || null,
-        jrnlMemo                  : value.jrnlMemo,
-        comments                  : value.comments
+        jrnlMemo                  : this.utilService.normalizePrimitive(value.jrnlMemo),
+        comments                  : this.utilService.normalizePrimitive(value.comments)
       },
       { emitEvent: false }
     );
@@ -397,7 +397,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
       doc: this.modeloFormDoc.getRawValue(),
       otr: this.modeloFormOtr.getRawValue(),
       pie: this.modeloFormPie.getRawValue(),
-      lines: JSON.parse(JSON.stringify(this.modeloLines))
+      lines: structuredClone(this.modeloLines)
     };
 
     // Marcar pristine
@@ -420,55 +420,13 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   // WATCH CHANGES (AGREGADO)
   // =========================
   private watchChanges(): void {
-    this.modeloFormDoc.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.detectRealChanges());
-
-    this.modeloFormOtr.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.detectRealChanges());
-
-    this.modeloFormPie.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.detectRealChanges());
-  }
-
-  private normalizeDate(value: any): string | null {
-    if (!value) return null;
-
-    const date = value instanceof Date ? value : new Date(value);
-
-    return isNaN(date.getTime())
-      ? null
-      : date.toISOString().substring(0, 10); // yyyy-mm-dd
-  }
-
-  private hasFormChanged(form: FormGroup, snapshot: any): boolean {
-    const current = form.getRawValue();
-
-    return Object.keys(snapshot).some(key => {
-      const currentValue  = current[key];
-      const snapshotValue = snapshot[key];
-
-      // =========================
-      // FECHAS (p-calendar)
-      // =========================
-      if (currentValue instanceof Date || snapshotValue instanceof Date) {
-        return this.normalizeDate(currentValue) !== this.normalizeDate(snapshotValue);
-      }
-
-      // =========================
-      // SelectItem (dropdowns)
-      // =========================
-      if (currentValue?.value !== undefined || snapshotValue?.value !== undefined) {
-        return currentValue?.value !== snapshotValue?.value;
-      }
-
-      // =========================
-      // VALORES NORMALES
-      // =========================
-      return currentValue !== snapshotValue;
-    });
+    merge(
+      this.modeloFormDoc.valueChanges,
+      this.modeloFormOtr.valueChanges,
+      this.modeloFormPie.valueChanges
+    )
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() => this.detectRealChanges());
   }
 
   private detectRealChanges(): void {
@@ -489,17 +447,17 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     // =========================
     // 1️⃣ CAMBIOS EN FORMULARIOS (POR SNAPSHOT)
     // =========================
-    const docChanged = this.hasFormChanged(
+    const docChanged = this.utilService.hasFormChanged(
       this.modeloFormDoc,
       this.initialSnapshot.doc
     );
 
-    const otrChanged = this.hasFormChanged(
+    const otrChanged = this.utilService.hasFormChanged(
       this.modeloFormOtr,
       this.initialSnapshot.otr
     );
 
-    const pieChanged = this.hasFormChanged(
+    const pieChanged = this.utilService.hasFormChanged(
       this.modeloFormPie,
       this.initialSnapshot.pie
     );
@@ -618,27 +576,29 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   }
 
   setItem(data: IArticulo[]): void {
-    const item              = this.modeloLines[this.indexArticulo];
-    const fillerControl     = this.modeloFormDoc.controls['filler'].value;
-    const toWhsCodeControl  = this.modeloFormDoc.controls['toWhsCode'].value;
-    const fillerValue       = fillerControl?.value || fillerControl || '';
-    const toWhsCodeValue    = toWhsCodeControl?.value || toWhsCodeControl || '';
-
-    for (let index = 0; index < data.length; index++) {
-      const element = data[index];
-      if(index === 0) {
-        item.itemCode       = element.itemCode;
-        item.dscription     = element.itemName;
-        item.fromWhsCod     = fillerValue || element.dfltWH || '';
-        item.whsCode        = toWhsCodeValue || element.dfltWH || '';
-        item.u_tipoOpT12    = element.u_tipoOpT12 || '';
-        item.u_tipoOpT12Nam = element.u_tipoOpT12Nam || '';
-        item.unitMsr        = element.invntryUom;
-        item.quantity       = 1;
-        item.openQty        = 1;
-        item.u_FIB_OpQtyPkg = 1;
-      }
+    if (!data || data.length === 0) {
+      return;
     }
+
+    const element = data[0];
+    const item = this.modeloLines[this.indexArticulo];
+
+    const fillerControl    = this.modeloFormDoc.controls['filler'].value;
+    const toWhsCodeControl = this.modeloFormDoc.controls['toWhsCode'].value;
+
+    const fillerValue    = fillerControl?.value ?? fillerControl ?? '';
+    const toWhsCodeValue = toWhsCodeControl?.value ?? toWhsCodeControl ?? '';
+
+    item.itemCode       = element.itemCode;
+    item.dscription     = element.itemName;
+    item.fromWhsCod     = fillerValue || element.dfltWH || '';
+    item.whsCode        = toWhsCodeValue || element.dfltWH || '';
+    item.u_tipoOpT12    = element.u_tipoOpT12 || '';
+    item.u_tipoOpT12Nam = element.u_tipoOpT12Nam || '';
+    item.unitMsr        = element.invntryUom;
+    item.quantity       = 1;
+    item.openQty        = 1;
+    item.u_FIB_OpQtyPkg = 1;
 
     this.updateHasValidLines();
     this.detectRealChanges(); // 🔥 OBLIGATORIO
@@ -647,25 +607,32 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   getListByCode(itemCode: string): void {
     this.isDisplay = true;
 
-    const params = {
-      itemCode,
-      cardCode          : '',
-      currency          : '',
-      slpCode           : 0,
-      codTipoOperacion  : '11'
-    };
-
-    this.articuloService.getListByCode(params)
-    .pipe(takeUntil(this.destroy$))
+    this.itemsService
+    .getListByCode(this.buildFilterParams(itemCode))
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
     .subscribe({
       next: (data: IArticulo[]) => {
-        this.isDisplay = false;
         this.setItem(data);
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListByCode', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
       }
     });
+  }
+
+  private buildFilterParams(itemCode: string): any {
+    return {
+      itemCode,
+      cardCode            : '',
+      currency            : '',
+      slpCode             : 0,
+      operationTypeCode   : '11'
+    };
   }
 
   onSelectedArticulo(value: any): void {
@@ -677,13 +644,13 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.isVisualizarArticulo = false;
   }
 
-  onOpenAlmacenOrigenItem(value: ISolicitudTraslado1, index: number): void {
+  onOpenAlmacenOrigenItem(value: IInventoryTransferRequest1, index: number): void {
     this.indexAlmacenOrigen = index;
     this.itemCode = value.itemCode;
     this.isVisualizarAlmacenOrigen = !this.isVisualizarAlmacenOrigen;
   }
 
-  onOpenAlmacenDestinoItem(value: ISolicitudTraslado1, index: number): void {
+  onOpenAlmacenDestinoItem(value: IInventoryTransferRequest1, index: number): void {
     this.indexAlmacenDestino = index;
     this.itemCode = value.itemCode;
     this.isVisualizarAlmacenDestino = !this.isVisualizarAlmacenDestino;
@@ -735,7 +702,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   //============================= FIN: TIPO DE OPERACION ==================================================================
   //=======================================================================================================================
 
-  onChangeQuantity(value: ISolicitudTraslado1, index: number): void {
+  onChangeQuantity(value: IInventoryTransferRequest1, index: number): void {
     if (value.record === 1) {
       this.updateQuantityNew(value, index);
     } else {
@@ -745,7 +712,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  private updateQuantityNew(value: ISolicitudTraslado1, index: number): void {
+  private updateQuantityNew(value: IInventoryTransferRequest1, index: number): void {
     if (value.itemCode === '') {
       this.modeloLines[index].quantity = 0;
       this.modeloLines[index].u_FIB_OpQtyPkg = 0;
@@ -759,7 +726,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.modeloLines[index].openQty = quantity;
   }
 
-  private updateQuantityExisting(value: ISolicitudTraslado1, index: number): void {
+  private updateQuantityExisting(value: IInventoryTransferRequest1, index: number): void {
     const modelomodeloLinesOriginal = this.modeloLinesOriginal.find(d => d.lineNum === value.lineNum && d.docEntry === value.docEntry);
 
     if (!modelomodeloLinesOriginal) return;
@@ -780,7 +747,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   }
 
   private addLine(): void {
-    this.modeloLines.push({lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, openQty: 0, record: 1 });
+    this.modeloLines.push({lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, openQty: 0, record: 1 });
     this.updateHasValidLines();
   }
 
@@ -838,53 +805,89 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  private buildModelToSave(): SolicitudTrasladoUpdateModel {
-    const formValues = {
+  private mergeForms() {
+    return {
       ...this.modeloFormDoc.getRawValue(),
       ...this.modeloFormOtr.getRawValue(),
       ...this.modeloFormPie.getRawValue()
     };
+  }
 
-    const userId = this.userContextService.getIdUsuario();
-    const allLines = [...this.modeloLines, ...this.modeloLinesEliminar];
+  private mapLinesUpdate(): InventoryTransferRequest1UpdateModel[] {
+    /** helpers para evitar repetición */
+    const u            = this.utilService;
+    const p            = (v:any)=>u.normalizePrimitive(v);
+    const n            = (v:any)=>u.normalizeNumber(v);
 
-    const lines: SolicitudTraslado1UpdateModel[] = allLines
-      .filter(line => line.itemCode !== '' && line.record !== 4)
-      .map(line => ({
-        docEntry        : line.docEntry,
-        lineNum         : line.lineNum,
-        lineStatus      : line.lineStatus,
-        itemCode        : line.itemCode,
-        dscription      : line.dscription,
-        fromWhsCod      : line.fromWhsCod,
-        whsCode         : line.whsCode,
-        u_tipoOpT12     : line.u_tipoOpT12,
-        unitMsr         : line.unitMsr,
-        quantity        : line.quantity,
-        openQty         : line.openQty,
-        u_FIB_OpQtyPkg  : line.u_FIB_OpQtyPkg || 0,
-        idUsuarioCreate : userId,
-        idUsuarioUpdate : userId,
-        record          : line.record
-      }));
+    const allLines     = [...this.modeloLines, ...this.modeloLinesEliminar];
+
+    return allLines
+    .filter(line => p(line.itemCode) !== '')
+    .map<InventoryTransferRequest1UpdateModel>(line => ({
+      docEntry        : n(line.docEntry),
+      lineNum         : n(line.lineNum),
+      lineStatus      : p(line.lineStatus),
+
+      itemCode        : p(line.itemCode),
+      dscription      : p(line.dscription),
+      fromWhsCod      : p(line.fromWhsCod),
+      whsCode         : p(line.whsCode),
+
+      unitMsr         : p(line.unitMsr),
+      quantity        : n(line.quantity),
+
+      u_FIB_OpQtyPkg  : n(line.u_FIB_OpQtyPkg),
+      u_tipoOpT12     : p(line.u_tipoOpT12),
+
+      record          : n(line.record)
+    }));
+  }
+
+  private buildModelToSave(): InventoryTransferRequestUpdateModel {
+    /** helpers para evitar repetición */
+    const u           = this.utilService;
+    const p           = (v:any)=>u.normalizePrimitive(v);
+    const n           = (v:any)=>u.normalizeNumber(v);
+    const d           = (v:any)=>u.normalizeDateOrToday(v);
+    const val         = (v:any)=>v?.value ?? v;
+
+    /** combinar todos los formularios */
+    const f           = this.mergeForms();
+
+    const userId      = this.userContextService.getIdUsuario();
+
+    const u_FIB_IsPkg = f.u_FIB_IsPkg ? 'Y' : 'N';
+
+    const lines       = this.mapLinesUpdate();
 
     return {
-      ...new SolicitudTrasladoUpdateModel(),
+      ...new InventoryTransferRequestUpdateModel(),
+
       docEntry        : this.docEntry,
-      docDate         : this.utilService.normalizeDate(formValues.docDate),
-      docDueDate      : this.utilService.normalizeDate(formValues.docDueDate),
-      taxDate         : this.utilService.normalizeDate(formValues.taxDate),
-      u_FIB_IsPkg     : formValues.u_FIB_IsPkg ? 'Y' : 'N',
-      filler          : formValues.filler?.value || formValues.filler || '',
-      toWhsCode       : formValues.toWhsCode?.value || formValues.toWhsCode || '',
-      u_FIB_TIP_TRAS  : formValues.u_FIB_TIP_TRAS?.value || formValues.u_FIB_TIP_TRAS || '',
-      u_BPP_MDMT      : formValues.u_BPP_MDMT?.value || formValues.u_BPP_MDMT || '',
-      u_BPP_MDTS      : formValues.u_BPP_MDTS?.value || formValues.u_BPP_MDTS || '',
-      slpCode         : formValues.slpCode?.value || formValues.slpCode || -1,
-      jrnlMemo        : formValues.jrnlMemo,
-      comments        : formValues.comments,
+
+      docDate         : d(f.docDate),
+      docDueDate      : d(f.docDueDate),
+      taxDate         : d(f.taxDate),
+
+      u_FIB_IsPkg     : u_FIB_IsPkg,
+
+      cardCode        : p(f.cardCode),
+
+      filler          : p(val(f.filler)),
+      toWhsCode       : p(val(f.toWhsCode)),
+
+      u_FIB_TIP_TRAS  : p(val(f.u_FIB_TIP_TRAS)),
+      u_BPP_MDMT      : p(val(f.u_BPP_MDMT)),
+      u_BPP_MDTS      : p(val(f.u_BPP_MDTS)),
+
+      slpCode         : n(val(f.slpCode) ?? -1),
+
+      jrnlMemo        : p(f.jrnlMemo),
+      comments        : p(f.comments),
+
       u_UsrUpdate     : userId,
-      lines           : lines
+
+      lines
     };
   }
 
@@ -898,7 +901,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
     const modeloToSave = this.buildModelToSave();
 
-    this.solicitudTrasladoService.setUpdate(modeloToSave)
+    this.InventoryTransferRequestService.setUpdate(modeloToSave)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => { this.isSaving = false; })
@@ -909,7 +912,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
           this.onClickBack();
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'save', () => { this.isSaving = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
         }
       });
   }
@@ -938,7 +941,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   // Helper Methods
   // ===========================
 
-  private updateMenuVisibility(modelo: ISolicitudTraslado1): void {
+  private updateMenuVisibility(modelo: IInventoryTransferRequest1): void {
     const hasEmptyLines = this.modeloLines.some(x => x.itemCode === '');
     const canDelete = this.modeloLines.length > 0
       && modelo.lineStatus === 'O'

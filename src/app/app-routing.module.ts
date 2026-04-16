@@ -36,6 +36,18 @@ const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'modulo-apr',
+        data: { breadcrumb: 'Aprobaciones' },
+        loadChildren: () => import('./modulos/modulo-aprobaciones/modulo-aprobaciones.module').then(m => m.AprobacionesModule),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'modulo-bor',
+        data: { breadcrumb: 'Documentos Borrador' },
+        loadChildren: () => import('./modulos/modulo-documentos-borrador/modulo-documentos-borrador.module').then(m => m.DocumentosBorradorModule),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'modulo-fin',
         data: { breadcrumb: 'Finanzas' },
         loadChildren: () => import('./modulos/modulo-finanzas/modulo-finanzas.module').then(m => m.FinanzasModule),

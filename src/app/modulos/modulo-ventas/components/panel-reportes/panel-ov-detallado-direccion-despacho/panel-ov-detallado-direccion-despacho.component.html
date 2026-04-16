@@ -1,0 +1,242 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <!-- Filtros -->
+    <p-panel header="Opción de busqueda de {{subtitulo}}" [style]="{'margin-bottom':'20px'}">
+      <form [formGroup]="modeloForm">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="startDate" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="businessPartnerGroupSapList" formControlName="msBusinessPartnerGroup" defaultLabel="Seleccione el Grupo de Cliente" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="salesEmployeeList" formControlName="msSalesEmployee" defaultLabel="Seleccione el Vendedor" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="documentTypeList" formControlName="msDocumentType" defaultLabel="Seleccione el Tipo de Documento" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2">
+            <p-multiSelect [options]="statusList" formControlName="msStatus" defaultLabel="Seleccione el Estado" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-6">
+            <input id="float-input-customer" type="text" placeholder="Buscar por código o nombre de cliente" maxlength="100" size="50" formControlName="customer" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+          <div class="col-12 md:col-6">
+            <input id="float-input-item" type="text" placeholder="Buscar por código o nombre de artículo" maxlength="100" size="50" formControlName="item" autocomplete="off" pInputText (keyup.enter)="onClickBuscar()">
+          </div>
+        </div>
+      </form>
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <button [disabled]="buttonAcces.btnEXCEL || !modeloForm.valid" pButton type="button" label="{{globalConstants.cEXCEL}}" icon="{{globalConstants.icoExcel}}" (click)="onClickExcel()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <p-splitButton [disabled]='modelo?.length <= 0' label="Copiar a" icon="pi pi-copy" [model] = "opciones" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+          </div>
+          <div class="col-12 md:col-3">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+
+    <!-- Grilla de Datos     -->
+    <p-panel header="Lista de {{subtitulo}}">
+      <p-table
+        [value]="modelo"
+        [columns]="columnas"
+        [rows]="rows"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        selectionMode="single"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+              <p-sortIcon field="{{col.field}}"></p-sortIcon>
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate = "body" let-modelo let-ri = "rowIndex">
+          <tr>
+            <td class="p-fluid">
+              {{modelo.cardCode}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.cardName}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.nomTipDocumento}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.numeroDocumento}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.numeroPedido}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.numeroFactura}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.docDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="custom-td-20">
+              <span class="label estado-creado" *ngIf="modelo?.codStatus === '01'">Pendiente</span>
+              <span class="label estado-pendiente" *ngIf="modelo?.codStatus === '02'">Cerrado</span>
+            </td>
+            <td class="p-fluid">
+              <span class="p-column-title">Vendedor</span> {{modelo.slpName}}
+            </td>
+            <td class="p-fluid">
+              <span class="p-column-title">Código de Artículo</span> {{modelo.itemCode}}
+            </td>
+            <td class="p-fluid">
+              <span class="p-column-title">Nombre de Artículo</span> {{modelo.itemName}}
+            </td>
+            <td class="p-fluid">
+              <span class="p-column-title">Nombre de Almacén</span> {{modelo.whsName}}
+            </td>
+            <td class="p-fluid">
+              <span class="p-column-title">UM de Venta</span> {{modelo.salUnitMsr}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Stock</span> {{modelo.stockProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Pendiente</span> {{modelo.pendienteProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Solicitado</span> {{modelo.solicitadoProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Disponible</span> {{modelo.disponibleProduccion | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Cantidad</span> {{modelo.quantity | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Rol Pedido</span> {{modelo.rolloPedido | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Kg Pedido</span> {{modelo.kgPedido | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Tn Pedida</span> {{modelo.toneladaPedida | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Cantidad Pendiente Por Despachar</span> {{modelo.openQty | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Rol Pendiente</span> {{modelo.rolloPendiente | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Kg Pendiente</span> {{modelo.kgPendiente | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Tn Pendiente</span> {{modelo.toneladaPendiente | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Cantidad Despachada</span> {{modelo.delivrdQty | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Precio</span> {{modelo.price | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              <span class="p-column-title">Importe USD</span> {{modelo.totalSumSy | number: '.2':'en-EN'}}
+            </td>
+          </tr>
+        </ng-template>
+        <!-- emptymessage -->
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-panel>
+</div>
+
+
+<p-dialog header="Procesando" [(visible)]="isDisplay" [closable]="false" [modal]="true" [style]="{width: '50vw'}" [autoZIndex] [draggable]="false" [resizable]="false">
+  Obteniendo Información...!!!
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+    </div>
+  </div>
+</p-dialog>
+
+
+<p-dialog header="S&OP" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '40vw'}" [maximizable]="true" (onHide)="onHide()">
+  <p-panel id="modal" header="Datos para generar S&OP" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+    <form [formGroup]="modeloFormSop">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-year">Año </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <p-dropdown id="float-input-year" [options]="listAnio" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el año" formControlName="year" [required] optionLabel="label" [showClear]="true" (onChange)="getListSemana()"></p-dropdown>
+          <div *ngIf="modeloFormSop.controls['year'].errors && modeloFormSop.controls['year'].dirty">
+            <p-message severity="error" text="El año es requerido." *ngIf="modeloFormSop.controls['year'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-month">Mes </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <p-dropdown id="float-input-month" [options]="listMes" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el mes" formControlName="month" [required] optionLabel="label" [showClear]="true" (onChange)="getListSemana()"></p-dropdown>
+          <div *ngIf="modeloFormSop.controls['month'].errors && modeloFormSop.controls['month'].dirty">
+            <p-message severity="error" text="El mes es requerido." *ngIf="modeloFormSop.controls['month'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-week">Semana </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <p-dropdown id="float-input-week" [options]="listSemana" [filter]="true" class="p dropdown-item-text" placeholder="Seleccione el semana" formControlName="week" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+          <div *ngIf="modeloFormSop.controls['week'].errors && modeloFormSop.controls['week'].dirty">
+            <p-message severity="error" text="La semana es requerida." *ngIf="modeloFormSop.controls['week'].errors['required']"></p-message>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-name">Nombre de S&OP </label><span class="label" style="font-weight: bold; color:red">*</span>
+          <div class="p-inputgroup">
+            <input id="float-input-name" type="text" placeholder="Nombre de S&OP" maxlength="100" size="50" formControlName="name" autocomplete="off" pInputText>
+          </div>
+        </div>
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-comments">Comentarios </label>
+          <div class="p-inputgroup">
+            <textarea id="float-area-comments" formControlName="comments" autocomplete="off" placeholder="Comentarios" maxlength="500" rows="3" pInputText></textarea>
+          </div>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button [disabled]="!modeloFormSop.valid" label="{{globalConstants.cCopiar}}" icon="{{globalConstants.icoCopiar}}" styleClass="p-button-success" (onClick)="onClickCopySop()"></p-button>
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseSop()"></p-button>
+  </ng-template>
+</p-dialog>
+
+
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>

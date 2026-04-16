@@ -48,7 +48,6 @@ export class PanelForcastImportComponent implements OnInit {
   }
 
   onChange(event:any) {
-    debugger
     //this.lista = [];
     // let swalWithBootstrapButtons = swal.mixin({ customClass: { container: 'my-swal' }, target: document.getElementById('modal-import') });
 

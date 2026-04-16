@@ -5,7 +5,7 @@ import { environment } from 'src/environments/environment.prod';
 
 import { PickingByFiltroFindModel, PickingDeleteModel, PickingItemDeleteAllModel } from '../../models/picking-venta.model';
 import { IPickingVenta, IPickingVentaByFiltro, IPickingVentaByIdPicking } from '../../interfaces/picking-venta.interface';
-import { IEntregaById } from '../../interfaces/entrega.interface';
+
 
 @Injectable({providedIn: 'root'})
 export class PickingVentaService {
@@ -32,9 +32,9 @@ export class PickingVentaService {
     return this.http.get<IPickingVentaByIdPicking>(`${environment.url_api_fib}Picking/GetPickingVentaByIdPicking/${idPicking}`);
   }
 
-  getPickingVentaForEntregaByIdPicking(idPicking: number) {
-    return this.http.get<IEntregaById>(`${environment.url_api_fib}Picking/GetPickingVentaForEntregaByIdPicking/${idPicking}`);
-  }
+  // getPickingVentaForEntregaByIdPicking(idPicking: number) {
+  //   return this.http.get<IEntregaById>(`${environment.url_api_fib}Picking/GetPickingVentaForEntregaByIdPicking/${idPicking}`);
+  // }
 
   setCreate(value: IPickingVenta) {
     const param: string = JSON.stringify(value);

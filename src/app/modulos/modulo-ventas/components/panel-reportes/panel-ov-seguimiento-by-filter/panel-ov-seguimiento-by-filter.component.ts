@@ -3,20 +3,20 @@ import { SelectItem } from 'primeng/api';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+
+import { IOrdersSeguimiento } from '../../../interfaces/sap-business-one/orders.interface';
+import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { OrdersService } from '../../../services/sap-business-one/orders.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/socio-negocios/grupo-socio-negocio.interface';
-import { IOrdenVentaSeguimientoByFecha } from '../../../interfaces/sap/orden-venta.interface';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/socio-negocios/grupo-socio-negocio.service';
-import { OrdenVentaService } from '../../../services/sap/orden-venta.service';
-import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/general/sales-persons.interface';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { OrdenVentaSeguimientoFindModel } from '../../../models/sap/orden-venta.model';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
+import { OrdersSeguimientoFindModel } from '../../../models/sap-business-one/orders.model';
 
 
 
@@ -59,10 +59,10 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
   documentTypeItem: ITipoDocumento[];
   documentTypeSelected: ITipoDocumento[];
   salesEmployeeSelected: ISalesPersons[];
-  reporteList: IOrdenVentaSeguimientoByFecha[];
+  reporteList: IOrdersSeguimiento[];
   businessPartnerGroupSelected: IGrupoSocioNegocioSap[];
 
-  params: OrdenVentaSeguimientoFindModel = new OrdenVentaSeguimientoFindModel();
+  params: OrdersSeguimientoFindModel = new OrdersSeguimientoFindModel();
 
   fecha: string = this.datePipe.transform(new Date(), 'dd-MM-yyyy');
   nombreArchivo: string = 'Órdenes de Venta - Seguimiento - ' + this.fecha;
@@ -73,7 +73,7 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private OrdenVentaService: OrdenVentaService,
+    private readonly ordersService: OrdersService,
     private salesPersonsService: SalesPersonsService,
     private grupoSocionegocioSapService: GrupoSocionegocioSapService
   ) {}
@@ -203,8 +203,8 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
   onListar() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.OrdenVentaService.getListSeguimientoByFilter(this.params)
-    .subscribe({ next: (resp: IOrdenVentaSeguimientoByFecha[])=>{
+    this.ordersService.getListSeguimientoByFilter(this.params)
+    .subscribe({ next: (resp: IOrdersSeguimiento[])=>{
         this.isDisplay = false;
         this.reporteList = resp;
       },
@@ -218,7 +218,7 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
   onToExcel() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.OrdenVentaService.getSeguimientoByFilterExcel(this.params)
+    this.ordersService.getSeguimientoByFilterExcel(this.params)
     .subscribe({next:(response: any) => {
         saveAs(
           new Blob([response],

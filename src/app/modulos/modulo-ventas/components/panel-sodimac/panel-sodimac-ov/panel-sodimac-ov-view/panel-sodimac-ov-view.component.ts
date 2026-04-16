@@ -10,7 +10,7 @@ import { LayoutComponent } from 'src/app/layout/layout.component';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 
 import { IStatus } from 'src/app/modulos/modulo-gestion/interfaces/web/definiciones/general/status.interface';
-import { IOrdenVentaSapPendienteByFiltro } from 'src/app/modulos/modulo-ventas/interfaces/sap/orden-venta.interface';
+import { IOrdersSodimacPendiente } from 'src/app/modulos/modulo-ventas/interfaces/sap-business-one/orders.interface';
 import { IOrdenVentaSodimac, IOrdenVentaSodimacDetalle } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
 import { OrdenVentaSodimacCreateModel } from 'src/app/modulos/modulo-ventas/models/web/orden-venta-sodimac.model';
 import { StatusService } from 'src/app/modulos/modulo-gestion/services/web/definiciones/general/status.service';
@@ -122,7 +122,7 @@ export class PanelSodimacOrdenVentaViewComponent implements OnInit {
     });
   }
 
-  onToOrdenVentaSelected(value: IOrdenVentaSapPendienteByFiltro)
+  onToOrdenVentaSelected(value: IOrdersSodimacPendiente)
   {
     this.docEntry         = value.docEntry;
     this.modeloFormCab1.patchValue
@@ -148,7 +148,7 @@ export class PanelSodimacOrdenVentaViewComponent implements OnInit {
   set(value: IOrdenVentaSodimac)
   {
     this.docEntry = value.docEntry;
-    this.detalle   = value.item;
+    this.detalle   = value.lines;
   }
 
   getById(id: number) {

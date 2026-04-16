@@ -1,4 +1,4 @@
-export interface ITransferenciaStock {
+export interface IStockTransfers {
     docEntry: number;
     docNum: number;
 

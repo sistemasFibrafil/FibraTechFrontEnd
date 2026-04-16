@@ -1,22 +1,23 @@
-import { Subject, Subscription, finalize, forkJoin, takeUntil } from 'rxjs';
-import { ActivatedRoute, Params, Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { LayoutComponent } from '../../../../../layout/layout.component';
-import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
+import { Subject, Subscription, finalize, forkJoin, takeUntil } from 'rxjs';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from '../../../../../constants/globals-constants-form';
 
 import { PerfilModel } from '../../../models/pefil.model';
-import { UtilService } from '../../../../../services/util.service';
-import { SeguridadService } from '../../../services/seguridad.service';
-import { SwaCustomService } from '../../../../../services/swa-custom.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
-import { LogisticUserService } from '../../../services/logistic-user.service';
 import { LogisticUserModel } from '../../../models/logistic-user.model';
-import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/location.service';
+
+import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
+
+import { UtilService } from '../../../../../services/util.service';
+import { SwaCustomService } from '../../../../../services/swa-custom.service';
+import { LogisticUserService } from '../../../services/logistic-user.service';
+import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/location.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -62,7 +63,7 @@ export class PersonaPermisoLogisticoComponent implements OnInit, OnDestroy {
     private warehouseService: WarehousesService,
     private readonly swaCustomService: SwaCustomService,
     private readonly logisticUserService: LogisticUserService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService
   ) {}
 
   ngOnInit() {
@@ -232,7 +233,6 @@ export class PersonaPermisoLogisticoComponent implements OnInit, OnDestroy {
   }
 
   private validateSave(): boolean {
-    debugger;
     const showError = (message: string): boolean => {
       this.isSaving = false;
       this.swaCustomService.swaMsgInfo(message);
@@ -275,8 +275,6 @@ export class PersonaPermisoLogisticoComponent implements OnInit, OnDestroy {
         .map(({ transtype, ...rest }) => ({ ...rest })),
     };
 
-    debugger;
-
     this.logisticUserService.setCreate(modeloToSave)
     .pipe(
       takeUntil(this.destroy$),
@@ -288,7 +286,7 @@ export class PersonaPermisoLogisticoComponent implements OnInit, OnDestroy {
         this.getToObtienePersonaPorId();
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'save', () => { this.isSaving = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
       }
     });
   }

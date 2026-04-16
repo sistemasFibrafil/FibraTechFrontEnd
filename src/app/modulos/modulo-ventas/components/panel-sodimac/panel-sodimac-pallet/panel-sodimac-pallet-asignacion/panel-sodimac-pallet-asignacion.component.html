@@ -70,7 +70,7 @@
                 <td class="custom-td-numero">
                   <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
                 </td>
-                <td class="custom-td-2">
+                <td class="custom-td-5">
                   <button pButton icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onToRowDelete(modelo, ri)"></button>
                 </td>
               </tr>
@@ -154,7 +154,7 @@
           <td class="custom-td-numero">
             <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
           </td>
-          <td class="custom-td-2">
+          <td class="custom-td-5">
             <button pButton icon="{{globalConstants.icoAceptar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onToRowSelected(modelo)"></button>
           </td>
         </tr>

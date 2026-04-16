@@ -12,7 +12,7 @@
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-cardName">Razón social o nombre </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-cardName" type="text" [class.readonly-control]="isLocked" [readonly]="isLocked" [attr.tabindex]="-1" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-12">
@@ -22,7 +22,7 @@
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-address">Dirección de destino </label>
                 <div class="p-inputgroup">
-                  <textarea id="float-area-address" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText [readOnly]="true"></textarea>
+                  <textarea id="float-area-address" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText></textarea>
                 </div>
               </div>
             </div>
@@ -36,13 +36,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-docNum">Número </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docNum" class="field-mandatory" type="text" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-docNum" type="text" [class.readonly-control]="isLocked" [readonly]="isLocked" [attr.tabindex]="-1" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-4">
                 <label class="label-custom" for="float-input-docStatus">Estado </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docStatus" class="field-mandatory" type="text" placeholder="Estado" maxlength="50" size="50" formControlName="docStatus" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-docStatus" type="text" [class.readonly-control]="isLocked" [readonly]="isLocked" [attr.tabindex]="-1" placeholder="Estado" maxlength="50" size="50" formControlName="docStatus" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-3">
@@ -132,33 +132,32 @@
                 <!-- body -->
                 <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
                   <tr [pContextMenuRow]="modelo">
-                    <td class="custom-td-2">
+                    <td class="custom-td-8">
                       <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                       </p-splitButton>
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Código: </span><i class="pi pi-search" (click)="onOpenArticulo(ri)"></i> {{modelo.itemCode}}
+                      <i class="pi pi-search" (click)="onOpenArticulo(ri)"></i> {{modelo.itemCode}}
                     </td>
                     <td class="p-fluid">
-                        <span class="p-column-title">Descripción: </span> {{modelo.dscription}}
+                      {{modelo.dscription}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">De almacén: </span><i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacenOrigenItem(modelo, ri)" ></i> {{modelo.fromWhsCod}}
+                      <i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacenOrigenItem(modelo, ri)" ></i> {{modelo.fromWhsCod}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Almacén destino: </span><i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacenDestinoItem(modelo, ri)"></i> {{modelo.whsCode}}
+                      <i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenAlmacenDestinoItem(modelo, ri)"></i> {{modelo.whsCode}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Tipo operación: </span><i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenTipoOperacionItem(ri)"></i> {{modelo?.u_tipoOpT12Nam}}
+                      <i *ngIf="modelo.itemCode !== ''" class="pi pi-search" (click)="onOpenTipoOperacionItem(ri)"></i> {{modelo?.u_tipoOpT12Nam}}
                     </td>
                     <td class="custom-td-3">
-                      <span class="p-column-title">UM: </span> {{modelo.unitMsr}}
+                      {{modelo.unitMsr}}
                     </td>
                     <td class="custom-td-numero" pEditableColumn>
-                      <span class="p-column-title">Cantidad: </span>
                       <p-cellEditor>
                         <ng-template pTemplate="input">
-                          <input id="cantidad" type="text"autocomplete="off" [(ngModel)]="modelo.quantity" maxlength="9" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.quantity)">
+                          <input id="quantity" type="text" autocomplete="off" [(ngModel)]="modelo.quantity" maxlength="19" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.quantity)">
                         </ng-template>
                         <ng-template pTemplate="output">
                           {{modelo.quantity | number: '.3':'en-EN'}}
@@ -243,10 +242,10 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="!modeloFormDoc.valid || !modeloFormOtr.valid || !modeloFormPie.valid || !hasValidLines" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          <button pButton type="submit" [disabled]="!modeloFormDoc.valid || !modeloFormOtr.valid || !modeloFormPie.valid || !hasValidLines" label="{{globalConstants.cCrear}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
         <div class="col-12 md:col-2">
-          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>
         </div>
       </div>
     </p-footer>

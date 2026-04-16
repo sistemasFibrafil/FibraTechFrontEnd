@@ -2,16 +2,17 @@ import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
 import { Component, OnInit } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { ISolicitudTraslado, ISolicitudTraslado1 } from 'src/app/modulos/modulo-inventario/interfaces/solicitud-traslado.interface';
-import { SolicitudTrasladoFilterModel } from 'src/app/modulos/modulo-inventario/models/solicitud-traslado.model';
-import { SolicitudTrasladoService } from 'src/app/modulos/modulo-inventario/services/solicitud-traslado.service';
+import { InventoryTransferRequestFilterModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
+import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { CargaSaldoInicialService } from 'src/app/modulos/modulo-inventario/services/carga-saldo-inicial.service';
+import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
 
 interface DocStatus {
   statusCode  : string,
@@ -43,17 +44,17 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
   columnas: any[];
   opciones: any[];
 
-  modelo          : ISolicitudTraslado;
-  modeloDelete    : ISolicitudTraslado;
-  selectedModelo  : ISolicitudTraslado;
-  listmodelo      : ISolicitudTraslado[] = [];
+  modelo          : IInventoryTransferRequest;
+  modeloDelete    : IInventoryTransferRequest;
+  selectedModelo  : IInventoryTransferRequest;
+  listmodelo      : IInventoryTransferRequest[] = [];
 
   docStatus: DocStatus[];
   docStatusList: SelectItem[];
   docStatusSelected: any[];
 
-  modeloDetalle: ISolicitudTraslado1[] = [];
-  params: SolicitudTrasladoFilterModel = new SolicitudTrasladoFilterModel();
+  modeloDetalle: IInventoryTransferRequest1[] = [];
+  params: InventoryTransferRequestFilterModel = new InventoryTransferRequestFilterModel();
 
 
   constructor
@@ -62,7 +63,7 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
     private fb: FormBuilder,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private solicitudTrasladoService: SolicitudTrasladoService,
+    private inventoryTransferRequestService: InventoryTransferRequestService,
     private cargaSaldoInicialService: CargaSaldoInicialService,
   ) {}
 
@@ -107,7 +108,7 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
     ];
   }
 
-  onSelectedItem(modelo: ISolicitudTraslado) {
+  onSelectedItem(modelo: IInventoryTransferRequest) {
     this.selectedModelo = modelo;
     if(this.buttonAcces.btnEditar || modelo.docStatus === 'O' || modelo.docStatus === 'C'){
       this.opciones.find(x => x.label == "Editar").visible = true;
@@ -166,7 +167,7 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
   close() {
     this.isClosing = true;
     const param: any = { docEntry: this.selectedModelo.docEntry };
-    this.solicitudTrasladoService.setClose(param)
+    this.inventoryTransferRequestService.setClose(param)
     .subscribe({ next: (resp:any)=>{
         this.getList();
         this.isClosing = false;
@@ -194,7 +195,7 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
 
   onClickImprimir() {
     this.isDisplayGenerandoVisor = true;
-    this.solicitudTrasladoService.getFormatoPdfByDocEntry(this.selectedModelo.docEntry)
+    this.inventoryTransferRequestService.getFormatoPdfByDocEntry(this.selectedModelo.docEntry)
     .subscribe({next:(resp: any) => {
       switch (resp.type) {
         case HttpEventType.DownloadProgress:
@@ -214,8 +215,8 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
 
   onClickTransferir(){
     this.isDisplay = true;
-    this.solicitudTrasladoService.getToTransferenciaByDocEntry(this.selectedModelo.docEntry)
-    .subscribe({next:(data: ISolicitudTraslado) =>{
+    this.inventoryTransferRequestService.getToTransferenciaByDocEntry(this.selectedModelo.docEntry)
+    .subscribe({next:(data: IInventoryTransferRequest) =>{
       this.isDisplay = false;
       this.modelo = data;
       this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create', JSON.stringify(this.modelo)]);

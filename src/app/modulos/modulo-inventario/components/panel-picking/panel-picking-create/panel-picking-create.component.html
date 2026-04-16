@@ -63,7 +63,7 @@
         <!-- body -->
         <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
           <tr class="p-selectable-row">
-            <td class="custom-td-2">
+            <td class="custom-td-8">
               <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
               </p-splitButton>
             </td>
@@ -101,7 +101,7 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonBack}}"></button>
         </div>
       </div>
     </p-footer>
@@ -161,7 +161,7 @@
           <td class="custom-td-numero">
             <span class="p-column-title">Peso: </span> {{modelo.u_WeightKg | number: '.3':'en-EN'}}
           </td>
-          <td class="custom-td-2">
+          <td class="custom-td-5">
             <button pButton icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onRowSelectedDelete(modelo)"></button>
           </td>
         </tr>

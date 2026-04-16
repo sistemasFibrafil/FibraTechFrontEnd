@@ -1,0 +1,18 @@
+.td-flex {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.align-right {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+
+.group-header {
+  background: #f4f6f9;
+  font-weight: bold;
+  cursor: pointer;
+}

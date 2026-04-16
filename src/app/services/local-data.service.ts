@@ -23,10 +23,17 @@ export class LocalDataService {
     ]
   }
 
-  getListStatusDocumentInventory() : any[] {
+  getListStatusDocuments() : any[] {
     return [
       { code: 'O', name: 'Abierto' },
       { code: 'C', name: 'Cerrado' },
+    ]
+  }
+
+  getListCardType() : any[] {
+    return [
+      { code: 'C', name: 'Cliente' },
+      { code: 'S', name: 'Proveedor' },
     ]
   }
 

@@ -1,27 +1,30 @@
-import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { finalize, forkJoin, Subject, switchMap, takeUntil, tap } from 'rxjs';
-import { LayoutComponent } from 'src/app/layout/layout.component';
-import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { finalize, forkJoin, merge, Subject, switchMap, takeUntil } from 'rxjs';
+import { Component, OnDestroy, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 
-import { ISolicitudCompra, ISolicitudCompra1 } from '../../../interfaces/sap/solicitud-compra.interface';
-import { IArticuloQuery } from 'src/app/modulos/modulo-inventario/interfaces/articulo.interface';
+import { LayoutComponent } from '@app/layout/layout.component';
 
-import { UtilService } from 'src/app/services/util.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { SolicitudCompraService } from '../../../services/sap/solicitud-compra.service';
-import { ArticuloService } from 'src/app/modulos/modulo-inventario/services/articulo.service';
-import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/users.service';
-import { EmployeesInfoService } from 'src/app/modulos/modulo-recursos-humanos/services/employees-info.service';
-import { BranchesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/branchs.service';
-import { SolicitudCompra1UpdateModel, SolicitudCompraUpdateModel } from '../../../models/sap/solicitud-compra.model';
-import { DepartmentsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/departments.service';
-import { NumeracionDocumentoService } from 'src/app/modulos/modulo-gestion/services/sap/inicializacion-sistema/numeracion-documento.service';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
+
+import { ItemsFindByListCodeModel } from '@app/modulos/modulo-inventario/models/items.model';
+import { PurchaseRequest1UpdateModel, PurchaseRequestUpdateModel } from '../../../models/sap-business-one/purchase-request.model';
+
+import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
+import { IArticuloQuery } from '@app/modulos/modulo-inventario/interfaces/items.interface';
+import { IPurchaseRequest, IPurchaseRequest1 } from '../../../interfaces/sap-business-one/purchase-request.interface';
+
+import { UtilService } from '@app/services/util.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { ItemsService } from '@app/modulos/modulo-inventario/services/items.service';
+import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
+import { EmployeesInfoService } from '@app/modulos/modulo-recursos-humanos/services/employees-info.service';
+import { UsersService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { BranchesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/branchs.service';
+import { DepartmentsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/departments.service';
 
 
 @Component({
@@ -30,90 +33,112 @@ import { NumeracionDocumentoService } from 'src/app/modulos/modulo-gestion/servi
   styleUrls: ['./panel-solicitud-compra-edit.component.css']
 })
 export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, AfterViewInit {
-  // Lifecycle management
-  /** Gestión de ciclo de vida y ajustes visuales auxiliares */
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                    = new Subject<void>();
-  isLoadingInitialData                         = false;
-  paddingTop                                   = '20px';
-  @ViewChild('notifyLabel') notifyLabel!       : ElementRef<HTMLElement>;
   private resizeObserver!                      : ResizeObserver;
 
-  // Forms
-  /** Formularios reactivos de la vista */
+  @ViewChild('notifyLabel') notifyLabel!       : ElementRef<HTMLElement>;
+  paddingTop                                   = '20px';
+
+
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
+  readonly titulo                              = 'Solicitud de Compra';
+  globalConstants                              : GlobalsConstantsForm = new GlobalsConstantsForm();
+
+
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
   modeloFormReq                                : FormGroup;
   modeloFormDoc                                : FormGroup;
   modeloFormCon                                : FormGroup;
   modeloFormPie                                : FormGroup;
 
-  // Configuration
-  /** Configuración general y constantes */
-  readonly titulo                              = 'Solicitud de Compra';
-  globalConstants                              : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  // Combos
-  /** Listas de soporte para dropdowns */
-  reqTypesList                                 : SelectItem[] = [];
-  docTypesList                                 : SelectItem[] = [];
-  branchesList                                 : SelectItem[] = [];
-  departmentsList                              : SelectItem[] = [];
-  docStatusList                                : SelectItem[] = [];
-  requesterList                                : SelectItem[] = [];
-  employeesInfoList                            : SelectItem[] = [];
-
-  // UI State
-  /** Estados de overlays, modales y flags UI */
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
+  isLocked                                     = false;
   isSaving                                     = false;
   isDisplay                                    = false;
+  hasValidLines                                = false;
+  hasRealChanges                               = false;
+  sLoadingInitialData                          = false;
+  isLoadingInitialData                         = false;
   isVisualizarAlmacen                          = false;
   isVisualizarArticulo                         = false;
   isVisualizarProveedor                        = false;
   isVisualizarTipoCompra                       = false;
   isVisualizarCentroCosto                      = false;
-  isVisualizarCuentaContable                   = false;
   isVisualizarTipoOperacion                    = false;
+  isVisualizarCuentaContable                   = false;
 
-  // Table configuration
-  /** Configuración de tabla y menús de acción */
+
+  // ===========================
+  // 🔹 5. TABLE CONFIG
+  // ===========================
   items                                        : MenuItem[];
   columnas                                     : TableColumn[] = [];
   opciones                                     : MenuItem[];
 
-  // Data
-  /** Modelos de cabecera y detalle */
-  modelo                                       : ISolicitudCompra;
-  modeloLines                                  : ISolicitudCompra1[] = [];
-  modeloLinesSelected                          : ISolicitudCompra1;
-  modeloLinesEliminar                          : ISolicitudCompra1[] = [];
-  modeloLinesOriginal                          : ISolicitudCompra1[] = [];
-  modeloLinesSelectedContext                   : ISolicitudCompra1;
 
-  docTypeSelected                              : any;
+  // ===========================
+  // 🔹 6. DATA (CORE)
+  // ===========================
+  modelo                                       : IPurchaseRequest;
+  modeloLinesSelected                          : IPurchaseRequest1;
+  modeloLinesSelectedContext                   : IPurchaseRequest1;
 
-  // Filters / Additional properties
-  /** Identificadores y auxiliares */
+  modeloLines                                  : IPurchaseRequest1[] = [];
+  modeloLinesEliminar                          : IPurchaseRequest1[] = [];
+  modeloLinesOriginal                          : IPurchaseRequest1[] = [];
+
+
+  // ===========================
+  // 🔹 7. COMBOS / LISTS
+  // ===========================
+  reqTypesList                                 : SelectItem[] = [];
+  docTypesList                                 : SelectItem[] = [];
+  branchesList                                 : SelectItem[] = [];
+  docStatusList                                : SelectItem[] = [];
+  requesterList                                : SelectItem[] = [];
+  departmentsList                              : SelectItem[] = [];
+  employeesInfoList                            : SelectItem[] = [];
+
+
+  // ===========================
+  // 🔹 8. DOC TYPE CONTROL
+  // ===========================
+  initialSnapshot!                             : any;
+
+
+  // ===========================
+  // 🔹 9. INDEXES (UI CONTROL)
+  // ===========================
   id                                           = 0;
   docEntry                                     = 0;
-  indexArticulo                                = 0;
   indexAlmacen                                 = 0;
+  indexArticulo                                = 0;
   indexTipoCompra                              = 0;
   indexCentroCosto                             = 0;
   indexTipoOperacion                           = 0;
   indexCentroProveedor                         = 0;
   indexCentroCuentaContable                    = 0;
 
+
+  // ===========================
+  // 🔹 10. AUX / FILTERS
+  // ===========================
   filler                                       = '';
   itemCode                                     = '';
   toWhsCode                                    = '';
   inactiveAlmacen                              = 'N';
   demandanteAlmacen                            = 'N';
   inactiveAlmacenItem                          = 'N';
-
-  hasValidLines                                = false;
-
-  // Change Detection
-  /** Seguimiento de cambios reales para habilitar acciones */
-  initialSnapshot!                             : any;
-  hasRealChanges                               = false;
 
 
   constructor(
@@ -122,35 +147,26 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     public  readonly app: LayoutComponent,
     private readonly route: ActivatedRoute,
     private readonly usersService: UsersService,
-    private readonly articuloService: ArticuloService,
+    private readonly itemsService: ItemsService,
     private readonly branchesService: BranchesService,
     private readonly swaCustomService: SwaCustomService,
     private readonly localDataService: LocalDataService,
     private readonly userContextService: UserContextService,
     private readonly departmentsService: DepartmentsService,
     private readonly employeesInfoService: EmployeesInfoService,
-    private readonly solicitudCompraService: SolicitudCompraService,
-    private readonly numeracionDocumentoService: NumeracionDocumentoService,
+    private readonly purchaseRequestService: PurchaseRequestService,
     public  readonly utilService: UtilService,
   ) {}
 
-  // ===========================
-  // Lifecycle Hooks
-  // ===========================
+
+
+  //#region <<< 1. LIFECYCLE >>>
 
   /**
    * Inicializa formularios y carga datos iniciales para combos.
    */
   ngOnInit(): void {
     this.initializeComponent();
-  }
-
-  /**
-   * Limpia suscripciones/observadores para evitar fugas de memoria.
-   */
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   /**
@@ -166,6 +182,14 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     });
 
     this.resizeObserver.observe(this.notifyLabel.nativeElement);
+  }
+
+  /**
+   * Limpia suscripciones/observadores para evitar fugas de memoria.
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /** Detecta redimensionamiento de ventana y vuelve a medir */
@@ -193,57 +217,117 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     });
   }
 
+  //#endregion
 
-  // ===========================
-  // Initialization
-  // ===========================
+
+
+  //#region <<< 2. INITIALIZATION >>>
 
   private initializeComponent(): void {
-    // Construye formularios reactivos y columnas/menús de UI
+    // 1️⃣ Crear formularios
     this.buildForms();
+
+    // 2️⃣ Cargar datos base
+    this.loadAllCombos();
+
+    // 3️⃣ Registrar listeners reactivos
     this.subscribeReqDate();
+
+    // 4️⃣ Inicializar UI
     this.onBuildColumn();
     this.opcionesTabla();
     this.buildContextMenu();
-    // Cargar todos los combos en paralelo y aplicar valores por defecto sin emitir eventos
-    this.loadAllCombos();
   }
 
   private buildForms(): void {
     // Define y compone grupos de formulario con validadores
     this.modeloFormReq = this.fb.group({
-      reqType                 : ['', Validators.required],
-      reqName                 : ['', Validators.required],
-      branch                  : [''],
-      department              : [''],
-      notify                  : [false],
-      email                   : ['']
+      reqType                 : [{ value: '', disabled: false }, Validators.required],
+      reqName                 : [{ value: '', disabled: false }, Validators.required],
+      branch                  : [{ value: '', disabled: false }],
+      department              : [{ value: '', disabled: false }],
+      notify                  : [{ value: false, disabled: false }],
+      email                   : [{ value: '', disabled: false }]
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      docStatus               : [{ value: 'Abierto', disabled: true }, Validators.required],
-      docDate                 : [new Date(), Validators.required],
-      docDueDate              : [new Date(), Validators.required],
-      taxDate                 : [new Date(), Validators.required],
-      reqDate                 : [null, Validators.required]
+      docNum                  : [{ value: '', disabled: false }],
+      docStatus               : [{ value: 'Abierto', disabled: false }, Validators.required],
+      docDate                 : [{ value: null, disabled: false }, Validators.required],
+      docDueDate              : [{ value: null, disabled: false }, Validators.required],
+      taxDate                 : [{ value: null, disabled: false }, Validators.required],
+      reqDate                 : [{ value: null, disabled: false }, Validators.required]
     });
 
     this.modeloFormCon = this.fb.group({
-      docType                 : [{ value: '', disabled: true }, Validators.required]
+      docType                 : [{ value: '', disabled: false }, Validators.required]
     });
 
     this.modeloFormPie = this.fb.group({
-      employeeInfo            : ['', Validators.required],
-      comments                : ['']
+      employeeInfo            : [{ value: '', disabled: false }, Validators.required],
+      comments                : [{ value: '', disabled: false }, Validators.maxLength(250)]
+    });
+  }
+
+  private loadAllCombos(): void {
+
+    // Cargar datos síncronos (LocalDataService)
+    const reqTypes = this.localDataService.getListReqTypes();
+    this.reqTypesList = reqTypes.map(s => ({ label: s.name, value: s.code }));
+
+    const docTypes = this.localDataService.getListDocTypes();
+    this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
+
+    forkJoin({
+      requesterList     : this.usersService.getList(),
+      branchesList      : this.branchesService.getList(),
+      departmentsList   : this.departmentsService.getList(),
+      employeesInfoList : this.employeesInfoService.getList()
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (result: any) => {
+        // Mapear requester list
+        this.requesterList = result.requesterList.map(item => ({
+          label: item.userName,
+          value: item.userCode
+        }));
+
+        // Mapear branches list
+        this.branchesList = result.branchesList.map(item => ({
+          label: item.name,
+          value: item.code
+        }));
+
+
+        // Mapear departments list
+        this.departmentsList = result.departmentsList.map(item => ({
+          label: item.name,
+          value: item.code
+        }));
+
+
+        // Mapear employees info list
+        this.employeesInfoList =  result.employeesInfoList.map(item => ({
+          label: item.fullName,
+          value: item.empID
+        }));
+
+        // 3. AHORA SÍ cargar datos - los combos están listos
+        this.loadData();
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
+      }
     });
   }
 
   private onBuildColumn(): void {
     // Usar docTypeSelected si está disponible, sino leer del formulario
-    const docTyp = this.modeloFormCon.get('docType')?.value?.value;
+    const docTypeValue = this.modeloFormCon.get('docType')?.value?.value;
+    const isItemDoc         = docTypeValue === 'I';
 
-    if( docTyp === 'I'){
+    if( isItemDoc){
       this.columnas = [
         { field: 'itemCode',          header: 'Código' },
         { field: 'dscription',        header: 'Descripción' },
@@ -256,6 +340,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
         { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
         { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
         { field: 'unitMsr',           header: 'UM' },
+        { field: 'onHand',            header: 'Stock' },
         { field: 'quantity',          header: 'Cantidad' },
       ];
     }
@@ -289,6 +374,44 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     ];
   }
 
+  /** Se suscribe a cambios en la fecha de requerimiento para aplicarlos a todas las líneas */
+  private subscribeReqDate(): void {
+    this.modeloFormDoc.get('reqDate')!
+    .valueChanges
+    .pipe(
+      takeUntil(this.destroy$)
+    )
+    .subscribe((date: Date | null) => {
+      if (date) {
+        this.applyReqDateToLines(date);
+      }
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 3. GETTERS >>>
+
+  private get docType(): string {
+    return this.modeloFormCon.get('docType')?.value?.value;
+  }
+
+  get isItem(): boolean {
+    return this.docType === 'I';
+  }
+
+  get isService(): boolean {
+    return this.docType === 'S';
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 4. TABLE / CONTEXT MENU >>>
+
   onContextMenuShow(event: any): void {
     // No sobrescribir la selección del contexto si el evento no trae datos de fila.
     // El p-table ya actualiza `modeloLinesSelectedContext` vía [(contextMenuSelection)].
@@ -299,7 +422,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   }
 
   /** Agrega una nueva línea después de la línea seleccionada en el menú contextual */
-  onClickContextMenuAddLine(modelo: ISolicitudCompra1): void {
+  onClickContextMenuAddLine(modelo: IPurchaseRequest1): void {
     // Manejar casos donde el objeto 'modelo' no es pasado correctamente
     const target = modelo || this.modeloLinesSelectedContext;
 
@@ -313,7 +436,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   }
 
   /** Elimina la línea seleccionada en el menú contextual */
-  onClickContextMenuDelete(modelo: ISolicitudCompra1): void {
+  onClickContextMenuDelete(modelo: IPurchaseRequest1): void {
     if (modelo.record === 2) {
       modelo.record = 3;
       this.modeloLinesEliminar.push(modelo);
@@ -332,12 +455,9 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  // ===========================
-  // Table Events
-  // ===========================
 
   /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
-  onSelectedItem(modelo: ISolicitudCompra1): void {
+  onSelectedItem(modelo: IPurchaseRequest1): void {
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility();
   }
@@ -369,9 +489,6 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  // ===========================
-  // Helper Methods
-  // ===========================
 
   private updateMenuVisibility(): void {
     // Leer el valor actual del formulario
@@ -407,7 +524,56 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     if (deleteLineOption) deleteLineOption.visible = hasLines;
   }
 
-  // Verifica si todas las líneas son válidas
+  //#endregion
+
+
+
+  //#region <<< 5. LINES (CORE) >>>
+
+  private addLine(index: number): void {
+    const newLine: IPurchaseRequest1 = {
+      lineStatus        : 'O',
+      itemCode          : '',
+      dscription        : '',
+      lineVendor        : '',
+      pqtReqDate        : null,
+      acctCode          : '',
+      formatCode        : '',
+      acctName          : '',
+      ocrCode           : '',
+      whsCode           : '',
+      u_tipoOpT12       : '',
+      u_tipoOpT12Nam    : '',
+      u_FF_TIP_COM      : '',
+      u_FF_TIP_COM_NAM  : '',
+      unitMsr           : '',
+      onHand            : 0,
+      quantity          : 0,
+      openQty           : 0,
+      record            : 1
+    };
+
+
+    // 🔥 Crear nueva referencia
+    this.modeloLines = [
+      ...this.modeloLines.slice(0, index),
+      newLine,
+      ...this.modeloLines.slice(index)
+    ];
+
+    this.updateHasValidLines();
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  /** Aplica la fecha de requerimiento a todas las líneas que tengan artículo seleccionado */
+  private applyReqDateToLines(date: Date): void {
+    // Se obtiene solo las líneas que tienen descripción (artículo seleccionado)
+    this.modeloLines.filter(line => line.dscription !== '').forEach(line => {
+      line.pqtReqDate = date;
+    });
+  }
+
+  // Verifica si todas las líneas son válidas según el tipo de documento
   private updateHasValidLines(): void {
     const docTypeValue = this.modeloFormCon.getRawValue().docType?.value;
     const isItemDoc = docTypeValue === 'I';
@@ -421,110 +587,683 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     );
   }
 
+  //#endregion
 
-  private addLine(index: number): void {
-    this.modeloLines.splice(index, 0, {
-      lineStatus        : 'O',
-      itemCode          : '',
-      dscription        : '',
-      lineVendor        : '' ,
-      pqtReqDate        : null,
-      acctCode          : '',
-      formatCode        : '',
-      acctName          : '',
-      ocrCode           : '',
-      whsCode           : '',
-      u_tipoOpT12       : '',
-      u_tipoOpT12Nam    : '',
-      u_FF_TIP_COM      : '',
-      u_FF_TIP_COM_NAM  : '',
-      unitMsr           : '',
-      quantity          : 0,
-      openQty           : 0,
-      record            : 1
+
+
+  //#region <<< 6. DOC TYPE >>>
+  //#endregion
+
+
+
+  //#region <<< 7. ICONS >>>
+
+  showIcon(modelo: any): boolean {
+    const u = this.utilService;
+    const p = (v: any) => u.normalizePrimitive(v);
+
+    const lineStatus = p(modelo.lineStatus);
+    const itemCode   = p(modelo.itemCode);
+    const dscription = p(modelo.dscription);
+
+    if (lineStatus === 'C') return false;
+
+    // Caso 1: Tipo Item
+    if (this.docType === 'I') {
+      return !!itemCode;
+    }
+
+    // Caso 2: Tipo Servicio
+    if (this.docType === 'S') {
+      return !!dscription;
+    }
+
+    return false;
+  }
+
+  showIconDelete(modelo: any): boolean {
+    const p = (v: any) => this.utilService.normalizePrimitive(v);
+
+    return p(modelo.lineStatus) !== 'C'
+      && !!p(modelo.lineVendor);
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 8. ARTÍCULO >>>
+
+  onOpenArticulo(index: number): void {
+    this.indexArticulo        = index;
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  onSelectedArticulo(value: any): void {
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+    this.getListByCode(value.itemCode);
+  }
+
+  onClickCloseArticulo(): void {
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  private mapToPurchaseRequest(element: IArticuloQuery, date: Date): IPurchaseRequest1 {
+    /** helpers para evitar repetición */
+    const u       = this.utilService;
+    const p       = (v:any)=>u.normalizePrimitive(v);
+    const d       = (v:any)=>u.normalizeDateOrToday(v);
+
+    return {
+      itemCode       : p(element.itemCode),
+      dscription     : p(element.itemName),
+      pqtReqDate     : d(date),
+      acctCode       : p(element.acctCode),
+      formatCode     : p(element.formatCode),
+      acctName       : p(element.acctName),
+      u_tipoOpT12    : p(element.u_tipoOpT12),
+      u_tipoOpT12Nam : p(element.u_tipoOpT12Nam),
+      whsCode        : p(element.dfltWH),
+      unitMsr        : p(element.buyUnitMsr),
+      onHand         : p(element.onHand),
+      quantity       : 1,
+      openQty        : 1
+    };
+  }
+
+  setItem(data: IArticuloQuery[]): void {
+    const element = data[0];
+    const date = this.modeloFormDoc.get('reqDate')?.value;
+
+    const newItem = this.utilService.mapLine(
+      this.mapToPurchaseRequest(element, date)
+    );
+
+    this.modeloLines = this.modeloLines.map((line, index) => {
+      if (index !== this.indexArticulo) return line;
+
+      return {
+        ...newItem,
+        record: line.record === 1 ? 1 : 2
+      };
     });
+
+    this.updateHasValidLines();
+    this.detectRealChanges();
+  }
+
+  getListByCode(itemCode: string): void {
+    this.isDisplay = true;
+
+    this.itemsService
+      .getListByCode(this.buildFilterParams(itemCode))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplay = false;
+        })
+      )
+      .subscribe({
+        next: (data: any[]) => {
+          if (!data || data.length === 0) {
+            this.swaCustomService.swaMsgError('Artículo no encontrado');
+            return;
+          }
+
+          this.setItem(data);
+        },
+        error: (e) => {
+          this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
+        }
+      });
+  }
+
+  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
+    return {
+      itemCode,
+      cardCode            : '',
+      currency            : '',
+      operationTypeCode   : '02',
+      warehouseProduction : '',
+      warehouseLogistics  : 'Y',
+    };
+  }
+
+  onDescChange() {
     this.updateHasValidLines();
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  /**
-   * Carga en paralelo las listas de soporte (numeración, almacenes, tipos y empleados)
-   * y establece los valores por defecto en los formularios usando { emitEvent: false } para
-   * evitar triggers no deseados en valueChanges.
-   */
-  private loadAllCombos(): void {
-
-    // Cargar datos síncronos (LocalDataService)
-    const reqTypes = this.localDataService.getListReqTypes();
-    this.reqTypesList = reqTypes.map(s => ({ label: s.name, value: s.code }));
-
-    const docTypes = this.localDataService.getListDocTypes();
-    this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
-
-    forkJoin({
-      requesterList     : this.usersService.getList(),
-      branchesList      : this.branchesService.getList(),
-      departmentsList   : this.departmentsService.getList(),
-      employeesInfoList : this.employeesInfoService.getList()
-    })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (result: any) => {
-        // Mapear requester list
-        this.requesterList = result.requesterList.map(item => ({
-          label: item.u_NAME,
-          value: item.useR_CODE
-        }));
-
-        // Mapear branches list
-        this.branchesList = result.branchesList.map(item => ({
-          label: item.name,
-          value: item.code
-        }));
+  //#endregion
 
 
-        // Mapear departments list
-        this.departmentsList = result.departmentsList.map(item => ({
-          label: item.name,
-          value: item.code
-        }));
+
+  //#region <<< 9. PROVEEDOR >>>
+
+  onOpenProveedor(index: number): void {
+    this.indexCentroProveedor = index;
+    this.isVisualizarProveedor = !this.isVisualizarProveedor;
+  }
+
+  onSelectedProveedor(value: any): void {
+    const currentLine          = this.modeloLines[this.indexCentroProveedor];
+    currentLine.lineVendor     = value.cardCode;
+    this.isVisualizarProveedor = !this.isVisualizarProveedor;
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  onClickCloseProveedor(): void {
+    this.isVisualizarProveedor = !this.isVisualizarProveedor;
+  }
+
+  onDeleteProveedor(index: number): void {
+    if (index == null || index < 0) return;
+
+    const linea = this.modeloLines[index];
+    if (!linea) return;
+
+    // 🔥 Limpiar proveedor
+    linea.lineVendor = '';
+
+    // 🔄 Forzar actualización (por si Angular no detecta el cambio)
+    this.modeloLines = [...this.modeloLines];
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  //#endregion
 
 
-        // Mapear employees info list
-        this.employeesInfoList =  result.employeesInfoList.map(item => ({
-          label: item.fullName,
-          value: item.empID
-        }));
 
-        // 3. AHORA SÍ cargar datos - los combos están listos
-        this.loadData();
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => {}, this.swaCustomService);
+  //#region <<< 10. CUENTA CONTABLE >>>
+
+  onOpenCuentaContable(index: number): void {
+    this.indexCentroCuentaContable = index;
+    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
+  }
+
+  onSelectedCuentaContable(value: any): void {
+    const currentLine               = this.modeloLines[this.indexCentroCuentaContable];
+    currentLine.acctCode            = value.acctCode;
+    currentLine.formatCode          = value.formatCode;
+    currentLine.acctName            = value.acctName;
+    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  onClickCloseCuentaContable(): void {
+    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 11. CENTRO DE COSTO >>>
+
+  onOpenCentroCosto(index: number): void {
+    this.indexCentroCosto        = index;
+    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
+  }
+
+  onSelectedCentroCosto(value: any): void {
+    const currentLine            = this.modeloLines[this.indexCentroCosto];
+    currentLine.ocrCode          = value.ocrCode;
+    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  onClickCloseCentroCosto(): void {
+    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 12. ALMACÉN >>>
+
+  onOpenAlmacen(value: IPurchaseRequest1, index: number): void {
+    this.indexAlmacen         = index;
+    this.itemCode             = value.itemCode;
+    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
+  }
+
+  onSelectedAlmacen(value: any): void {
+    const currentLine         = this.modeloLines[this.indexAlmacen];
+    currentLine.whsCode       = value.whsCode;
+    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  onClickCloseAlmacen(): void {
+    this.isVisualizarAlmacen = !this.isVisualizarAlmacen;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 13. TIPO OPERACIÓN >>>
+
+  onOpenTipoOperacion(index: number): void {
+    this.indexTipoOperacion        = index;
+    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
+  }
+
+  onSelectedTipoOperacion(value: any): void {
+    const currentLine              = this.modeloLines[this.indexTipoOperacion];
+    currentLine.u_tipoOpT12        = value.code;
+    currentLine.u_tipoOpT12Nam     = value.fullDescription;
+    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  onClickCloseTipoOperacion(): void {
+    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 14. TIPO COMPRA >>>
+
+  onOpenTipoCompra(index: number): void {
+    this.indexTipoCompra = index;
+    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
+  }
+
+  onClickSelectedTipoCompra(value: any): void {
+    const currentLine             = this.modeloLines[this.indexTipoCompra];
+    currentLine.u_FF_TIP_COM      = value.fldValue;
+    currentLine.u_FF_TIP_COM_NAM  = value.fullDescr;
+    this.isVisualizarTipoCompra   = !this.isVisualizarTipoCompra;
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  onClickCloseTipoCompra(): void {
+    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 15. CANTIDAD >>>
+
+  onChangeQuantity(value: IPurchaseRequest1, index: number): void {
+    if (value.record === 1) {
+      this.updateQuantityNew(value, index);
+    } else {
+      this.updateQuantityExisting(value, index);
+    }
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
+  }
+
+  private updateQuantityNew(value: IPurchaseRequest1, index: number): void {
+    if (value.itemCode === '') {
+      this.modeloLines[index].quantity = 0;
+      this.modeloLines[index].openQty = 0;
+      return;
+    }
+
+    const quantity = this.utilService.onRedondearDecimal(value.quantity, 3);
+    this.modeloLines[index].quantity = quantity;
+    this.modeloLines[index].openQty = quantity;
+  }
+
+  private updateQuantityExisting(value: IPurchaseRequest1, index: number): void {
+    const modelomodeloLinesOriginal = this.modeloLinesOriginal.find(d => d.lineNum === value.lineNum && d.docEntry === value.docEntry);
+
+    if (!modelomodeloLinesOriginal) return;
+
+    const quantity    = this.utilService.onRedondearDecimal(value.quantity, 3);
+    const earring     = this.utilService.onRedondearDecimal(modelomodeloLinesOriginal.quantity - modelomodeloLinesOriginal.openQty,3);
+
+    this.modeloLines[index].quantity        = value.itemCode === '' ? 0 : quantity;
+    this.modeloLines[index].openQty         = value.itemCode === '' ? 0 : (quantity - earring) > 0 ? (quantity - earring) : 0;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 16. REQUESTER / HEADER LOGIC >>>
+
+  onChangeReqType(): void {
+    const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
+
+    if (reqTypeValue) {
+      // Limpiar selección actual de reqName
+      this.modeloFormReq.get('reqName')?.setValue('', { emitEvent: false });
+
+      // Cargar requester list según el tipo seleccionado
+      if (reqTypeValue === 12) {
+        this.usersService.getList().subscribe({
+          next: (data: any) => {
+            this.requesterList = data.map(item => ({
+              label: item.userName,
+              value: item.userCode
+            }));
+
+            const userSap = this.userContextService.getUserSap();
+            if(userSap){
+              const defaultRequester = this.requesterList.find(x => x.value === userSap);
+              if (defaultRequester) {
+                this.modeloFormReq.get('reqName').setValue(defaultRequester, { emitEvent: false });
+              }
+            }
+          },
+          error: (e) => {
+            this.utilService.handleErrorSingle(e, 'onChangeReqType', this.swaCustomService);
+          }
+        });
+      } else {
+        this.employeesInfoService.getList().subscribe({
+          next: (data) => {
+            this.requesterList = data.map(item => ({
+              label: item.fullName,
+              value: item.empID
+            }));
+          },
+          error: (e) => {
+            this.utilService.handleErrorSingle(e, 'onChangeReqType', this.swaCustomService);
+          }
+        });
+      }
+    }
+  }
+
+  onChangeReqName(): void {
+    const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
+    const reqNameValue = this.modeloFormReq.get('reqName')?.value?.value;
+
+    if (!reqTypeValue || !reqNameValue) {
+      return;
+    }
+
+    const request$: any =
+      reqTypeValue === 12
+        ? this.usersService.getByCode(reqNameValue)
+        : this.employeesInfoService.getById(reqNameValue);
+
+      request$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data: any) => {
+          if (!data) {
+            this.onSelectedBranchDeparment(undefined as any, undefined as any);
+            this.modeloFormReq.patchValue({ email: '' }, { emitEvent: false });
+            return;
+          }
+
+          const dept = reqTypeValue === 12 ? data?.department : data?.dept;
+          const email= reqTypeValue === 12 ? data?.email     : data?.email;
+
+          this.onSelectedBranchDeparment(data?.branch, dept);
+
+          this.modeloFormReq.patchValue({ email: email }, { emitEvent: false });
+        },
+        error: (e) => {
+          this.utilService.handleErrorSingle(e, 'onChangeReqName', this.swaCustomService);
+        }
+      });
+  }
+
+  onSelectedBranchDeparment(branch: number, department: number): void {
+    // Asigna sucursal y departamento sin disparar eventos extra
+    const branchCtrl = this.modeloFormReq.get('branch');
+    const deptCtrl   = this.modeloFormReq.get('department');
+    if (!branchCtrl || !deptCtrl) { return; }
+
+    const branchSelected     = this.branchesList.find(x => x.value === branch) ?? '';
+    const departmentSelected = this.departmentsList.find(x => x.value === department) ?? '';
+
+    branchCtrl.setValue(branchSelected, { emitEvent: false });
+    deptCtrl.setValue(departmentSelected, { emitEvent: false });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 17. SAVE >>>
+
+  onClickSave(): void {
+    this.swaCustomService.swaConfirmation(
+      this.globalConstants.titleGrabar,
+      this.globalConstants.subTitleGrabar,
+      this.globalConstants.icoSwalQuestion
+    ).then((result) => {
+      if (result.isConfirmed) {
+        this.save();
       }
     });
   }
 
+  private save(): void {
+    if (!this.validateSave()) {
+      return;
+    }
+
+    this.isSaving = true;
+
+    const modeloToSave = this.buildModelToSave();
+
+    this.purchaseRequestService.setUpdate(modeloToSave)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isSaving = false; })
+    )
+    .subscribe({
+      next: () => {
+        this.swaCustomService.swaMsgExito(null);
+        this.onClickBack();
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
+      }
+    });
+  }
+
+  private validateSave(): boolean {
+    const showError = (msg: string) => {
+      this.swaCustomService.swaMsgInfo(msg);
+      return false;
+    };
+
+    /** helpers */
+    const u   = this.utilService;
+    const p   = (v:any)=>u.normalizePrimitive(v);
+    const val = (v:any)=>v?.value ?? v;
+
+    /** combinar forms */
+    const f = this.mergeForms();
+
+    const isItemDoc = val(f.docType) === 'I';
+
+    /** 🔹 VALIDACIONES HEADER */
+    const headerValidations = [
+      { cond: !val(f.reqName), msg: 'Seleccione el nombre del solicitante.' },
+      { cond: f.notify && !p(f.email)?.trim(), msg: 'Ingrese un correo electrónico válido.' },
+      { cond: !f.docDate, msg: 'Ingrese la fecha del documento.' },
+      { cond: !f.docDueDate, msg: 'Ingrese la fecha de vencimiento del documento.' },
+      { cond: !f.taxDate, msg: 'Ingrese la fecha fiscal del documento.' },
+      { cond: !f.reqDate, msg: 'Ingrese la fecha de requerimiento.' },
+      { cond: !val(f.employeeInfo), msg: 'Seleccione el propietario de la solicitud.' }
+    ];
+
+    for (const v of headerValidations) {
+      if (v.cond) return showError(v.msg);
+    }
+
+    /** 🔹 VALIDACIONES DETALLE */
+    for (const line of this.modeloLines) {
+
+      const lineValidations = [
+        { cond: !line.pqtReqDate, msg: 'Ingrese la fecha de requerimiento en el detalle.' },
+        { cond: !line.acctCode, msg: 'Seleccione la cuenta contable en el detalle.' },
+        { cond: !line.ocrCode, msg: 'Seleccione el centro de costos en el detalle.' },
+        { cond: !line?.u_tipoOpT12, msg: 'Seleccione el tipo de operación en el detalle.' },
+        { cond: !line?.u_FF_TIP_COM, msg: 'Seleccione el tipo de compra en el detalle.' },
+
+        ...(isItemDoc ? [
+          { cond: !line.whsCode, msg: 'Seleccione el almacén en el detalle.' },
+          { cond: !line.unitMsr, msg: 'La unidad medida es obligatoria. Definir en datos maestros del artículo. Pestaña "Datos de compras".' },
+          { cond: !line.quantity || line.quantity <= 0, msg: 'La cantidad debe ser mayor que CERO (0).' }
+        ] : [])
+      ];
+
+      for (const v of lineValidations) {
+        if (v.cond) return showError(v.msg);
+      }
+    }
+
+    return true;
+  }
+
+  private mergeForms() {
+    return {
+      ...this.modeloFormReq.getRawValue(),
+      ...this.modeloFormDoc.getRawValue(),
+      ...this.modeloFormCon.getRawValue(),
+      ...this.modeloFormPie.getRawValue()
+    };
+  }
+
+  private mapLinesUpdate(): PurchaseRequest1UpdateModel[] {
+    /** helpers para evitar repetición */
+    const u = this.utilService;
+    const p = (v:any)=>u.normalizePrimitive(v);
+    const n = (v:any)=>u.normalizeNumber(v);
+    const d = (v:any)=>u.normalizeDateOrToday(v);
+
+    const allLines = [...this.modeloLines, ...this.modeloLinesEliminar];
+
+    return allLines.map(line => ({
+
+      docEntry    : n(line.docEntry),
+      lineNum     : n(line.lineNum),
+      lineStatus  : p(line.lineStatus),
+
+      itemCode    : p(line.itemCode),
+      dscription  : p(line.dscription),
+
+      lineVendor  : p(line.lineVendor),
+      pqtReqDate  : d(line.pqtReqDate),
+
+      acctCode    : p(line.acctCode),
+      ocrCode     : p(line.ocrCode),
+
+      whsCode     : p(line.whsCode),
+
+      unitMsr     : p(line.unitMsr),
+      quantity    : n(line.quantity),
+
+      u_tipoOpT12 : p(line.u_tipoOpT12),
+      u_FF_TIP_COM: p(line.u_FF_TIP_COM),
+
+      record      : n(line.record)
+    }));
+  }
+
+  private buildModelToSave(): PurchaseRequestUpdateModel {
+    /** helpers para evitar repetición */
+    const u         = this.utilService;
+    const p         = (v:any)=>u.normalizePrimitive(v);
+    const d         = (v:any)=>u.normalizeDateOrToday(v);
+    const val       = (v:any)=>v?.value ?? v;
+    const label     = (v:any)=>v?.label ?? v ?? '';
+
+    /** combinar tod  os los formularios */
+    const f         = this.mergeForms();
+
+    const userId    = this.userContextService.getIdUsuario();
+
+    const notify  = f.notify === true ? 'Y' : 'N';
+
+    const lines     = this.mapLinesUpdate();
+
+    return {
+      ...new PurchaseRequestUpdateModel(),
+
+      docEntry    : this.docEntry,
+
+      docDate     : d(f.docDate),
+      docDueDate  : d(f.docDueDate),
+      taxDate     : d(f.taxDate),
+      reqDate     : d(f.reqDate),
+
+      docType     : val(f.docType),
+
+      reqType     : val(f.reqType),
+      requester   : val(f.reqName),
+      reqName     : label(f.reqName),
+
+      branch      : val(f.branch),
+      department  : val(f.department),
+
+      notify      : notify,
+      email       : p(f.email),
+
+      ownerCode   : val(f.employeeInfo),
+
+      comments    : p(f.comments),
+
+      u_UsrUpdate : userId,
+
+      lines
+    };
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 18. NAVIGATION >>>
+
+  onClickBack(): void {
+    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-list']);
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 19. DATA LOADING >>>
+
   private loadData(): void {
     this.route.params
     .pipe(
-      tap(params => this.id = +params['id']),
+      takeUntil(this.destroy$),
       switchMap(params => {
+        this.id = +params['id'];
+
+        // 🔥 aquí sí se activa de forma confiable
         this.isDisplay = true;
-        return this.solicitudCompraService.getByDocEntry(+params['id']);
-      }),
-      takeUntil(this.destroy$)
+
+        return this.purchaseRequestService
+          .getByDocEntry(this.id)
+          .pipe(
+            finalize(() => {
+              this.isDisplay = false;
+            })
+          );
+      })
     )
     .subscribe({
-      next: (data: ISolicitudCompra) => {
-        this.isDisplay = false;
+      next: (data: IPurchaseRequest) => {
+        this.modeloLinesOriginal = structuredClone(data.lines);
 
         const normalizedLines = data.lines.map(line => ({
           ...line,
-          pqtReqDate: this.normalizeDateToDate(line.pqtReqDate)
+          pqtReqDate: this.utilService.normalizeDateOrToday(line.pqtReqDate)
         }));
 
-        this.modelo = {
+        const modelo = {
           ...data,
           lines: normalizedLines
         };
@@ -534,15 +1273,15 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
           pqtReqDate: new Date(line.pqtReqDate)
         }));
 
-        this.setFormValues(this.modelo);
+        this.setFormValues(modelo);
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadData', () => { this.isDisplay = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
 
-  private setFormValues(value: ISolicitudCompra): void {
+  private setFormValues(value: IPurchaseRequest): void {
     // Activar flag de carga inicial para evitar que onChange events
     // modifiquen el modeloLines durante la carga
     this.isLoadingInitialData = true;
@@ -552,6 +1291,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     // =========================================================================
 
     // Asignar propiedades del componente
+    this.isLocked                 = value.docStatus !== 'O';
     this.docEntry                 = value.docEntry;
 
 
@@ -576,7 +1316,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
         branch                    : branch || null,
         department                : department || null,
         notify                    : value.notify === 'Y' ? true : false,
-        email                     : value.email || ''
+        email                     : this.utilService.normalizePrimitive(value.email)
       },
       { emitEvent: false }
     );
@@ -597,28 +1337,12 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     const docType                 = this.docTypesList.find(item => item.value === value.docType);
 
     // Actualizar formulario de Contenido
-      this.docTypeSelected   = docType;
     this.modeloFormCon.patchValue(
       {
         docType                  : docType || null,
       },
       { emitEvent: false }
     );
-
-
-    // Habilitar o deshabilitar controles del formulario basados en el estado del documento
-    // Para evitar 'changed after checked' manejamos el estado del control desde el componente
-    const isEditable = value.docStatus === 'O';
-    const docControls = ['reqType', 'reqName','docDate', 'docDueDate', 'taxDate', 'reqDate'];
-    for (const ctrlName of docControls) {
-      const ctrl = this.modeloFormDoc.get(ctrlName);
-      if (!ctrl) { continue; }
-      if (isEditable) {
-        ctrl.enable({ emitEvent: false });
-      } else {
-        ctrl.disable({ emitEvent: false });
-      }
-    }
 
     // Buscar y asignar valor como SelectItem para empleado
     const employee                = this.employeesInfoList.find(item => item.value === value.ownerCode);
@@ -627,7 +1351,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.modeloFormPie.patchValue(
       {
         employeeInfo              : employee || null,
-        comments                  : value.comments
+        comments                  : this.utilService.normalizePrimitive(value.comments)
       },
       { emitEvent: false }
     );
@@ -637,7 +1361,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     // =========================================================================
     // Esto garantiza que los eventos onChange no sobrescriban los valores originales del modeloLines
     this.onBuildColumn();
-    this.modeloLines = value.lines || [];
+    this.modeloLines = (value.lines || []).map(linea => this.utilService.mapLine(linea));
     this.updateHasValidLines();
     this.isLoadingInitialData = false;
 
@@ -648,7 +1372,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
       req: this.modeloFormReq.getRawValue(),
       doc: this.modeloFormDoc.getRawValue(),
       pie: this.modeloFormPie.getRawValue(),
-      lines: JSON.parse(JSON.stringify(this.modeloLines))
+      lines: structuredClone(this.modeloLines)
     };
 
     // Marcar pristine
@@ -667,72 +1391,20 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.detectRealChanges();
   }
 
-  // =========================
-  // WATCH CHANGES (AGREGADO)
-  // =========================
+  //#endregion
+
+
+
+  //#region <<< 20. CHANGE TRACKING >>>
+
   private watchChanges(): void {
-    this.modeloFormReq.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.detectRealChanges());
-
-    this.modeloFormDoc.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.detectRealChanges());
-
-
-    this.modeloFormPie.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.detectRealChanges());
-  }
-
-  /** Normaliza cualquier valor a Date; si es inválido devuelve la fecha actual para no romper comparaciones. */
-  private normalizeDateToDate(value: any): Date {
-    const date = value instanceof Date ? value : new Date(value);
-
-    if (isNaN(date.getTime())) {
-      // valor por defecto obligatorio (elige uno válido)
-      return new Date();
-    }
-
-    return date;
-  }
-
-  private normalizeDate(value: any): string | null {
-    if (!value) return null;
-
-    const date = value instanceof Date ? value : new Date(value);
-
-    return isNaN(date.getTime())
-      ? null
-      : date.toISOString().substring(0, 10); // yyyy-mm-dd
-  }
-
-  private hasFormChanged(form: FormGroup, snapshot: any): boolean {
-    const current = form.getRawValue();
-
-    return Object.keys(snapshot).some(key => {
-      const currentValue  = current[key];
-      const snapshotValue = snapshot[key];
-
-      // =========================
-      // FECHAS (p-calendar)
-      // =========================
-      if (currentValue instanceof Date || snapshotValue instanceof Date) {
-        return this.normalizeDate(currentValue) !== this.normalizeDate(snapshotValue);
-      }
-
-      // =========================
-      // SelectItem (dropdowns)
-      // =========================
-      if (currentValue?.value !== undefined || snapshotValue?.value !== undefined) {
-        return currentValue?.value !== snapshotValue?.value;
-      }
-
-      // =========================
-      // VALORES NORMALES
-      // =========================
-      return currentValue !== snapshotValue;
-    });
+    merge(
+      this.modeloFormReq.valueChanges,
+      this.modeloFormDoc.valueChanges,
+      this.modeloFormPie.valueChanges
+    )
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() => this.detectRealChanges());
   }
 
   private detectRealChanges(): void {
@@ -753,17 +1425,17 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     // =========================
     // 1️⃣ CAMBIOS EN FORMULARIOS (POR SNAPSHOT)
     // =========================
-    const reqChanged = this.hasFormChanged(
+    const reqChanged = this.utilService.hasFormChanged(
       this.modeloFormReq,
       this.initialSnapshot.req
     );
 
-    const docChanged = this.hasFormChanged(
+    const docChanged = this.utilService.hasFormChanged(
       this.modeloFormDoc,
       this.initialSnapshot.doc
     );
 
-    const pieChanged = this.hasFormChanged(
+    const pieChanged = this.utilService.hasFormChanged(
       this.modeloFormPie,
       this.initialSnapshot.pie
     );
@@ -823,8 +1495,8 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
         // 🔥 FECHAS (p-calendar)
         // =========================
         if (field === 'pqtReqDate') {
-          return this.normalizeDate(currentValue) !==
-                this.normalizeDate(originalValue);
+          return this.utilService.normalizeDateChange(currentValue) !==
+                this.utilService.normalizeDateChange(originalValue);
         }
 
         // =========================
@@ -845,538 +1517,9 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
       hasUpdatedLines;
   }
 
-  /** Maneja cambios en el tipo de solicitante y carga la lista correspondiente */
-  onChangeReqType(): void {
-    const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
-
-    if (reqTypeValue) {
-      // Limpiar selección actual de reqName
-      this.modeloFormReq.get('reqName')?.setValue('', { emitEvent: false });
-
-      // Cargar requester list según el tipo seleccionado
-      if (reqTypeValue === 12) {
-        this.usersService.getList().subscribe({
-          next: (data: any) => {
-            this.requesterList = data.map(item => ({
-              label: item.u_NAME,
-              value: item.useR_CODE
-            }));
-
-            const userSap = this.userContextService.getUserSap();
-            if(userSap){
-              const defaultRequester = this.requesterList.find(x => x.value === userSap);
-              if (defaultRequester) {
-                this.modeloFormReq.get('reqName').setValue(defaultRequester, { emitEvent: false });
-              }
-            }
-          },
-          error: (e) => {
-            this.utilService.handleErrorSingle(e, 'onChangeReqType', () => {}, this.swaCustomService);
-          }
-        });
-      } else {
-        this.employeesInfoService.getList().subscribe({
-          next: (data) => {
-            this.requesterList = data.map(item => ({
-              label: item.fullName,
-              value: item.empID
-            }));
-          },
-          error: (e) => {
-            this.utilService.handleErrorSingle(e, 'onChangeReqType', () => {}, this.swaCustomService);
-          }
-        });
-      }
-    }
-  }
-
-  /**
-   * Maneja cambios en el selector de solicitante.
-   * Obtiene datos del usuario/empleado y actualiza sucursal/departamento automáticamente.
-   */
-  onChangeReqName(): void {
-    const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
-    const reqNameValue = this.modeloFormReq.get('reqName')?.value?.value;
-
-    if (!reqTypeValue || !reqNameValue) {
-      return;
-    }
-
-    const request$: any =
-      reqTypeValue === 12
-        ? this.usersService.getByCode(reqNameValue)
-        : this.employeesInfoService.getById(reqNameValue);
-
-      request$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: any) => {
-          if (!data) {
-            this.onSelectedBranchDeparment(undefined as any, undefined as any);
-            this.modeloFormReq.patchValue({ email: '' }, { emitEvent: false });
-            return;
-          }
-
-          const dept = reqTypeValue === 12 ? data?.department : data?.dept;
-          const email= reqTypeValue === 12 ? data?.e_Mail     : data?.email;
-
-          this.onSelectedBranchDeparment(data?.branch, dept);
-
-          this.modeloFormReq.patchValue({ email: email }, { emitEvent: false });
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onChangeReqName', () => {}, this.swaCustomService);
-        }
-      });
-  }
-
-  /** Asigna sucursal y departamento automáticamente sin disparar eventos adicionales */
-  onSelectedBranchDeparment(branch: number, department: number): void {
-    // Asigna sucursal y departamento sin disparar eventos extra
-    const branchCtrl = this.modeloFormReq.get('branch');
-    const deptCtrl   = this.modeloFormReq.get('department');
-    if (!branchCtrl || !deptCtrl) { return; }
-
-    const branchSelected     = this.branchesList.find(x => x.value === branch) ?? '';
-    const departmentSelected = this.departmentsList.find(x => x.value === department) ?? '';
-
-    branchCtrl.setValue(branchSelected, { emitEvent: false });
-    deptCtrl.setValue(departmentSelected, { emitEvent: false });
-  }
-
-
-  /** Aplica la fecha de requerimiento a todas las líneas que tengan artículo seleccionado */
-  private applyReqDateToLines(date: Date): void {
-    // Se obtiene solo las líneas que tienen descripción (artículo seleccionado)
-    this.modeloLines.filter(line => line.dscription !== '').forEach(line => {
-      line.pqtReqDate = date;
-    });
-  }
-
-  /** Se suscribe a cambios en la fecha de requerimiento para aplicarlos a todas las líneas */
-  private subscribeReqDate(): void {
-    this.modeloFormDoc.get('reqDate')!
-    .valueChanges
-    .pipe(
-      takeUntil(this.destroy$)
-    )
-    .subscribe((date: Date | null) => {
-      if (date) {
-        this.applyReqDateToLines(date);
-      }
-    });
-  }
-
-  onOpenArticulo(index: number): void {
-    // Abre modal para buscar/seleccionar un artículo para la línea indicada
-    this.indexArticulo        = index;
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-  /** Asigna un artículo seleccionado a la línea actual */
-  setItem(data: IArticuloQuery[]): void {
-    const item = this.modeloLines[this.indexArticulo];
-    const date = this.modeloFormDoc.get('reqDate')?.value;
-
-    for (let index = 0; index < data.length; index++) {
-      const element = data[index];
-      if(index === 0) {
-        item.itemCode       = element.itemCode;
-        item.dscription     = element.itemName;
-        if (date) {
-          item.pqtReqDate   = date;
-        }
-        item.acctCode       = element.acctCode || '';
-        item.formatCode     = element.formatCode || '';
-        item.acctName       = element.acctName || '';
-        item.u_tipoOpT12    = element.u_tipoOpT12 || '';
-        item.u_tipoOpT12Nam = element.u_tipoOpT12Nam || '';
-        item.whsCode        = element.dfltWH || '';
-        item.unitMsr        = element.invntryUom;
-        item.quantity       = 1;
-        item.openQty        = 1
-      }
-    }
-
-    this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Busca artículos por código desde el servicio */
-  getListByCode(itemCode: string): void {
-    this.isDisplay = true;
-
-    const params = {
-      itemCode,
-      cardCode          : '',
-      currency          : '',
-      slpCode           : 0,
-      codTipoOperacion  : '02'
-    };
-
-    this.articuloService.getListByCode(params)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (data:  IArticuloQuery[]) => {
-        this.isDisplay = false;
-        this.setItem(data);
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListByCode', () => { this.isDisplay = false; }, this.swaCustomService);
-      }
-    });
-  }
-  /** Maneja la selección de un artículo desde el modal */
-  onSelectedArticulo(value: any): void {
-    // Aplica el artículo seleccionado a la línea actual
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-    this.getListByCode(value.itemCode);
-  }
-  /** Cierra el modal de búsqueda de artículos */
-  onClickCloseArticulo(): void {
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-
-  onDescChange() {
-    this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  /** Abre el modal para seleccionar proveedor de la línea indicada */
-  onOpenProveedor(index: number): void {
-    // Abre modal para seleccionar proveedor de la línea
-    this.indexCentroProveedor = index;
-    this.isVisualizarProveedor = !this.isVisualizarProveedor;
-  }
-  /** Maneja la selección de un proveedor desde el modal */
-  onSelectedProveedor(value: any): void {
-    // Aplica el proveedor seleccionado a la línea actual
-    const currentLine          = this.modeloLines[this.indexCentroProveedor];
-    currentLine.lineVendor     = value.cardCode;
-    this.isVisualizarProveedor = !this.isVisualizarProveedor;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Cierra el modal de búsqueda de proveedores */
-  onClickCloseProveedor(): void {
-    this.isVisualizarProveedor = !this.isVisualizarProveedor;
-  }
-
   onFechaChange() {
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  /** Abre el modal para seleccionar cuenta contable de la línea indicada */
-  onOpenCuentaContable(index: number): void {
-    // Abre modal para seleccionar cuenta contable de la línea
-    this.indexCentroCuentaContable = index;
-    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
-  }
-  /** Maneja la selección de una cuenta contable desde el modal */
-  onSelectedCuentaContable(value: any): void {
-    // Aplica el centro de costo seleccionado a la línea actual
-    const currentLine               = this.modeloLines[this.indexCentroCuentaContable];
-    currentLine.acctCode            = value.acctCode;
-    currentLine.formatCode          = value.formatCode;
-    currentLine.acctName            = value.acctName;
-    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Cierra el modal de búsqueda de cuentas contables */
-  onClickCloseCuentaContable(): void {
-    this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
-  }
-
-  /** Abre el modal para seleccionar centro de costo de la línea indicada */
-  onOpenCentroCosto(index: number): void {
-    // Abre modal para seleccionar centro de costo de la línea
-    this.indexCentroCosto        = index;
-    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
-  }
-  /** Maneja la selección de un centro de costo desde el modal */
-  onSelectedCentroCosto(value: any): void {
-    // Aplica el centro de costo seleccionado a la línea actual
-    const currentLine            = this.modeloLines[this.indexCentroCosto];
-    currentLine.ocrCode          = value.ocrCode;
-    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Cierra el modal de búsqueda de centros de costo */
-  onClickCloseCentroCosto(): void {
-    this.isVisualizarCentroCosto = !this.isVisualizarCentroCosto;
-  }
-
-  /** Abre el modal para seleccionar almacén de destino de la línea indicada */
-  onOpenAlmacen(value: ISolicitudCompra1, index: number): void {
-    // Abre modal para seleccionar almacén de destino de la línea
-    this.indexAlmacen         = index;
-    this.itemCode             = value.itemCode;
-    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
-  }
-  /** Maneja la selección de un almacén desde el modal */
-  onSelectedAlmacen(value: any): void {
-    // Aplica el almacén de destino seleccionado a la línea actual
-    const currentLine         = this.modeloLines[this.indexAlmacen];
-    currentLine.whsCode       = value.whsCode;
-    this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Cierra el modal de búsqueda de almacenes */
-  onClickCloseAlmacen(): void {
-    this.isVisualizarAlmacen = !this.isVisualizarAlmacen;
-  }
-
-  /** Abre el modal para seleccionar tipo de operación de la línea indicada */
-  onOpenTipoOperacion(index: number): void {
-    // Abre modal para seleccionar tipo de operación de la línea
-    this.indexTipoOperacion        = index;
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-  }
-  /** Maneja la selección de un tipo de operación desde el modal */
-  onSelectedTipoOperacion(value: any): void {
-    // Aplica el tipo de operación seleccionado a la línea actual
-    const currentLine              = this.modeloLines[this.indexTipoOperacion];
-    currentLine.u_tipoOpT12        = value.code;
-    currentLine.u_tipoOpT12Nam     = value.u_descrp;
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Cierra el modal de búsqueda de tipos de operación */
-  onClickCloseTipoOperacion(): void {
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-
-  /** Abre el modal para seleccionar tipo de compra de la línea indicada */
-  onOpenTipoCompra(index: number): void {
-    // Abre modal para seleccionar tipo de compra de la línea
-    this.indexTipoCompra = index;
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-  /** Maneja la selección de un tipo de compra desde el modal */
-  onClickSelectedTipoCompra(value: any): void {
-    // Aplica el tipo de compra seleccionado a la línea actual
-    const currentLine             = this.modeloLines[this.indexTipoCompra];
-    currentLine.u_FF_TIP_COM      = value.fldValue;
-    currentLine.u_FF_TIP_COM_NAM  = value.descr;
-    this.isVisualizarTipoCompra   = !this.isVisualizarTipoCompra;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-  /** Cierra el modal de búsqueda de tipos de compra */
-  onClickCloseTipoCompra(): void {
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-
-  onChangeQuantity(value: ISolicitudCompra1, index: number): void {
-    if (value.record === 1) {
-      this.updateQuantityNew(value, index);
-    } else {
-      this.updateQuantityExisting(value, index);
-    }
-
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  private updateQuantityNew(value: ISolicitudCompra1, index: number): void {
-    if (value.itemCode === '') {
-      this.modeloLines[index].quantity = 0;
-      this.modeloLines[index].openQty = 0;
-      return;
-    }
-
-    const quantity = this.utilService.onRedondearDecimal(value.quantity, 3);
-    this.modeloLines[index].quantity = quantity;
-    this.modeloLines[index].openQty = quantity;
-  }
-
-  private updateQuantityExisting(value: ISolicitudCompra1, index: number): void {
-    const modelomodeloLinesOriginal = this.modeloLinesOriginal.find(d => d.lineNum === value.lineNum && d.docEntry === value.docEntry);
-
-    if (!modelomodeloLinesOriginal) return;
-
-    const quantity    = this.utilService.onRedondearDecimal(value.quantity, 3);
-    const earring     = this.utilService.onRedondearDecimal(modelomodeloLinesOriginal.quantity - modelomodeloLinesOriginal.openQty,3);
-
-    this.modeloLines[index].quantity        = value.itemCode === '' ? 0 : quantity;
-    this.modeloLines[index].openQty         = value.itemCode === '' ? 0 : (quantity - earring) > 0 ? (quantity - earring) : 0;
-  }
-
-  private validateSave(): boolean {
-    /** Valida que el documento esté completo antes de guardar */
-    const showError = (message: string): boolean => {
-      this.swaCustomService.swaMsgInfo(message);
-      return false;
-    };
-
-    const formReqValues     = this.modeloFormReq.getRawValue();
-    const formDocValues     = this.modeloFormDoc.getRawValue();
-    const formConValues     = this.modeloFormCon.getRawValue();
-    const formPieValues     = this.modeloFormPie.getRawValue();
-
-    const reqNameValue      = formReqValues.reqName?.value || '';
-    const notifyValue       = formReqValues.notify;
-    const emailValue        = formReqValues.email || '';
-    const docDate           = formDocValues.docDate;
-    const docDueDate        = formDocValues.docDueDate;
-    const taxDate           = formDocValues.taxDate;
-    const reqDate           = formDocValues.reqDate;
-
-    const docTypeValue      = formConValues.docType?.value;
-    const isItemDoc         = docTypeValue === 'I';
-
-    const employeeInfoValue = formPieValues.employeeInfo?.value;
-
-    if (reqNameValue === undefined || reqNameValue === null || reqNameValue === '') {
-      return showError('Seleccione el nombre del solicitante.');
-    }
-
-    if (notifyValue && (emailValue === undefined || emailValue === null || emailValue.trim() === '')) {
-      return showError('Ingrese un correo electrónico válido.');
-    }
-
-    if (!docDate) {
-      return showError('Ingrese la fecha del documento.');
-    }
-
-    if (!docDueDate) {
-      return showError('Ingrese la fecha de vencimiento del documento.');
-    }
-
-    if (!taxDate) {
-      return showError('Ingrese la fecha fiscal del documento.');
-    }
-
-    if (!reqDate) {
-      return showError('Ingrese la fecha de requerimiento.');
-    }
-
-    if (employeeInfoValue === undefined || employeeInfoValue === null) {
-      return showError('Seleccione el propietario de la solicitud.');
-    }
-
-
-    for (const line of this.modeloLines.filter(line => isItemDoc ? line.itemCode !== '' : line.dscription !== '')) {
-      if (isItemDoc && line.itemCode === '') {
-        return showError('Seleccione la cuenta contable en el detalle.');
-      }
-      if (line.pqtReqDate === null) {
-        return showError('Ingrese la fecha de requerimiento en el detalle.');
-      }
-      if (line.acctCode === '') {
-        return showError('Seleccione la cuenta contable en el detalle.');
-      }
-      if (line.ocrCode === '') {
-        return showError('Seleccione el centro de costos en el detalle.');
-      }
-      if (isItemDoc && line.whsCode === '') {
-        return showError('Seleccione el almacén en el detalle.');
-      }
-      if (!line?.u_tipoOpT12) {
-        return showError('Seleccione el tipo de operación en el detalle.');
-      }
-      if (!line?.u_FF_TIP_COM) {
-        return showError('Seleccione el tipo de compra en el detalle.');
-      }
-      if (isItemDoc && line.quantity === 0) {
-        return showError('La cantidad debe ser mayor que CERO (0).');
-      }
-    }
-    return true;
-  }
-
-  private buildModelToSave(): SolicitudCompraUpdateModel {
-    const formValues = {
-      ...this.modeloFormReq.getRawValue(),
-      ...this.modeloFormDoc.getRawValue(),
-      ...this.modeloFormCon.getRawValue(),
-      ...this.modeloFormPie.getRawValue()
-    };
-
-    const userId = this.userContextService.getIdUsuario();
-    const allLines = [...this.modeloLines, ...this.modeloLinesEliminar];
-
-    const lines: SolicitudCompra1UpdateModel[] = allLines
-      .filter(linea => linea.itemCode !== '' && linea.record !== 4)
-      .map(linea => ({
-        docEntry      : linea.docEntry,
-        lineNum       : linea.lineNum,
-        lineStatus    : linea.lineStatus,
-        itemCode      : linea.itemCode,
-        dscription    : linea.dscription,
-        lineVendor    : linea.lineVendor,
-        pqtReqDate    : this.utilService.normalizeDate(linea.pqtReqDate),
-        acctCode      : linea.acctCode,
-        ocrCode       : linea.ocrCode,
-        whsCode       : linea.whsCode,
-        u_tipoOpT12   : linea.u_tipoOpT12,
-        u_FF_TIP_COM: linea.u_FF_TIP_COM,
-        unitMsr       : linea.unitMsr,
-        quantity      : linea.quantity,
-        record        : linea.record
-      }));
-
-    return {
-      ...new SolicitudCompraUpdateModel(),
-      docEntry        : this.docEntry,
-      docDate         : this.utilService.normalizeDate(formValues.docDate),
-      docDueDate      : this.utilService.normalizeDate(formValues.docDueDate),
-      taxDate         : this.utilService.normalizeDate(formValues.taxDate),
-      reqDate         : this.utilService.normalizeDate(formValues.reqDate),
-      docType         : formValues.docType?.value,
-      reqType         : formValues.reqType?.value,
-      requester       : formValues.reqName?.value,
-      reqName         : formValues.reqName?.label,
-      branch          : formValues.branch?.value,
-      department      : formValues.department?.value,
-      notify          : formValues.notify === true ? 'Y' : 'N',
-      email           : formValues.email,
-      ownerCode       : formValues.employeeInfo?.value,
-      comments        : formValues.comments,
-      u_UsrUpdate     : userId,
-      lines           : lines
-    };
-  }
-
-  private save(): void {
-    // Persiste el documento al servicio backend si los detalles son válidos
-    if (!this.validateSave()) {
-      return;
-    }
-
-    this.isSaving = true;
-
-    const modeloToSave = this.buildModelToSave();
-
-    debugger;
-
-    this.solicitudCompraService.setUpdate(modeloToSave)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => { this.isSaving = false; })
-      )
-      .subscribe({
-        next: () => {
-          this.swaCustomService.swaMsgExito(null);
-          this.onClickBack();
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'save', () => { this.isSaving = false; }, this.swaCustomService);
-        }
-      });
-  }
-
-  /** Muestra diálogo de confirmación antes de guardar el documento */
-  onClickSave(): void {
-    // Diálogo de confirmación antes de guardar; ejecuta `save()` si se confirma
-    this.swaCustomService.swaConfirmation(
-      this.globalConstants.titleGrabar,
-      this.globalConstants.subTitleGrabar,
-      this.globalConstants.icoSwalQuestion
-    ).then((result) => {
-      if (result.isConfirmed) {
-        this.save();
-      }
-    });
-  }
-
-  /** Navega de vuelta a la lista de solicitudes de compra */
-  onClickBack(): void {
-    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-list']);
-  }
+  //#endregion
 }

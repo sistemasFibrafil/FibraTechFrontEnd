@@ -23,10 +23,10 @@
       <p-footer>
         <div class="grid p-fluid">
           <div class="col-12 md:col-4">
-            <button [disabled]="buttonAcces.btnBuscar" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+            <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
         </div>
         <div class="col-12 md:col-4">
-          <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onToCreate()"></button>
+          <button [disabled]="buttonAcces.btnNuevo" pButton type="button" label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" (click)="onClickCreate()"></button>
         </div>
         <div class="col-12 md:col-4">
           <app-btn-salir [isMargenTop]="false"></app-btn-salir>
@@ -37,76 +37,101 @@
 
     <!-- Grilla de Datos     -->
     <p-panel header="Lista de {{titulo}}" [toggleable]="true">
-        <p-table
-          [value]="modelo"
-          [columns]="columnas"
-          [rows]="rows"
-          [rowHover]="true"
-          [paginator]="true"
-          [autoLayout]="true"
-          selectionMode="single"
-          [resizableColumns]="true"
-          responsiveLayout="scroll"
-          [showCurrentPageReport]="true"
-          [rowsPerPageOptions]="rowsPerPageOptions"
-          styleClass="{{globalConstants.cStyleTableGridLines}}"
-          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
-          <!-- Header -->
-          <ng-template pTemplate="header" let-columns>
-            <tr>
-              <th class="custom-header"></th>
-              <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
-                <p-sortIcon field="{{col.field}}"></p-sortIcon>
-                {{col.header}}
-              </th>
-            </tr>
-          </ng-template>
-          <!-- body -->
-          <ng-template pTemplate = "body" let-modelo let-ri = "rowIndex">
-            <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo?.docStatus === 'C'}">
-              <td class="custom-td-2">
-                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onToItemSelected(modelo)" appendTo = "body">
-                </p-splitButton>
-              </td>
-              <td class="p-fluid">
-                {{modelo.docNum}}
-              </td>
-              <td class="p-fluid">
-                {{modelo.docDate | date: 'dd/MM/yyyy'}}
-              </td>
-              <td class="p-fluid">
-                {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
-              </td>
-              <td class="p-fluid">
-                {{modelo.taxDate | date: 'dd/MM/yyyy'}}
-              </td>
-              <td class="p-fluid">
-                {{modelo.cardCode}}
-              </td>
-              <td class="p-fluid">
-                {{modelo.cardName}}
-              </td>
-              <td class="p-fluid">
-                {{modelo.docCur}}
-              </td>
-              <td class="custom-td-numero">
-                {{modelo.docTotal | number: '.2':'en-EN'}}
-              </td>
-              <td class="custom-td-numero">
-                {{modelo.docTotalSy | number: '.2':'en-EN'}}
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage" let-columns>
-            <tr>
-              <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
-            </tr>
-          </ng-template>
-        </p-table>
+      <p-table
+        [value]="modelo"
+        [columns]="columnas"
+        [rows]="rows"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        selectionMode="single"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        <!-- Header -->
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th class="custom-header"></th>
+            <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+              <p-sortIcon field="{{col.field}}"></p-sortIcon>
+              {{col.header}}
+            </th>
+          </tr>
+        </ng-template>
+        <!-- body -->
+        <ng-template pTemplate = "body" let-modelo let-ri = "rowIndex">
+          <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo?.docStatus === 'C'}">
+            <td class="custom-td-8">
+              <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onToItemSelected(modelo)" appendTo = "body">
+              </p-splitButton>
+            </td>
+            <td class="p-fluid">
+              {{modelo.docNum}}
+            </td>
+            <td class="custom-td-20">
+              <span class="label" [ngClass]="getEstado(modelo).class">
+                {{ getEstado(modelo).text }}
+              </span>
+            </td>
+            <td class="custom-td-20">
+              <span class="label badge-articulos" *ngIf="modelo?.docType === 'I'">Artículos</span>
+              <span class="label badge-servicios" *ngIf="modelo?.docType === 'S'">Servicios</span>
+            </td>
+            <td class="p-fluid">
+              {{modelo.docDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+            </td>
+            <td class="custom-td-20">
+              <span class="label" [ngClass]="getGroupType(modelo).class">
+                {{ getGroupType(modelo).text }}
+              </span>
+            </td>
+            <td class="p-fluid">
+              {{modelo.cardCode}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.cardName}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.slpName}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.docCur}}
+            </td>
+            <td class="custom-td-numero">
+              {{modelo.docTotal | number: '.2':'en-EN'}}
+            </td>
+            <td class="custom-td-numero">
+              {{modelo.docTotalSy | number: '.2':'en-EN'}}
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage" let-columns>
+          <tr>
+            <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
+          </tr>
+        </ng-template>
+      </p-table>
     </p-panel>
 </div>
 
+<p-dialog *ngIf="isDisplayVisor" header="ORDEN DE VENTA" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>
+
 <!-- MODAL: Proceso -->
 <app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>
-<app-panel-eliminar [isDisplay] = "isDeleting" ></app-panel-eliminar>
+<app-panel-cerrar [isClosing] = "isClosing" ></app-panel-cerrar>
 <app-panel-generando-visor-pdf [isDisplay] = "isDisplayGenerandoVisor"></app-panel-generando-visor-pdf>

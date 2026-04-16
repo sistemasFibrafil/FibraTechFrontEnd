@@ -11,7 +11,7 @@ import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 
 import { IFacturaVentaByFecha } from 'src/app/modulos/modulo-ventas/interfaces/factura-venta.interface';
-import { FacturaVentaService } from '../../../services/sap/factura-venta-sap.service';
+import { FacturaVentaService } from '../../../services/sap-business-one/factura-venta-sap.service';
 import { FacturaVentaByFilterFindModel } from '../../../models/factura-venta.model';
 
 

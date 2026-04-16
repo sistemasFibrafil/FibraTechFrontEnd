@@ -1,20 +1,25 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { SelectItem } from 'primeng/api';
+import Swal from 'sweetalert2';
 import { Subject, forkJoin } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { SelectItem } from 'primeng/api';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { LayoutComponent } from 'src/app/layout/layout.component';
+
+import { TableColumn } from 'src/app/interface/common-ui.interface';
+import { IPicking } from 'src/app/modulos/modulo-inventario/interfaces/picking.inteface';
+import { IStockTransfers, ITransferenciaStock1 } from 'src/app/modulos/modulo-inventario/interfaces/stock-transfers.interface';
+
 import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-import { ITransferenciaStock, ITransferenciaStock1 } from 'src/app/modulos/modulo-inventario/interfaces/transferencia-stock.interface';
-import { TransferenciaStockService } from 'src/app/modulos/modulo-inventario/services/transferencia-stock.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { TipoDocumentoSunatService } from 'src/app/modulos/modulo-gestion/services/sap/inicializacion-sistema/tipo-documento-sunat.service';
+import { PickingService } from 'src/app/modulos/modulo-inventario/services/picking.service';
+import { StockTransfersService } from 'src/app/modulos/modulo-inventario/services/stock-transfers.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { DocumentTypeSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-type-sunat.service';
+import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 
@@ -43,25 +48,25 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
   readonly titulo                               = 'Transferencia de Stock';
   readonly jrnlMemo                             = 'Traslado - ';
   globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
-  idLocation                                    = 0;
+  //idLocation                                    = 0;
 
   // Combos
   /** Listas de soporte para dropdowns */
-  tipoDocumentoList                             : SelectItem[] = [];
-  serieDocumentoList                            : SelectItem[] = [];
   warehouseList                                 : SelectItem[] = [];
-  tipoTransporteList                            : SelectItem[] = [];
-  tipoDocumentoIdentidadTranList                : SelectItem[] = [];
-  tipoDocumentoIdentidadCondList                : SelectItem[] = [];
-  tipoTrasladoList                              : SelectItem[] = [];
-  motivoTrasladoList                            : SelectItem[] = [];
-  tipoSalidaList                                : SelectItem[] = [];
+  outputTypeList                                : SelectItem[] = [];
+  transferTypeList                              : SelectItem[] = [];
+  typeTransportList                             : SelectItem[] = [];
+  reasonTransferList                            : SelectItem[] = [];
   salesEmployeesList                            : SelectItem[] = [];
+  documentTypeSunatList                         : SelectItem[] = [];
+  typeCarrierIdentityDocumentList               : SelectItem[] = [];
+  typeDriversIdentityDocumentList               : SelectItem[] = [];
+  typeIdentityDocumentTransportList             : SelectItem[] = [];
 
   // UI State
   /** Estados de overlays y modales */
   isDisplay                                     = false;
-  isVisualizarBarcode                           = false;
+  isVisualizarCodebar                           = false;
 
   // Table configuration
   /** Configuración de tabla y listas relacionadas */
@@ -72,18 +77,21 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
 
   // Data
   /** Modelos de cabecera y detalle */
-  modelo                                        : ITransferenciaStock;
-  detalleSelected                               : ITransferenciaStock1;
+  columnasModal                                 : TableColumn[];
+  modeloSelected                                : ITransferenciaStock1;
+
   id                                            = 0;
   docEntry                                      = 0;
+  idUsuario                                     : number = 0;
 
   // Document numbering
   /** Numeración y flags de documento */
+
   u_BPP_NDTD                                    : string = '';
   u_BPP_NDSD                                    : string = '';
-  u_FIB_TDED                                    : string = 'N';
-  u_FIB_TDTD                                    : string = 'Y';
-  u_FIB_SEDE                                    : number = 0;
+  u_BPP_MDVC                                    : string = '';
+  u_FIB_COD_TRA                                 : string = '';
+  u_FIB_NUMDOC_COD                              : string = '';
 
   // Cliente y contacto
   /** Datos del socio de negocio */
@@ -91,18 +99,18 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
   cntctCode                                     = 0;
 
   constructor(
+    private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly transferenciaStockService: TransferenciaStockService,
-    private readonly WarehousesService: WarehousesService,
-    private readonly tipoDocumentoSunatService: TipoDocumentoSunatService,
+    private readonly pickingService: PickingService,
+    private readonly swaCustomService: SwaCustomService,
+    private readonly warehousesService: WarehousesService,
+    private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
+    private readonly stockTransfersService: StockTransfersService,
+    private readonly documentTypeSunatService: DocumentTypeSunatService,
     private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
-    public readonly app: LayoutComponent,
-    public readonly swaCustomService: SwaCustomService,
-    public readonly utilService: UtilService,
-    public readonly userContextService: UserContextService,
+    public  readonly utilService: UtilService,
   ) { }
 
   ngOnInit(): void {
@@ -120,7 +128,7 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
 
   private initializeComponent(): void {
     // 1. Inicializar idLocation primero (requerido por los combos)
-    this.idLocation = this.userContextService.getIdLocation();
+    //this.idLocation = this.userContextService.getIdLocation();
 
     // 2. Construir formularios y configuración básica
     this.onBuildForm();
@@ -132,166 +140,171 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
   }
 
   private loadAllCombos(): void {
-    this.u_FIB_SEDE         = this.userContextService.getIdLocation();
-    const paramCampo1       : any = { u_FIB_TDTD: 'Y' };
-    const paramCampo2       : any = { inactive: 'N' };
-    const paramCampo3       : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRANS' };
-    const paramCampo4       : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_TRA' };
-    const paramCampo5       : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_COND' };
-    const paramCampo6       : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRAS' };
-    const paramCampo7       : any = { tableID: 'OWTR', aliasID: 'BPP_MDMT' };
-    const paramCampo8       : any = { tableID: 'OWTR', aliasID: 'BPP_MDTS' };
+    this.idUsuario                            = this.userContextService.getIdUsuario();
+    const paramWarehouses                     : any = { inactive: 'N' };
+    const paramOutputType                     : any = { tableID: 'OWTR', aliasID: 'BPP_MDTS' };
+    const paramTransferType                   : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRAS' };
+    const paramTypeTransport                  : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRANS' };
+    const paramReasonTransfer                 : any = { tableID: 'OWTR', aliasID: 'BPP_MDMT' };
+    const paramDocumentTypeSunat              : any = { u_FIB_ENTR: '', u_FIB_FAVE: '', u_FIB_TRAN: 'Y' };
+    const paramTypeDriverIdentityDocument     : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_COND' };
+    const paramTypeCarrierIdentityDocument    : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_TRA' };
+    const paramTypeIdentityDocumentTransport  : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_TRA' };
+
+    // Mostrar spinner mientras se cargan los combos
+    this.isDisplay = true;
 
     forkJoin({
-      tipoDocumento         : this.tipoDocumentoSunatService.getListByTipo(paramCampo1),
-      warehouse             : this.WarehousesService.getListByInactive(paramCampo2),
-      tipoTransporte        : this.camposDefinidoUsuarioService.getList(paramCampo3),
-      tipoDocIdentidadTran  : this.camposDefinidoUsuarioService.getList(paramCampo4),
-      tipoDocIdentidadCond  : this.camposDefinidoUsuarioService.getList(paramCampo5),
-      tipoTraslado          : this.camposDefinidoUsuarioService.getList(paramCampo6),
-      motivoTraslado        : this.camposDefinidoUsuarioService.getList(paramCampo7),
-      tipoSalida            : this.camposDefinidoUsuarioService.getList(paramCampo8),
-      salesEmployee         : this.salesPersonsService.getList()
+      warehouses                      : this.warehousesService.getListByInactive(paramWarehouses),
+      outputType                      : this.camposDefinidoUsuarioService.getList(paramOutputType),
+      transferType                    : this.camposDefinidoUsuarioService.getList(paramTransferType),
+      typeTransport                   : this.camposDefinidoUsuarioService.getList(paramTypeTransport),
+      reasonTransfer                  : this.camposDefinidoUsuarioService.getList(paramReasonTransfer),
+      salesEmployees                  : this.salesPersonsService.getList(),
+      documentTypeSunat               : this.documentTypeSunatService.getListByType(paramDocumentTypeSunat),
+      typeDriverIdentityDocument      : this.camposDefinidoUsuarioService.getList(paramTypeDriverIdentityDocument),
+      typeCarrierIdentityDocument     : this.camposDefinidoUsuarioService.getList(paramTypeCarrierIdentityDocument),
+      typeIdentityDocumentTransport   : this.camposDefinidoUsuarioService.getList(paramTypeIdentityDocumentTransport),
     })
-    .pipe(takeUntil(this.destroy$))
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isDisplay = false; })
+    )
     .subscribe({
-      next: (result) => {
-        // Tipo Documento
-        this.tipoDocumentoList = result.tipoDocumento.map(item => ({
-          label: item.u_BPP_TDDD,
-          value: item.u_BPP_TDTD
-        }));
+      next: (res) => {
+        this.warehouseList = (res.warehouses || []).map(item => ({ label: item.fullDescr, value: item.whsCode }));
+        this.outputTypeList = (res.outputType || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.transferTypeList = (res.transferType || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.typeTransportList = (res.typeTransport || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.reasonTransferList = (res.reasonTransfer || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.salesEmployeesList = (res.salesEmployees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+        this.documentTypeSunatList = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
+        this.typeDriversIdentityDocumentList = (res.typeDriverIdentityDocument || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.typeCarrierIdentityDocumentList = (res.typeCarrierIdentityDocument || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.typeIdentityDocumentTransportList = (res.typeIdentityDocumentTransport || []).map(item => ({ label: item.descr, value: item.fldValue }));
 
-        // Warehouse
-        this.warehouseList = result.warehouse.map(item => ({
-          label: item.fullDescr,
-          value: item.whsCode
-        }));
 
-        // Tipo Transporte
-        this.tipoTransporteList = result.tipoTransporte.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
+        const defaultTipoDoc = res.documentTypeSunat.find(item => item.u_BPP_TDTD === '09');
+        if (defaultTipoDoc) {
+          this.u_BPP_NDTD = defaultTipoDoc.u_BPP_TDTD;
+          this.modeloFormDoc.get('u_BPP_MDTD').setValue({
+            label: defaultTipoDoc.u_BPP_TDDD,
+            value: defaultTipoDoc.u_BPP_TDTD
+          });
+        }
 
-        // Tipo Documento Identidad transportista
-        this.tipoDocumentoIdentidadTranList = result.tipoDocIdentidadTran.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
+        const defaultTipoTraslado = res.transferType.find(item => item.fldValue === '01');
+        if (defaultTipoTraslado) {
+          this.modeloFormOtr.get('transferType').setValue({
+            label: defaultTipoTraslado.descr,
+            value: defaultTipoTraslado.fldValue
+          });
+        }
 
-        // Tipo Documento Identidad conductor
-        this.tipoDocumentoIdentidadCondList = result.tipoDocIdentidadCond.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
+        const defaultMotivo = res.reasonTransfer.find(item => item.fldValue === '04');
+        if (defaultMotivo) {
+          this.modeloFormOtr.get('reasonTransfer').setValue({
+            label: defaultMotivo.descr,
+            value: defaultMotivo.fldValue
+          });
+        }
 
-        // Tipo Traslado
-        this.tipoTrasladoList = result.tipoTraslado.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
+        const defaultTipoSalida = res.outputType.find(item => item.fldValue === 'TSI');
+        if (defaultTipoSalida) {
+          this.modeloFormOtr.get('outputType').setValue({
+            label: defaultTipoSalida.descr,
+            value: defaultTipoSalida.fldValue
+          });
+        }
 
-        // Motivo Traslado
-        this.motivoTrasladoList = result.motivoTraslado.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
-
-        // Tipo Salida
-        this.tipoSalidaList = result.tipoSalida.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
-
-        // Sales Employee
-        this.salesEmployeesList = result.salesEmployee.map(item => ({
-          label: item.slpName,
-          value: item.slpCode
-        }));
-
-        // 4. AHORA SÍ cargar datos - los combos están listos
         this.loadData();
       },
       error: (e) => {
-        this.swaCustomService.swaMsgError('Error al cargar los combos: ' + (e.error?.resultadoDescripcion || e.message));
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
 
   private loadData(): void {
     this.route.params
-      .pipe(
-        tap(params => this.id = +params['id']),
-        switchMap(params => {
-          this.isDisplay = true;
-          return this.transferenciaStockService.getByDocEntry(+params['id']);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (data: ITransferenciaStock) => {
-          this.isDisplay = false;
-          this.modelo = data;
-          this.setFormValues(this.modelo);
-        },
-        error: (e) => {
-          this.isDisplay = false;
-          this.swaCustomService.swaMsgError(e.error?.resultadoDescripcion || e.message);
-        }
-      });
-  }
+    .pipe(
+      takeUntil(this.destroy$),
+      switchMap(params => {
+        this.id = +params['id'];
 
+        // 🔥 aquí sí se activa de forma confiable
+        this.isDisplay = true;
+
+        return this.stockTransfersService
+          .getByDocEntry(this.id)
+          .pipe(
+            finalize(() => {
+              this.isDisplay = false;
+            })
+          );
+      })
+    )
+    .subscribe({
+      next: (data: IStockTransfers) => {
+        this.setFormValues(data);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
+    });
+  }
 
   onBuildForm(): void {
     this.modeloFormSn = this.fb.group({
-      cardCode                : [{ value: '', disabled: true }],
-      cardName                : [{ value: '', disabled: true }],
-      cntctCode               : [{ value: '', disabled: true }],
-      address                 : [{ value: '', disabled: true }]
+      cardCode                : [{ value: '', disabled: false }],
+      cardName                : [{ value: '', disabled: false }],
+      cntctCode               : [{ value: '', disabled: false }],
+      address                 : [{ value: '', disabled: false }]
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      u_BPP_MDTD              : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDSD              : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDCD              : [{ value: '', disabled: true }, [Validators.required]],
-      docDate                 : [{ value: '', disabled: true }, [Validators.required]],
-      taxDate                 : [{ value: '', disabled: true }, [Validators.required]],
-      filler                  : [{ value: '', disabled: true }, [Validators.required]],
-      toWhsCode               : [{ value: '', disabled: true }, [Validators.required]]
+      docNum                  : [{ value: '', disabled: false }],
+      u_BPP_MDTD              : [{ value: '', disabled: false }, [Validators.required]],
+      u_BPP_MDSD              : [{ value: '', disabled: false }, [Validators.required]],
+      u_BPP_MDCD              : [{ value: '', disabled: false }, [Validators.required]],
+      docDate                 : [{ value: '', disabled: false }, [Validators.required]],
+      taxDate                 : [{ value: '', disabled: false }, [Validators.required]],
+      filler                  : [{ value: '', disabled: false }, [Validators.required]],
+      toWhsCode               : [{ value: '', disabled: false }, [Validators.required]]
     });
 
     this.modeloFormTra = this.fb.group({
-      u_FIB_TIP_TRANS         : [{ value: '', disabled: true }, [Validators.required]],
-      u_FIB_TIPDOC_TRA        : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDRT              : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDNT              : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDVC              : [{ value: '', disabled: true }, [Validators.required]],
-      u_FIB_TIPDOC_COND       : [{ value: '', disabled: true }, [Validators.required]],
-      u_FIB_NUMDOC_COD        : [{ value: '', disabled: true }, [Validators.required]],
-      u_FIB_NOM_COND          : [{ value: '', disabled: true }, [Validators.required]],
-      u_FIB_APE_COND          : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDFN              : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDFC              : [{ value: '', disabled: true }, [Validators.required]]
+      typeTransport               : [{ value: '', disabled: false }],
+      u_FIB_COD_TRA               : [{ value: '', disabled: false }],
+      typeCarrierIdentityDocument : [{ value: '', disabled: false }],
+      u_BPP_MDRT                  : [{ value: '', disabled: false }],
+      u_BPP_MDNT                  : [{ value: '', disabled: false }],
+      u_BPP_MDVC                  : [{ value: '', disabled: false }],
+
+      typeDriversIdentityDocument : [{ value: '', disabled: false }],
+      u_FIB_NUMDOC_COD            : [{ value: '', disabled: false }],
+      u_FIB_NOM_COND              : [{ value: '', disabled: false }],
+      u_FIB_APE_COND              : [{ value: '', disabled: false }],
+      u_BPP_MDFN                  : [{ value: '', disabled: true }],
+      u_BPP_MDFC                  : [{ value: '', disabled: false }]
     });
 
     this.modeloFormOtr = this.fb.group({
-      u_FIB_TIP_TRAS          : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDMT              : [{ value: '', disabled: true }, [Validators.required]],
-      u_BPP_MDTS              : [{ value: '', disabled: true }, [Validators.required]]
+      transferType              : [{ value: '', disabled: false }, [Validators.required]],
+      reasonTransfer            : [{ value: '', disabled: false }, [Validators.required]],
+      outputType                : [{ value: '', disabled: false }, [Validators.required]]
     });
 
     this.modeloFormPie = this.fb.group({
-      slpCode                 : [{ value: '', disabled: true }, [Validators.required]],
-      u_FIB_NBULTOS           : [{ value: '0', disabled: true }, [Validators.required]],
-      u_FIB_KG                : [{ value: '0', disabled: true }, [Validators.required]],
-      jrnlMemo                : [{ value: '', disabled: true }, this.jrnlMemo],
-      comments                : [{ value: '', disabled: true }]
+      slpCode                 : [{ value: '', disabled: false }, [Validators.required]],
+      u_FIB_NBULTOS           : [{ value: '0', disabled: false }, [Validators.required]],
+      u_FIB_KG                : [{ value: '0', disabled: false }, [Validators.required]],
+      jrnlMemo                : [{ value: this.jrnlMemo, disabled: false }],
+      comments                : [{ value: '', disabled: false }]
     });
 
     this.modeloFormBar = this.fb.group({
-      text1                   : ['']
+      u_CodeBar              : ['']
     });
   }
 
@@ -303,72 +316,113 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
       { field: 'whsCode',         header: 'Almacén destino' },
       { field: 'u_tipoOpT12Nam',  header: 'Tipo operación' },
       { field: 'unitMsr',         header: 'UM' },
+      { field: 'u_FIB_NBulto',    header: 'N° bulto' },
+      { field: 'u_FIB_PesoKg',    header: 'Kg' },
       { field: 'quantity',        header: 'Cantidad' }
+    ];
+
+    this.columnasModal =
+    [
+      { field: 'u_ItemCode',      header: 'Código' },
+      { field: 'u_CodeBar',       header: 'Barcode' },
+      { field: 'u_unitMsr',       header: 'UM' },
+      { field: 'u_WeightKg',      header: 'Kg' },
+      { field: 'u_Quantity',      header: 'Cantidad' },
     ];
   }
 
   opcionesTabla(): void {
     this.opciones = [
-      { label: 'Visualizar', icon: 'pi pi-eye', command: () => { this.onClickVisualizar(); } }
+      { label: 'Ver', icon: 'pi pi-eye', command: () => { this.onClickView(); } }
     ];
   }
 
   onSelectedItem(modelo: ITransferenciaStock1): void {
-    this.detalleSelected = modelo;
-    if (this.modeloLines.filter(x => x.itemCode === '').length === 0) {
-      this.opciones.find(x => x.label === 'Visualizar').visible = true;
-    } else {
-      this.opciones.find(x => x.label === 'Visualizar').visible = false;
+    this.modeloSelected = modelo;
+
+    // Verificar si hay ítems vacíos de manera más eficiente
+    const hasEmptyItems = this.modeloLines.some(x => x.itemCode === '');
+
+    // Actualizar visibilidad de la opción "Visualizar" con validación
+    const visualizarOption = this.opciones.find(x => x.label === 'Ver');
+    if (visualizarOption) {
+      visualizarOption.visible = !hasEmptyItems;
     }
   }
 
 
-  //#region <<< MODAL: Cliente >>>
-  onSelectedSocioNegocio(value: any) {
-    this.cardCode = value.cardCode;
-    this.cntctCode = value.cntctCode;
-    this.modeloFormSn.patchValue({ 'cardCode': value.cardCode, 'cardName': value.cardName, 'address': value.address2, 'cntctCode': value.cntctCode });
-
-    const jrnlMemoNew: string = this.jrnlMemo + this.cardCode;
-    this.modeloFormPie.patchValue({ 'jrnlMemo' :  jrnlMemoNew });
-  }
-
-  onSelectedPersonaContacto(value: any) {
-    this.cntctCode = value.cntctCode;
-    this.modeloFormSn.patchValue({ 'cntctCode' : value.cntctCode });
-  }
-  //#endregion
-
 
   //#region  <<< Visualizar >>>
-  onClickVisualizar(): void {
-    this.isVisualizarBarcode = !this.isVisualizarBarcode;
+
+  private showModalError(message: string): Promise<any> {
+    const swalWithBootstrapButtons = Swal.mixin({
+      customClass: { container: 'my-swal' },
+      target: document.getElementById('modal')
+    });
+
+    return swalWithBootstrapButtons.fire(
+      this.globalConstants.msgInfoSummary,
+      message,
+      'error'
+    );
   }
 
-  onToBuscar(): void {
-    // Funcionalidad de picking removida en modo view
+  onClickView(): void {
+    this.isVisualizarCodebar = true;
+    this.loadModalData();
   }
 
-  onClear(): void {
+  onClickBuscarModal(): void {
+      this.loadModalData();
+    }
+
+    private loadModalData(): void {
+    this.isDisplay = true;
     this.bardcodeList = [];
-    this.modeloFormBar.patchValue({ text1: '' }, { emitEvent: false });
+
+    const { u_CodeBar } = this.modeloFormBar.value;
+    const value: any = {
+      u_TrgetEntry  : this.modeloSelected.docEntry,
+      u_TargetType  : Number(this.modeloSelected.objType),
+      u_TrgetLine   : this.modeloSelected.lineNum,
+      u_CodeBar     : u_CodeBar
+    };
+
+    this.pickingService.getListByTarget(value)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data: IPicking[]) => {
+          this.isDisplay = false;
+          this.bardcodeList = data;
+        },
+        error: (e) => {
+          this.bardcodeList = [];
+          this.isDisplay = false;
+          this.showModalError(e.error?.resultadoDescripcion || 'Ocurrió un error inesperado.');
+        }
+      });
   }
 
-  onHide(): void {
-    this.onClear();
+  onClearModel(): void {
+    this.bardcodeList = [];
+    this.isVisualizarCodebar = false;
+    this.modeloFormBar.patchValue({ u_CodeBar: '' }, { emitEvent: false });
   }
 
-  onClickBarcodeClose()
+  onHideModal(): void {
+    this.onClearModel();
+  }
+
+  onClickCloseModal()
   {
-    this.onClear();
-    this.isVisualizarBarcode = !this.isVisualizarBarcode;
+    this.onClearModel();
   }
   //#endregion
 
   //#endregion
 
 
-  private setFormValues(value: ITransferenciaStock): void {
+  private setFormValues(value: IStockTransfers): void {
     // Activar flag de carga inicial para evitar que onChange events
     // modifiquen el detalle durante la carga
     this.isLoadingInitialData = true;
@@ -384,6 +438,9 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
 
     this.u_BPP_NDTD               = value.u_BPP_MDTD;
     this.u_BPP_NDSD               = value.u_BPP_MDSD;
+    this.u_FIB_COD_TRA            = value.u_FIB_COD_TRA;
+    this.u_BPP_MDVC               = value.u_BPP_MDVC;
+    this.u_FIB_NUMDOC_COD         = value.u_FIB_NUMDOC_COD;
 
     // Actualizar formulario Socio de Negocio
     this.modeloFormSn.patchValue(
@@ -397,7 +454,7 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
     );
 
     // Buscar y asignar valores como SelectItem para tipo y serie de documento
-    const tipoDocItem             = this.tipoDocumentoList.find(item => item.value === value.u_BPP_MDTD);
+    const tipoDocItem             = this.documentTypeSunatList.find(item => item.value === value.u_BPP_MDTD);
 
     // Buscar y asignar valores como SelectItem para los dropdowns de Almacenes
     const fillerItem              = this.warehouseList.find(item => item.value === value.filler);
@@ -419,39 +476,41 @@ export class PanelPanelTransferenciaStockViewComponent implements OnInit, OnDest
     );
 
     // Buscar y asignar valores como SelectItem para transporte
-    const tipoTransporteItem      = this.tipoTransporteList.find(item => item.value === value.u_FIB_TIP_TRANS);
-    const tipoDocIdentidadTranItem    = this.tipoDocumentoIdentidadTranList.find(item => item.value === value.u_FIB_TIPDOC_TRA);
-    const tipoDocIdentidadCondItem    = this.tipoDocumentoIdentidadCondList.find(item => item.value === value.u_FIB_TIPDOC_COND);
+    const tipoTransporteItem          = this.typeTransportList.find(item => item.value === value.u_FIB_TIP_TRANS);
+    const tipoDocIdentidadTranItem    = this.typeIdentityDocumentTransportList.find(item => item.value === value.u_FIB_TIPDOC_TRA);
+    const tipoDocIdentidadCondItem    = this.typeDriversIdentityDocumentList.find(item => item.value === value.u_FIB_TIPDOC_COND);
 
     // Actualizar formulario Transportista
     this.modeloFormTra.patchValue(
       {
-        u_BPP_MDRT                : value.u_BPP_MDRT,
-        u_BPP_MDNT                : value.u_BPP_MDNT,
-        u_BPP_MDVC                : value.u_BPP_MDVC,
-        u_FIB_TIPDOC_COND         : tipoDocIdentidadCondItem || null,
-        u_FIB_NUMDOC_COD          : value.u_FIB_NUMDOC_COD,
-        u_FIB_NOM_COND            : value.u_FIB_NOM_COND,
-        u_FIB_APE_COND            : value.u_FIB_APE_COND,
-        u_BPP_MDFN                : value.u_BPP_MDFN,
-        u_BPP_MDFC                : value.u_BPP_MDFC,
-        u_FIB_TIP_TRANS           : tipoTransporteItem || null,
-        u_FIB_TIPDOC_TRA          : tipoDocIdentidadTranItem || null
+        typeTransport               : tipoTransporteItem || null,
+        u_FIB_COD_TRA               : this.utilService.normalizePrimitive(value.u_FIB_COD_TRA),
+        typeCarrierIdentityDocument : tipoDocIdentidadTranItem || null,
+        u_BPP_MDRT                  : this.utilService.normalizePrimitive(value.u_BPP_MDRT),
+        u_BPP_MDNT                  : this.utilService.normalizePrimitive(value.u_BPP_MDNT),
+        u_BPP_MDVC                  : this.utilService.normalizePrimitive(value.u_BPP_MDVC),
+
+        typeDriversIdentityDocument : tipoDocIdentidadCondItem || null,
+        u_FIB_NUMDOC_COD            : this.utilService.normalizePrimitive(value.u_FIB_NUMDOC_COD),
+        u_FIB_NOM_COND              : this.utilService.normalizePrimitive(value.u_FIB_NOM_COND),
+        u_FIB_APE_COND              : this.utilService.normalizePrimitive(value.u_FIB_APE_COND),
+        u_BPP_MDFN                  : this.utilService.normalizePrimitive(value.u_BPP_MDFN),
+        u_BPP_MDFC                  : this.utilService.normalizePrimitive(value.u_BPP_MDFC),
       },
       { emitEvent: false }
     );
 
     // Buscar y asignar valores como SelectItem para campos definidos por usuario
-    const tipoTrasladoItem        = this.tipoTrasladoList.find(item => item.value === value.u_FIB_TIP_TRAS);
-    const motivoTrasladoItem      = this.motivoTrasladoList.find(item => item.value === value.u_BPP_MDMT);
-    const tipoSalidaItem          = this.tipoSalidaList.find(item => item.value === value.u_BPP_MDTS);
+    const tipoTrasladoItem        = this.transferTypeList.find(item => item.value === value.u_FIB_TIP_TRAS);
+    const motivoTrasladoItem      = this.reasonTransferList.find(item => item.value === value.u_BPP_MDMT);
+    const tipoSalidaItem          = this.outputTypeList.find(item => item.value === value.u_BPP_MDTS);
 
     // Actualizar formulario Otros
     this.modeloFormOtr.patchValue(
       {
-        u_FIB_TIP_TRAS            : tipoTrasladoItem || null,
-        u_BPP_MDMT                : motivoTrasladoItem || null,
-        u_BPP_MDTS                : tipoSalidaItem || null
+        transferType              : tipoTrasladoItem || null,
+        reasonTransfer            : motivoTrasladoItem || null,
+        outputType                : tipoSalidaItem || null
       },
       { emitEvent: false }
     );

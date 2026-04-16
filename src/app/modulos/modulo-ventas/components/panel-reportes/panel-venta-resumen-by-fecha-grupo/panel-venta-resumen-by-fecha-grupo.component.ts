@@ -6,17 +6,18 @@ import { Subject, Subscription } from 'rxjs';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+
+
+import { FilterRequestModel } from 'src/app/models/filter-request.model';
+
+import { IFacturaVentaSap, IVentaResumenSapByFechaGrupo } from 'src/app/modulos/modulo-ventas/interfaces/factura-venta.interface';
+import { IGrupoArticulo } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/grupo-articulo-sap.interface';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { GrupoArticuloService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/grupo-articulo-sap.service';
-
-import { IGrupoArticulo } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/grupo-articulo-sap.interface';
-import { IFacturaVentaSap, IVentaResumenSapByFechaGrupo } from 'src/app/modulos/modulo-ventas/interfaces/factura-venta.interface';
-import { FacturaVentaService } from '../../../services/sap/factura-venta-sap.service';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
+import { FacturaVentaService } from '../../../services/sap-business-one/factura-venta-sap.service';
+import { GrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/grupo-articulo-sap.service';
 
 
 
@@ -68,7 +69,7 @@ export class PanelVentaResumenByFechaGrupoComponent implements OnInit, OnDestroy
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private grupoArticuloService: GrupoArticuloService,
+    private grupoItemsService: GrupoItemsService,
     private facturaVentaService: FacturaVentaService) {}
 
   ngOnInit() {
@@ -111,7 +112,7 @@ export class PanelVentaResumenByFechaGrupoComponent implements OnInit, OnDestroy
 
   getListGrupoArticulo() {
     this.subscription = new Subscription();
-    this.grupoArticuloService.getList()
+    this.grupoItemsService.getList()
     .subscribe({next:(data: IGrupoArticulo[]) =>{
         this.grupoArticuloList = [];
         this.grupoArticuloSelected = [];

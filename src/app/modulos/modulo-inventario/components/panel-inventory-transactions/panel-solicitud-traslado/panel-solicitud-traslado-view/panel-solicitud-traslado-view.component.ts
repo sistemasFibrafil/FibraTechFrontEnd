@@ -1,18 +1,20 @@
+import { Subject, forkJoin } from 'rxjs';
+import { SelectItem } from 'primeng/api';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { SelectItem } from 'primeng/api';
-import { Subject, forkJoin } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { finalize, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+
 import { TableColumn } from 'src/app/interface/common-ui.interface';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/warehouses.service';
-import { ISolicitudTraslado, ISolicitudTraslado1 } from 'src/app/modulos/modulo-inventario/interfaces/solicitud-traslado.interface';
-import { SolicitudTrasladoService } from 'src/app/modulos/modulo-inventario/services/solicitud-traslado.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+
 import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
+import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 @Component({
   selector: 'panel-inv-solicitud-traslado-view',
@@ -56,14 +58,15 @@ export class PanelSolicitudTrasladoViewComponent implements OnInit, OnDestroy {
 
   // Data
   /** Modelos de cabecera y detalle */
-  modelo                                      : ISolicitudTraslado;
-  modeloLinesSelected                         : ISolicitudTraslado1;
-  modeloLines                                 : ISolicitudTraslado1[] = [];
+  modeloLinesSelected                         : IInventoryTransferRequest1;
+
+  modeloLines                                 : IInventoryTransferRequest1[] = [];
 
   // Filters / Additional properties
   /** Identificadores y auxiliares */
-  id                                          = 0;
   cardCode                                    = '';
+
+  id                                          = 0;
   cntctCode                                   = 0;
 
 
@@ -74,8 +77,8 @@ export class PanelSolicitudTrasladoViewComponent implements OnInit, OnDestroy {
     private readonly swaCustomService: SwaCustomService,
     private readonly warehousesService: WarehousesService,
     private readonly salesPersonsService: SalesPersonsService,
-    private readonly solicitudTrasladoService: SolicitudTrasladoService,
     private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly InventoryTransferRequestService: InventoryTransferRequestService,
     public  readonly utilService: UtilService
   ) {}
 
@@ -103,6 +106,51 @@ export class PanelSolicitudTrasladoViewComponent implements OnInit, OnDestroy {
 
     // 2. Cargar todos los combos en paralelo y esperar a que todos terminen
     this.loadAllCombos();
+  }
+
+  private buildForms(): void {
+    this.modeloFormSn = this.fb.group({
+      cardCode                : [{ value: '', disabled: false }],
+      cardName                : [{ value: '', disabled: false }],
+      cntctCode               : [{ value: '', disabled: false }],
+      address                 : [{ value: '', disabled: false }]
+    });
+
+    this.modeloFormDoc = this.fb.group({
+      docNum                  : [{ value: '', disabled: false }],
+      docStatus               : [{ value: 'Abierto', disabled: false }, Validators.required],
+      docDate                 : [{ value: null, disabled: false }, Validators.required],
+      docDueDate              : [{ value: null, disabled: false }, Validators.required],
+      taxDate                 : [{ value: null, disabled: false }, Validators.required],
+      u_FIB_IsPkg             : [{ value: false, disabled: false }],
+      filler                  : [{ value: '', disabled: false }, Validators.required],
+      toWhsCode               : [{ value: '', disabled: false }, Validators.required]
+    });
+
+    this.modeloFormOtr = this.fb.group({
+      u_FIB_TIP_TRAS          : [{ value: '', disabled: false }, Validators.required],
+      u_BPP_MDMT              : [{ value: '', disabled: false }, Validators.required],
+      u_BPP_MDTS              : [{ value: '', disabled: false }, Validators.required]
+    });
+
+    this.modeloFormPie = this.fb.group({
+      slpCode                 : [{ value: '', disabled: false }, Validators.required],
+      jrnlMemo                : [{ value: this.jrnlMemo, disabled: false }],
+      comments                : [{ value: '', disabled: false }]
+    });
+  }
+
+  private buildColumns(): void {
+    this.columnas = [
+      { field: 'itemCode',        header: 'Código' },
+      { field: 'itemName',        header: 'Descripción' },
+      { field: 'fromWhsCod',      header: 'De almacén' },
+      { field: 'whsCode',         header: 'Almacén destino' },
+      { field: 'u_tipoOpT12Nam',  header: 'Tipo operación' },
+      { field: 'unitMsr',         header: 'UM' },
+      { field: 'quantity',        header: 'Cantidad' },
+      { field: 'openQty',         header: 'Pendiente de despacho' }
+    ];
   }
 
   private loadAllCombos(): void {
@@ -155,83 +203,45 @@ export class PanelSolicitudTrasladoViewComponent implements OnInit, OnDestroy {
         this.loadData();
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }
 
   private loadData(): void {
     this.route.params
-      .pipe(
-        tap(params => this.id = +params['id']),
-        switchMap(params => {
-          this.isDisplay = true;
-          return this.solicitudTrasladoService.getByDocEntry(+params['id']);
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (data: ISolicitudTraslado) => {
-          this.isDisplay = false;
-          this.modelo = data;
-          this.setFormValues(this.modelo);
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadData', () => { this.isDisplay = false; }, this.swaCustomService);
-        }
-      });
-  }
+    .pipe(
+      takeUntil(this.destroy$),
+      switchMap(params => {
+        this.id = +params['id'];
 
-  private buildForms(): void {
-    this.modeloFormSn = this.fb.group({
-      cardCode                : [{ value: '', disabled: true }],
-      cardName                : [{ value: '', disabled: true }],
-      cntctCode               : [{ value: '', disabled: true }],
-      address                 : [{ value: '', disabled: true }]
+        // 🔥 aquí sí se activa de forma confiable
+        this.isDisplay = true;
+
+        return this.InventoryTransferRequestService
+          .getByDocEntry(this.id)
+          .pipe(
+            finalize(() => {
+              this.isDisplay = false;
+            })
+          );
+      })
+    )
+    .subscribe({
+      next: (data: IInventoryTransferRequest) => {
+        this.setFormValues(data);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
     });
-
-    this.modeloFormDoc = this.fb.group({
-      docNum                  : [{ value: '', disabled: true }],
-      docStatus               : [{ value: 'Abierto', disabled: true }, Validators.required],
-      docDate                 : [{ value: '', disabled: true }, Validators.required],
-      docDueDate              : [{ value: '', disabled: true }, Validators.required],
-      taxDate                 : [{ value: '', disabled: true }, Validators.required],
-      u_FIB_IsPkg             : [{ value: false, disabled: true }],
-      filler                  : [{ value: '', disabled: true }, Validators.required],
-      toWhsCode               : [{ value: '', disabled: true }, Validators.required]
-    });
-
-    this.modeloFormOtr = this.fb.group({
-      u_FIB_TIP_TRAS          : [{ value: '', disabled: true }, Validators.required],
-      u_BPP_MDMT              : [{ value: '', disabled: true }, Validators.required],
-      u_BPP_MDTS              : [{ value: '', disabled: true }, Validators.required]
-    });
-
-    this.modeloFormPie = this.fb.group({
-      slpCode                 : [{ value: '', disabled: true }, Validators.required],
-      jrnlMemo                : [{ value: this.jrnlMemo, disabled: true }],
-      comments                : [{ value: '', disabled: true }]
-    });
-  }
-
-  private buildColumns(): void {
-    this.columnas = [
-      { field: 'itemCode',        header: 'Código' },
-      { field: 'itemName',        header: 'Descripción' },
-      { field: 'fromWhsCod',      header: 'De almacén' },
-      { field: 'whsCode',         header: 'Almacén destino' },
-      { field: 'u_tipoOpT12Nam',  header: 'Tipo operación' },
-      { field: 'unitMsr',         header: 'UM' },
-      { field: 'quantity',        header: 'Cantidad' },
-      { field: 'openQty',         header: 'Pendiente de despacho' }
-    ];
   }
 
   // ===========================
   // Data Operations
   // ===========================
 
-  private setFormValues(value: ISolicitudTraslado): void {
+  private setFormValues(value: IInventoryTransferRequest): void {
     // Activar flag de carga inicial para evitar que onChange events
     // modifiquen el modeloLines durante la carga
     this.isLoadingInitialData = true;

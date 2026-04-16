@@ -1,26 +1,27 @@
+import { forkJoin, of } from 'rxjs';
 import { SelectItem } from 'primeng/api';
 import { Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
+import { catchError, finalize, map } from 'rxjs/operators';
+import { LayoutComponent } from 'src/app/layout/layout.component';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { LayoutComponent } from 'src/app/layout/layout.component';
+
+import { OSKCCreateModel } from 'src/app/modulos/modulo-inventario/models/oskc.model';
+
 import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
-
 import { OSKCService } from 'src/app/modulos/modulo-inventario/services/oskc.service';
-import { TiempoVidaService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/tiempo-vida.service';
-import { TipoLaminadoService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/tipo-unidad.service';
-import { ColorImpresionService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/color-impresion.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/sales-persons.service';
-import { SubGrupoArticuloService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/sub-grupo-articulo-sap.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
-import { OSKCCreateModel } from 'src/app/modulos/modulo-inventario/models/oskc.model';
-import { UnidadMedidaService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/unidad-medida.service';
-import { GrupoArticuloService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/grupo-articulo-sap.service';
-import { LongitudAnchoService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/longitud-ancho.service';
+import { TiempoVidaService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/tiempo-vida.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { TipoLaminadoService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/tipo-unidad.service';
+import { UnidadMedidaService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/unidad-medida.service';
+import { LongitudAnchoService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/longitud-ancho.service';
+import { ColorImpresionService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/color-impresion.service';
+import { GrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/grupo-articulo-sap.service';
+import { SubGrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/sub-grupo-articulo-sap.service';
+
 
 interface Valor {
   code  : string,
@@ -69,12 +70,11 @@ export class PanelSkuComercialCreateComponent implements OnInit {
     private tiempoVidaService: TiempoVidaService,
     private tipoLaminadoService: TipoLaminadoService,
     private unidadMedidaService: UnidadMedidaService,
-    private grupoArticuloService: GrupoArticuloService,
+    private salesPersonsService: SalesPersonsService,
+    private grupoItemsService: GrupoItemsService,
     private longitudAnchoService: LongitudAnchoService,
     private colorImpresionService: ColorImpresionService,
-    private salesPersonsService: SalesPersonsService,
-    private subGrupoArticuloService: SubGrupoArticuloService,
-    private camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private subGrupoItemsService: SubGrupoItemsService
   ) {}
 
   ngOnInit() {
@@ -140,8 +140,8 @@ export class PanelSkuComercialCreateComponent implements OnInit {
     const sources = {
       oSlpList            : this.salesPersonsService.getList().pipe(map(data => data.map(item => ({ label: item.slpName, value: item.slpCode })))),
       //statusList          : this.camposDefinidoUsuarioService.getListByFiltro({ tableID: '@FIB_OSKC', aliasID: 'Status' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
-      grupoList           : this.grupoArticuloService.getList().pipe(map(data => data.map(item => ({ label: item.itmsGrpNam, value: item.itmsGrpCod })))),
-      subGrupoList        : this.subGrupoArticuloService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
+      grupoList           : this.grupoItemsService.getList().pipe(map(data => data.map(item => ({ label: item.itmsGrpNam, value: item.itmsGrpCod })))),
+      subGrupoList        : this.subGrupoItemsService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       unidadMedidaList    : this.unidadMedidaService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       largoAnchoList      : this.longitudAnchoService.getList().pipe(map(data => data.map(item => ({ label: item.unitName, value: item.unitCode })))),
       //colorList           : this.camposDefinidoUsuarioService.getListByFiltro({ tableID: 'OITM', aliasID: 'FIB_COLOR' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),

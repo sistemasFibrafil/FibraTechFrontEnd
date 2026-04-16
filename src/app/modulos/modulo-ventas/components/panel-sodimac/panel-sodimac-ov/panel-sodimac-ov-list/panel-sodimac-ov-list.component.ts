@@ -149,7 +149,6 @@ export class PanelSodimacOrdenVentaListComponent implements OnInit {
   }
 
   onToItemSelected(modelo: IOrdenVentaSodimacByFiltro) {
-    debugger
     this.modeloSelected = modelo;
 
     if(this.buttonAcces.btnEditar){
@@ -172,7 +171,6 @@ export class PanelSodimacOrdenVentaListComponent implements OnInit {
   }
 
   onClickEdit(){
-    debugger
     this.router.navigate(['/main/modulo-ven/panel-sodimac-ov-update', this.modeloSelected.id]);
   }
 
@@ -183,7 +181,7 @@ export class PanelSodimacOrdenVentaListComponent implements OnInit {
   onToDelete() {
     // this.isDeleting = true;
     // const param: any = { idPicking: this.modeloSelected.idPicking, idUsuario: this.userContextService.getIdUsuario() };
-    // this.solicitudTrasladoService.setDelete(param)
+    // this.InventoryTransferRequestService.setDelete(param)
     // .subscribe({ next: (resp:any)=>{
     //     this.onListar();
     //     this.isDeleting = false;

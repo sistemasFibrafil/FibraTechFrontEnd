@@ -43,7 +43,7 @@ export class OpcionCreateComponent implements OnInit, OnDestroy {
 
     this.maestroForm = this.fb.group(
       {
-        'descripcion' : new FormControl('', Validators.compose([Validators.required, Validators.maxLength(100), Validators.minLength(4)])),
+        'descripcion' : new FormControl('', Validators.compose([Validators.required, Validators.maxLength(100), Validators.minLength(3)])),
         'keyOpcion' : new FormControl(''),
       }
     );

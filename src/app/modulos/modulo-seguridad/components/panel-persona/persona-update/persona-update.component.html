@@ -1,5 +1,5 @@
 <div class="card card-w-title">
-  <p-panel header="Actualizar {{titulo}}">
+  <p-panel header="Editar {{titulo}}">
     <div class="grid p-fluid">
       <div class="col-12">
         <form [formGroup]="modeloForm">
@@ -38,27 +38,20 @@
               </div>
             </div>
             <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-documento">Nro Documento </label>
+              <label class="label-custom" for="float-input-documento">N° Documento </label>
               <div class="p-inputgroup">
                 <span class="p-inputgroup-addon"><i class="pi pi-file"></i></span>
-                <input id="float-input-documento" type="text" placeholder="Nro Documento" maxlength="20" formControlName="numeroDocumento" required pInputText>
+                <input id="float-input-documento" type="text" placeholder="N° Documento" maxlength="20" formControlName="numeroDocumento" required pInputText>
               </div>
               <div *ngIf="modeloForm.controls['numeroDocumento'].errors && modeloForm.controls['numeroDocumento'].dirty">
-                <p-message severity="error" text="Nro Documento es requerido" *ngIf="modeloForm.controls['numeroDocumento'].errors['required']"></p-message>
+                <p-message severity="error" text="N° Documento es requerido" *ngIf="modeloForm.controls['numeroDocumento'].errors['required']"></p-message>
               </div>
             </div>
             <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-telefono">Nro Telefono </label>
+              <label class="label-custom" for="float-input-telefono">N° Telefono </label>
               <div class="p-inputgroup">
                 <span class="p-inputgroup-addon"><i class="pi pi-mobile"></i></span>
-                <input id="float-input-telefono" type="number" placeholder="Nro Telefono" maxlength="20" formControlName="numeroTelefono" pInputText>
-              </div>
-            </div>
-            <div class="col-12 md:col-3">
-              <label class="label-custom" for="float-input-userSap">Usuario SAP </label>
-              <p-dropdown id="float-input-userSap" [options]="userSapList" placeholder="Seleccione usuario SAP" formControlName="userSap" optionLabel="label" [filter]="true" [showClear]="true"></p-dropdown>
-              <div *ngIf="modeloForm.controls['userSap'].errors && modeloForm.controls['userSap'].dirty">
-                <p-message severity="error" text="Usuario SAP es requerido." *ngIf="modeloForm.controls['userSap'].errors['required']"></p-message>
+                <input id="float-input-telefono" type="number" placeholder="N° Telefono" maxlength="20" formControlName="numeroTelefono" pInputText>
               </div>
             </div>
             <div class="col-12 md:col-1">
@@ -66,6 +59,27 @@
               <div class="p-inputgroup">
                 <p-checkbox [ngStyle]="{'padding-top': '5px'}" id="float-input-activo" [binary]="true" formControlName="activo"></p-checkbox>
               </div>
+            </div>
+
+            <div class="col-12">
+              <p-fieldset legend="SAP Business One">
+                <div class="p-fluid p-formgrid grid">
+                  <div class="col-12 md:col-6">
+                    <label class="label-custom" for="float-input-userSap">Usuario</label>
+                    <p-dropdown id="float-input-userSap" [options]="userSapList" placeholder="Seleccione usuario" formControlName="userSap" optionLabel="label" [filter]="true" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['userSap'].errors && modeloForm.controls['userSap'].dirty">
+                      <p-message severity="error" text="Usuario SAP es requerido." *ngIf="modeloForm.controls['userSap'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <label class="label-custom" for="float-input-salesEmployees">Empleado de ventas </label>
+                    <p-dropdown id="float-input-salesEmployees" [options]="salesPersonsList" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" optionLabel="label" [filter]="true" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['salesEmployees'].errors && modeloForm.controls['salesEmployees'].dirty">
+                      <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloForm.controls['salesEmployees'].errors['required']"></p-message>
+                    </div>
+                  </div>
+                </div>
+              </p-fieldset>
             </div>
 
             <div class="col-12">
@@ -82,7 +96,7 @@
                       <p-message severity="error" text="Tener un min. de 2 y max. de 20 caractares" *ngIf="modeloForm.controls['usuario'].errors['minlength'] || modeloForm.controls['usuario'].errors['maxlength'] "></p-message>
                     </div>
                   </div>
-                  <div class="col-12 md:col-3" *ngIf="modeloSistema.tipoAutenticacion === 'AUTO-NORMAL'">
+                  <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-password">Contraseña </label>
                     <div class="p-inputgroup">
                       <span class="p-inputgroup-addon"><i class="pi pi-lock"></i></span>
@@ -133,10 +147,10 @@
     </div>
     <p-footer>
       <div class="grid p-fluid">
-        <div class="col-12 md:col-6">
+        <div class="col-12 md:col-2">
           <button pButton type="submit" [disabled]="!modeloForm.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
-        <div class="col-12 md:col-6">
+        <div class="col-12 md:col-2">
           <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
         </div>
       </div>
@@ -152,3 +166,6 @@
     </div>
   </div>
 </p-dialog>
+
+
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

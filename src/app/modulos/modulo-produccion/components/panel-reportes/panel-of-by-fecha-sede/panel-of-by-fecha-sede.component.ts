@@ -4,17 +4,19 @@ import { SelectItem } from 'primeng/api';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { FilterRequestModel } from 'src/app/models/filter-request.model';
 
 import { IOrdenFabricacionBySede } from '../../../interfaces/ordenFabricacion.interface';
+import { ILocation } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/location.interface';
+
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { OrdenFabricacionService } from '../../../services/orden-fabricacion-sap.service';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { ILocation } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/inventario/location.interface';
-import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/inventario/location.service';
+import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/location.service';
 
 
 @Component({

@@ -80,7 +80,7 @@
                 <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="{{globalConstants.icoGrabar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onRowEditSave(modelo)"></button>
                 <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="{{globalConstants.icoCancelar}}" class="{{globalConstants.cStyleButtonDanger}}" style="margin-left: .5em" (click)="onRowEditCancel(modelo, ri)"></button>
               </td>
-              <td class="custom-td-2">
+              <td class="custom-td-5">
                 <button [disabled]="buttonAcces.btnEliminar" pButton icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onToRowSelectDelete(modelo)"></button>
               </td>
             </tr>

@@ -7,22 +7,22 @@
             <div class="p-formgrid grid">
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-cardCode">Código de cliente </label>
-                <app-modal-socio-negocio [title]="'Socios de Negocios'" [cardCode]="cardCode" [cardType] = "'C,S'" [transType] = "'N,Y'" (eventoAceptar)="onSelectedSocioNegocio($event)" [isHabilitarButton]="true"></app-modal-socio-negocio>
+                <app-modal-socio-negocio [class.readonly-control]="true" [attr.tabindex]="-1" [isHabilitarButton]="true" [title]="'Socios de Negocios'" [cardCode]="cardCode" [cardType] = "'C,S'" [transType] = "'N,Y'" (eventoAceptar)="onSelectedSocioNegocio($event)"></app-modal-socio-negocio>
               </div>
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-cardName">Razón social o nombre </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-cardName" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-persona-contacto">Persona de contacto </label>
-                <app-modal-persona-contacto [cardCode]="cardCode" [cntctCode]="cntctCode" (eventoAceptar)="onSelectedPersonaContacto($event)"></app-modal-persona-contacto>
+                <app-modal-persona-contacto [class.readonly-control]="true" [attr.tabindex]="-1" [isHabilitarButton]="true" [cardCode]="cardCode" [cntctCode]="cntctCode" (eventoAceptar)="onSelectedPersonaContacto($event)"></app-modal-persona-contacto>
               </div>
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-address">Dirección de destino </label>
                 <div class="p-inputgroup">
-                  <textarea id="float-area-address" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText [readOnly]="true"></textarea>
+                  <textarea id="float-area-address" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText [readOnly]="true"></textarea>
                 </div>
               </div>
             </div>
@@ -36,13 +36,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-docNum">Número </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docNum" class="field-mandatory" type="text" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-docNum" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-4">
                 <label class="label-custom" for="float-input-docStatus">Estado </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docStatus" class="field-mandatory" type="text" placeholder="Estado" maxlength="50" size="50" formControlName="docStatus" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-docStatus" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Estado" maxlength="50" size="50" formControlName="docStatus" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-3">
@@ -54,7 +54,7 @@
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-docDate">Fecha de contabilización </label>
                 <div class="p-inputgroup">
-                  <p-calendar id="float-calendar-docDate" class="field-mandatory" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  <p-calendar id="float-calendar-docDate" [class.field-mandatory]="!isLocked" [class.readonly-control]="isLocked" [attr.tabindex]="isLocked ? -1 : 0" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
                 </div>
                 <div *ngIf="modeloFormDoc.controls['docDate'].errors && modeloFormDoc.controls['docDate'].dirty">
                   <p-message severity="error" text="La fecha de contabilización es requerida." *ngIf="modeloFormDoc.controls['docDate'].errors['required']"></p-message>
@@ -63,7 +63,7 @@
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-docDueDate">Fecha de entrega </label>
                 <div class="p-inputgroup">
-                  <p-calendar id="float-calendar-docDueDate" class="field-mandatory" placeholder="Fecha de entrega" formControlName="docDueDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  <p-calendar id="float-calendar-docDueDate" [class.field-mandatory]="!isLocked" [class.readonly-control]="isLocked" [attr.tabindex]="isLocked ? -1 : 0" placeholder="Fecha de entrega" formControlName="docDueDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
                 </div>
                 <div *ngIf="modeloFormDoc.controls['docDueDate'].errors && modeloFormDoc.controls['docDueDate'].dirty">
                   <p-message severity="error" text="La fecha de entrega es requerida." *ngIf="modeloFormDoc.controls['docDueDate'].errors['required']"></p-message>
@@ -80,14 +80,14 @@
               </div>
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-filler">De almacén </label>
-                <p-dropdown id="float-input-filler" class="field-mandatory" [options]="WarehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="filler" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeAlmacenOrigen($event)"></p-dropdown>
+                <p-dropdown id="float-input-filler" [class.field-mandatory]="!isLocked" [class.readonly-control]="isLocked" [attr.tabindex]="isLocked ? -1 : 0" [options]="WarehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="filler" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeAlmacenOrigen($event)"></p-dropdown>
                 <div *ngIf="modeloFormDoc.controls['filler'].errors && modeloFormDoc.controls['filler'].dirty">
                   <p-message severity="error" text="Almacén de origen es requerido." *ngIf="modeloFormDoc.controls['filler'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-toWhsCode">Alamcén destino </label>
-                <p-dropdown id="float-input-toWhsCode" class="field-mandatory" [options]="WarehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="toWhsCode" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeAlmacenDestino($event)"></p-dropdown>
+                <p-dropdown id="float-input-toWhsCode" [class.field-mandatory]="!isLocked" [class.readonly-control]="isLocked" [attr.tabindex]="isLocked ? -1 : 0" [options]="WarehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="toWhsCode" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeAlmacenDestino($event)"></p-dropdown>
                 <div *ngIf="modeloFormDoc.controls['toWhsCode'].errors && modeloFormDoc.controls['toWhsCode'].dirty">
                   <p-message severity="error" text="Almacén destino es requerido." *ngIf="modeloFormDoc.controls['toWhsCode'].errors['required']"></p-message>
                 </div>
@@ -129,36 +129,35 @@
                 <!-- body -->
                 <ng-template pTemplate="body" let-linea let-ri="rowIndex">
                   <tr [ngClass]="{'row-cerrado': linea?.lineStatus === 'C'}">
-                    <td class="custom-td-2">
-                      <p-splitButton [disabled]="linea.lineStatus==='C'" icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(linea)" appendTo = "body">
+                    <td class="custom-td-8">
+                      <p-splitButton [disabled]="linea?.lineStatus==='C'" icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(linea)" appendTo = "body">
                       </p-splitButton>
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Código: </span><i *ngIf="linea?.lineStatus === 'O'" class="pi pi-search" (click)="onOpenArticulo(ri)"></i> {{linea.itemCode}}
+                      <i *ngIf="linea?.lineStatus === 'O'" class="pi pi-search" (click)="onOpenArticulo(ri)"></i> {{linea.itemCode}}
                     </td>
                     <td class="p-fluid">
-                        <span class="p-column-title">Descripción: </span> {{linea.dscription}}
+                      {{linea.dscription}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Almacén de origen: </span><i *ngIf="linea.itemCode !== '' && linea?.lineStatus === 'O'" class="pi pi-search" (click)="onOpenAlmacenOrigenItem(linea, ri)" ></i> {{linea.fromWhsCod}}
+                      <i *ngIf="linea.itemCode !== '' && linea?.lineStatus === 'O'" class="pi pi-search" (click)="onOpenAlmacenOrigenItem(linea, ri)" ></i> {{linea.fromWhsCod}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Almacén de destino: </span><i *ngIf="linea.itemCode !== '' && linea?.lineStatus === 'O'" class="pi pi-search" (click)="onOpenAlmacenDestinoItem  (linea, ri)"></i> {{linea.whsCode}}
+                      <i *ngIf="linea.itemCode !== '' && linea?.lineStatus === 'O'" class="pi pi-search" (click)="onOpenAlmacenDestinoItem  (linea, ri)"></i> {{linea.whsCode}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Tipo operación: </span><i *ngIf="linea.itemCode !== ''" class="pi pi-search" (click)="onOpenTipoOperacionItem(ri)"></i> {{linea.u_tipoOpT12Nam}}
+                      <i *ngIf="linea.itemCode !== ''" class="pi pi-search" (click)="onOpenTipoOperacionItem(ri)"></i> {{linea.u_tipoOpT12Nam}}
                     </td>
                     <td class="custom-td-3">
-                      <span class="p-column-title">UM: </span> {{linea.unitMsr}}
+                      {{linea.unitMsr}}
                     </td>
                     <td class="custom-td-numero" *ngIf="linea?.lineStatus === 'C'">
-                      <span class="p-column-title">Cantidad: </span> {{linea.quantity | number: '.3':'en-EN'}}
+                      {{linea.quantity | number: '.3':'en-EN'}}
                     </td>
                     <td class="custom-td-numero" pEditableColumn *ngIf="linea?.lineStatus === 'O'">
-                      <span class="p-column-title">Cantidad: </span>
                       <p-cellEditor>
                         <ng-template pTemplate="input">
-                          <input id="cantidad" type="text" autocomplete="off" [(ngModel)]="linea.quantity" maxlength="9" (ngModelChange)="onChangeQuantity(linea,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,linea.quantity)">
+                          <input id="quantity" type="text" autocomplete="off" [(ngModel)]="linea.quantity" maxlength="9" (ngModelChange)="onChangeQuantity(linea,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,linea.quantity)">
                         </ng-template>
                         <ng-template pTemplate="output">
                           {{linea.quantity | number: '.3':'en-EN'}}
@@ -178,7 +177,7 @@
               </p-table>
             </p-tabPanel>
 
-            
+
             <p-tabPanel>
               <ng-template pTemplate = "header">
                 <i class="pi pi-circle-fill"></i>
@@ -220,7 +219,7 @@
             <div class="p-formgrid grid">
               <div class="col-12 md:col-4">
                 <label class="label-custom" for="float-input-slpCode">Empleado de ventas </label>
-                <p-dropdown id="float-input-slpCode" class="field-mandatory" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="slpCode" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <p-dropdown id="float-input-slpCode" [class.field-mandatory]="!isLocked" [class.readonly-control]="isLocked" [attr.tabindex]="isLocked ? -1 : 0" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="slpCode" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                 <div *ngIf="modeloFormPie.controls['slpCode'].errors && modeloFormPie.controls['slpCode'].dirty">
                   <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormPie.controls['slpCode'].errors['required']"></p-message>
                 </div>
@@ -246,10 +245,10 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormDoc.valid || !modeloFormOtr.valid || !modeloFormPie.valid || !hasValidLines" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormDoc.valid || !modeloFormOtr.valid || !modeloFormPie.valid || !hasValidLines" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
         <div class="col-12 md:col-2">
-          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>
         </div>
       </div>
     </p-footer>

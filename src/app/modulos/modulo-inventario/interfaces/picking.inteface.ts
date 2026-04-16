@@ -54,7 +54,6 @@ export interface IPicking {
   u_BaseNum             : number;
   u_BaseType            : number;
   u_BaseLine            : number;
-  u_IsReturned          : string;
   u_ItemCode?           : string;
   u_Dscription?         : string;
   u_CodeBar?            : string;

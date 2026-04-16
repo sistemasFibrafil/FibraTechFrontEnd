@@ -66,32 +66,31 @@
           <!-- body -->
           <ng-template pTemplate = "body" let-modelo let-editing = "editing" let-ri = "rowIndex">
             <tr class="p-selectable-row">
-              <td class="custom-td-2">
+              <td class="custom-td-8">
                 <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                 </p-splitButton>
               </td>
-              <td class="custom-td-10">
-                <span class="p-column-title">Número</span> {{modelo.docNum}}
+              <td class="p-fluid">
+                {{modelo.docNum}}
               </td>
-              <td class="custom-td-10">
-                <span class="p-column-title">Guía</span> {{modelo.u_BPP_MDSD}}-{{modelo.u_BPP_MDCD}}
+              <td class="p-fluid">
+                {{modelo?.u_BPP_MDSD}}-{{modelo?.u_BPP_MDCD}}
               </td>
-              <td class="custom-td-10">
-                <span class="p-column-title">Picking?</span>
+              <td class="custom-td-20">
                 <span class="label" style="background:#17a2b8" *ngIf="modelo?.u_FIB_FromPkg === 'Y'">Sí</span>
                 <span class="label" style="background:#dc3545" *ngIf="modelo?.u_FIB_FromPkg !== 'Y'">No</span>
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">Fecha de contabilización</span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
+                {{modelo.docDate | date: 'dd/MM/yyyy'}}
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">Fecha de traslado</span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+                {{modelo.taxDate | date: 'dd/MM/yyyy'}}
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">De alamcén</span> {{modelo.filler}}
+                {{modelo.filler}}
               </td>
               <td class="p-fluid">
-                <span class="p-column-title">Alamcén destino</span> {{modelo.toWhsCode}}
+                {{modelo.toWhsCode}}
               </td>
               <!-- <td class="p-fluid">
                 <span [ngSwitch] = "modelo.codStatusSunat">

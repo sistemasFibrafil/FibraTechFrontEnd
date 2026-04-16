@@ -2,8 +2,8 @@ import swal from 'sweetalert2';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
-import { ArticuloSapForSodimacBySkuModel } from 'src/app/modulos/modulo-inventario/models/articulo.model';
-import { ArticuloService } from 'src/app/modulos/modulo-inventario/services/articulo.service';
+import { ArticuloSapForSodimacBySkuModel } from 'src/app/modulos/modulo-inventario/models/items.model';
+import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
 
 
 @Component({
@@ -32,7 +32,7 @@ export class ModalFileImportComponent implements OnInit {
 
   constructor
   (
-    private ArticuloService: ArticuloService,
+    private itemsService: ItemsService,
   ) { }
 
   ngOnInit() {
@@ -92,7 +92,7 @@ export class ModalFileImportComponent implements OnInit {
 
   getArticuloForOrdenVentaSodimacBySku(value: ArticuloSapForSodimacBySkuModel) {
     this.isDisplay = true;
-    this.ArticuloService.getArticuloForOrdenVentaSodimacBySku(value)
+    this.itemsService.getArticuloForOrdenVentaSodimacBySku(value)
     .subscribe({next:(data: any[]) =>{
       if(data)
       {

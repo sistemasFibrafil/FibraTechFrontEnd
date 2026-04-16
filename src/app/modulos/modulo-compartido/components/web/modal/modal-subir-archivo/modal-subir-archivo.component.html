@@ -1,6 +1,6 @@
 <div class="grid p-fluid" id="modal-import">
   <div class="col-12 md:col-12">
-    <p-fileUpload #fileUploadArchivo name="demo[]" chooseLabel="Seleccionar" uploadLabel="Subir" cancelLabel="Cancelar" [customUpload]="true" accept=".txt,.csv,.xlsx,.xls" [maxFileSize]="50000000" [fileLimit]="1" (uploadHandler)="onClickUpload($event)">
+    <p-fileUpload #fileUploadArchivo name="demo[]" chooseLabel="Seleccionar" uploadLabel="Subir" cancelLabel="Cancelar" [customUpload]="true" [accept]="fileType" [maxFileSize]="50000000" [fileLimit]="1" (uploadHandler)="onClickUpload($event)">
     </p-fileUpload>
     <div class="barra-progreso">
       <ng-container *ngIf="isEnvioArchivo && progress === 0">

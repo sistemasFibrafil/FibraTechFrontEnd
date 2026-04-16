@@ -1,28 +1,29 @@
 import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { UtilService } from 'src/app/services/util.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { Subject, of, Observable, takeUntil, map, catchError, take, finalize } from 'rxjs';
+
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { StockTransfersFilterModel } from 'src/app/modulos/modulo-inventario/models/stock-transfers.model';
+
 import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
+import { IStockTransfers } from 'src/app/modulos/modulo-inventario/interfaces/stock-transfers.interface';
+import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
 
-import { PickingService } from 'src/app/modulos/modulo-inventario/services/picking.service';
-import { TransferenciaStockService } from 'src/app/modulos/modulo-inventario/services/transferencia-stock.service';
-import { ITransferenciaStock } from 'src/app/modulos/modulo-inventario/interfaces/transferencia-stock.interface';
-import { GuiaElectronicaSapService } from 'src/app/modulos/modulo-facturacion-electronica/services/guia-electronica-sap.service';
-import { TransferenciaStockFilterModel } from 'src/app/modulos/modulo-inventario/models/transferencia-stock.model';
+import { UtilService } from 'src/app/services/util.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
+import { SwaCustomService } from 'src/app/services/swa-custom.service';
+import { UserContextService } from 'src/app/services/user-context.service';
+import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
+import { PickingService } from 'src/app/modulos/modulo-inventario/services/picking.service';
+import { StockTransfersService } from 'src/app/modulos/modulo-inventario/services/stock-transfers.service';
+import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
+import { GuiaElectronicaSapService } from 'src/app/modulos/modulo-facturacion-electronica/services/guia-electronica-sap.service';
 
-interface DocStatus {
-  statusCode: string;
-  statusName: string;
-}
+
 
 @Component({
   selector: 'app-inv-panel-transferencia-stock-list',
@@ -52,32 +53,34 @@ export class PanelPanelTransferenciaStockListComponent implements OnInit, OnDest
   columnas                          : TableColumn[];
   opciones                          : MenuItem[];
   private opcionesMap               : Map<string, MenuItem>;
+
   docStatusList                     : SelectItem[] = [];
 
   // Data
-  modeloDelete                      : ITransferenciaStock;
-  modeloSelected                    : ITransferenciaStock;
-  modelo                            : ITransferenciaStock[] = [];
-  docStatus                         : DocStatus[];
+  isDataBlob                        : Blob;
+
+  modeloDelete                      : IStockTransfers;
+  modeloSelected                    : IStockTransfers;
+
+  modelo                            : IStockTransfers[] = [];
 
   // Paginación de la tabla
-  rows                = 20;
-  rowsPerPageOptions  = [20, 40, 60, 80, 100];
-
-  params                            : TransferenciaStockFilterModel = new TransferenciaStockFilterModel();
-  isDataBlob                        : Blob;
+  rows                              = 20;
+  rowsPerPageOptions                = [20, 40, 60, 80, 100];
 
 
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
-    private readonly utilService: UtilService,
     private readonly pickingService: PickingService,
     private readonly swaCustomService: SwaCustomService,
     private readonly localDataService: LocalDataService,
+    private readonly userContextService: UserContextService,
+    private readonly exchangeRatesService: ExchangeRatesService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly stockTransfersService: StockTransfersService,
     private readonly guiaElectronicaSapService: GuiaElectronicaSapService,
-    private readonly transferenciaStockService: TransferenciaStockService,
+    public  readonly utilService: UtilService,
   ) {}
 
   // ===========================
@@ -155,7 +158,7 @@ export class PanelPanelTransferenciaStockListComponent implements OnInit, OnDest
     return true;
   }
 
-  private updateMenuVisibility(modelo: ITransferenciaStock): void {
+  private updateMenuVisibility(modelo: IStockTransfers): void {
     const viewOption    = this.opcionesMap.get('Ver');
     const editOption    = this.opcionesMap.get('Editar');
     const pickingOption = this.opcionesMap.get('Picking');
@@ -171,7 +174,7 @@ export class PanelPanelTransferenciaStockListComponent implements OnInit, OnDest
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: ITransferenciaStock): void {
+  onSelectedItem(modelo: IStockTransfers): void {
     this.modeloSelected = modelo;
     this.updateMenuVisibility(modelo);
   }
@@ -180,90 +183,156 @@ export class PanelPanelTransferenciaStockListComponent implements OnInit, OnDest
   // Data Operations
   // ===========================
   private getListStatus(): void {
-    const statuses = this.localDataService.getListStatusDocumentInventory();
+    const statuses = this.localDataService.getListStatusDocuments();
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('docStatus')?.setValue(statuses);
   }
 
-  private setParameters(): void {
-    this.params = this.modeloForm.getRawValue();
-    const selectedStatuses = this.modeloForm.value.docStatus || [];
-    this.params.docStatus = selectedStatuses.map(x => x.code).join(',');
+  private buildFilterParams(): StockTransfersFilterModel {
+    const {
+      startDate,
+      endDate,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
+
+    return {
+      startDate,
+      endDate,
+      docStatus: (docStatus || []).map(x => x.code).join(','),
+      searchText
+    };
   }
 
   private loadData(): void {
-    this.setParameters();
     this.isDisplay = true;
 
-    this.transferenciaStockService.getListByFilter(this.params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: ITransferenciaStock[]) => {
+    this.stockTransfersService
+      .getListByFilter(this.buildFilterParams())
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
           this.isDisplay = false;
+        })
+      )
+      .subscribe({
+        next: (data: IStockTransfers[]) => {
           this.modelo = data;
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadData', () => { this.isDisplay = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
         }
       });
-  }
-
-  onClickBuscar(): void {
-    this.loadData();
   }
 
   // ===========================
   // UI Actions
   // ===========================
 
-  onClickCreate(): void {
-    this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create', JSON.stringify(this.modeloSelected.docEntry)]);
+  onClickBuscar(): void {
+    this.loadData();
+  }
+
+  private fetchTipoCambioRate(): Observable<IExchangeRates | null> {
+    const docDate: Date = new Date();
+    const sysCurrncy    = this.userContextService.getSysCurrncy();
+
+    if (!docDate) {
+      return of(null);
+    }
+
+    const params = {
+      rateDate: this.utilService.normalizeDateOrToday(docDate),
+      currency: '', // Se envía vacío por diseño (backend define moneda)
+      sysCurrncy
+    };
+
+    return this.exchangeRatesService.getByDocDateAndCurrency(params)
+    .pipe(
+      map(data => data ?? null),
+      catchError(() => of(null))
+    );
+  }
+
+  private validarTipoCambioYContinuar(continuar: () => void): void {
+    this.fetchTipoCambioRate()
+    .pipe(take(1))
+    .subscribe(rate => {
+      if (!rate || rate.sysRate === 0) {
+        this.swaCustomService.swaMsgInfo(
+          'Falta registrar el tipo de cambio de hoy en SAP Business One.'
+        );
+        return;
+      }
+
+      // ✅ Si pasa la validación
+      continuar();
+    });
+  }
+
+  onClickCreate() {
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-create'], { state: { mode: 'create' } });
+    });
   }
 
   onClickVer(): void {
     if (!this.validateSelection()) return;
+
     this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-view', this.modeloSelected.docEntry]);
   }
 
-  onClickEditar(): void {
+  onClickEditar() {
     if (!this.validateSelection()) return;
-    this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-edit', this.modeloSelected.docEntry]);
+
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-inv/panel-transferencia-stock-edit', this.modeloSelected.docEntry]);
+    });
   }
 
   onClickEnviar(): void {
     if (!this.validateSelection()) return;
 
     this.isDisplay = true;
-    const params = { cod1: this.modeloSelected.objType, id1: this.modeloSelected.docEntry };
 
-    this.guiaElectronicaSapService.setEnviar(params)
-      .pipe(takeUntil(this.destroy$))
+    const params = {
+      cod1: this.modeloSelected.objType,
+      id1: this.modeloSelected.docEntry
+    };
+
+    this.guiaElectronicaSapService
+      .setEnviar(params)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplay = false;
+        })
+      )
       .subscribe({
         next: () => {
-          this.isDisplay = false;
           this.swaCustomService.swaMsgExito(null);
           setTimeout(() => {
             this.loadData();
           }, 100);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickEnviar', () => { this.isDisplay = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'onClickEnviar', this.swaCustomService);
         }
       });
   }
 
   private handlePdfResponse(resp: any): void {
-    switch (resp.type) {
-      case HttpEventType.DownloadProgress:
-        // Progress tracking if needed
-        break;
-      case HttpEventType.Response:
-        this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
-        this.isDisplayGenerandoVisor = false;
-        this.isDisplayVisor = true;
-        break;
-    }
+  switch (resp.type) {
+    case HttpEventType.DownloadProgress:
+      // Progress tracking if needed
+      break;
+
+    case HttpEventType.Response:
+      this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
+      this.isDisplayVisor = true;
+      break;
   }
+}
 
   onClickImprimir1(): void {
     if (!this.validateSelection()) return;
@@ -271,14 +340,20 @@ export class PanelPanelTransferenciaStockListComponent implements OnInit, OnDest
     this.tituloVisor = 'FORMATO DE REGISTRO';
     this.isDisplayGenerandoVisor = true;
 
-    this.transferenciaStockService.getFormatoPdfByDocEntry(this.modeloSelected.docEntry)
-      .pipe(takeUntil(this.destroy$))
+    this.stockTransfersService
+      .getFormatoPdfByDocEntry(this.modeloSelected.docEntry)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplayGenerandoVisor = false;
+        })
+      )
       .subscribe({
         next: (resp: any) => {
           this.handlePdfResponse(resp);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickImprimir1', () => { this.isDisplayGenerandoVisor = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'onClickImprimir1', this.swaCustomService);
         }
       });
   }
@@ -288,16 +363,26 @@ export class PanelPanelTransferenciaStockListComponent implements OnInit, OnDest
 
     this.tituloVisor = 'PICKING LIST';
     this.isDisplayGenerandoVisor = true;
-    const params = { u_TrgetEntry: this.modeloSelected.docEntry, u_TargetType: Number(this.modeloSelected.objType) };
 
-    this.pickingService.getPickingPrint(params)
-      .pipe(takeUntil(this.destroy$))
+    const params = {
+      u_TrgetEntry: this.modeloSelected.docEntry,
+      u_TargetType: Number(this.modeloSelected.objType)
+    };
+
+    this.pickingService
+      .getPickingPrint(params)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplayGenerandoVisor = false;
+        })
+      )
       .subscribe({
         next: (resp: any) => {
           this.handlePdfResponse(resp);
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickImprimir2', () => { this.isDisplayGenerandoVisor = false; }, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'onClickImprimir2', this.swaCustomService);
         }
       });
   }

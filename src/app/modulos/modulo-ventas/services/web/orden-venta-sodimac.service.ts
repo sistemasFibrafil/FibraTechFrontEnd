@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment.prod';
 
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { OrdenVentaSodimacCreateModel, OrdenVentaSodimacLpnUpdateModel, OrdenVentaSodimacUpdateModel } from '../../models/web/orden-venta-sodimac.model';
-import { IOrdenVentaSodimac, IOrdenVentaSodimacByFiltro, IOrdenVentaSodimacConsulta, IOrdenVentaSodimacDetalle } from '../../interfaces/web/orden-venta-sodimac.interface';
+import { IOrdenVentaSodimac, IOrdenVentaSodimacByFiltro, IOrdenVentaSodimacGeneralQuery, IOrdenVentaSodimacDetalle } from '../../interfaces/web/orden-venta-sodimac.interface';
 
 
 
@@ -46,16 +46,15 @@ export class OrdenVentaSodimacService {
     let params = new HttpParams();
     params = params.append('text1', value.text1);
 
-    return this.http.get<IOrdenVentaSodimacConsulta[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacPendienteLpnByFiltro/`,{params: params});
+    return this.http.get<IOrdenVentaSodimacGeneralQuery[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacPendienteLpnByFiltro/`,{params: params});
   }
 
   getListOrdenVentaSodimacDetallePendienteLpnByIdAndFiltro(value: FilterRequestModel) {
-    debugger
     let params = new HttpParams();
     params = params.append('id1', value.id1.toString());
     params = params.append('text1', value.text1);
 
-    return this.http.get<IOrdenVentaSodimacConsulta[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacDetallePendienteLpnByIdAndFiltro/`,{params: params});
+    return this.http.get<IOrdenVentaSodimacGeneralQuery[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacDetallePendienteLpnByIdAndFiltro/`,{params: params});
   }
 
   getListOrdenVentaSodimacLpnByFiltro(value: FilterRequestModel) {
@@ -64,7 +63,7 @@ export class OrdenVentaSodimacService {
     params = params.append('dat2', this.datePipe.transform(value.dat2, 'yyyy-MM-dd'));
     params = params.append('text1', value.text1);
 
-    return this.http.get<IOrdenVentaSodimacConsulta[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacLpnByFiltro/`,{params: params});
+    return this.http.get<IOrdenVentaSodimacGeneralQuery[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacLpnByFiltro/`,{params: params});
   }
 
   getListOrdenVentaSodimacDetalleById(id: number) {
@@ -87,40 +86,40 @@ export class OrdenVentaSodimacService {
     return this.http.get(`${environment.url_api_fib}OrdenVentaSodimac/GetListBarcodeEanPdfByEan/${ean}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
   }
 
-  getListOrdenVentaSodimacByFechaNumero(value: FilterRequestModel){
+  getListOrdenVentaSodimacByFechaNumero(value: any){
     var params = new HttpParams();
-    params = params.append('dat1', this.datePipe.transform(value.dat1, 'yyyy-MM-dd'));
-    params = params.append('dat2', this.datePipe.transform(value.dat2, 'yyyy-MM-dd'));
-    params = params.append('cod1', value.cod1);
-    params = params.append('text1', value.text1);
+    params = params.append('startDate', this.datePipe.transform(value.startDate, 'yyyy-MM-dd'));
+    params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
+    params = params.append('tipo', value.tipo);
+    params = params.append('searchText', value.searchText);
 
-    return this.http.get<IOrdenVentaSodimacConsulta[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacByFechaNumero/`,{params: params});
+    return this.http.get<IOrdenVentaSodimacGeneralQuery[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacByFechaNumero/`,{params: params});
   }
 
-  getListOrdenVentaSodimacExcelByFechaNumero(value: FilterRequestModel){
+  getListOrdenVentaSodimacExcelByFechaNumero(value: any){
     var params = new HttpParams();
-    params = params.append('dat1', this.datePipe.transform(value.dat1, 'yyyy-MM-dd'));
-    params = params.append('dat2', this.datePipe.transform(value.dat2, 'yyyy-MM-dd'));
-    params = params.append('cod1', value.cod1);
-    params = params.append('text1', value.text1);
+    params = params.append('startDate', this.datePipe.transform(value.startDate, 'yyyy-MM-dd'));
+    params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
+    params = params.append('tipo', value.tipo);
+    params = params.append('searchText', value.searchText);
 
     return this.http.get(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacExcelByFechaNumero/`,{params: params, responseType: 'arraybuffer'});
   }
 
-  getListOrdenVentaSodimacSelvaFechaNumero(value: FilterRequestModel){
+  getListOrdenVentaSodimacSelvaFechaNumero(value: any){
     var params = new HttpParams();
-    params = params.append('dat1', this.datePipe.transform(value.dat1, 'yyyy-MM-dd'));
-    params = params.append('dat2', this.datePipe.transform(value.dat2, 'yyyy-MM-dd'));
-    params = params.append('text1', value.text1);
+    params = params.append('startDate', this.datePipe.transform(value.startDate, 'yyyy-MM-dd'));
+    params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
+    params = params.append('searchText', value.searchText);
 
-    return this.http.get<IOrdenVentaSodimacConsulta[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacSelvaFechaNumero/`,{params: params});
+    return this.http.get<IOrdenVentaSodimacGeneralQuery[]>(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacSelvaFechaNumero/`,{params: params});
   }
 
-  getListOrdenVentaSodimacSelvaPdfByFechaNumero(value: FilterRequestModel) {
+  getListOrdenVentaSodimacSelvaPdfByFechaNumero(value: any) {
     var params = new HttpParams();
-    params = params.append('dat1', this.datePipe.transform(value.dat1, 'yyyy-MM-dd'));
-    params = params.append('dat2', this.datePipe.transform(value.dat2, 'yyyy-MM-dd'));
-    params = params.append('text1', value.text1);
+    params = params.append('startDate', this.datePipe.transform(value.startDate, 'yyyy-MM-dd'));
+    params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
+    params = params.append('searchText', value.searchText);
 
     return this.http.get(`${environment.url_api_fib}OrdenVentaSodimac/GetListOrdenVentaSodimacSelvaPdfByFechaNumero/`, {params: params, responseType: 'blob',  observe: 'response', reportProgress: true });
   }

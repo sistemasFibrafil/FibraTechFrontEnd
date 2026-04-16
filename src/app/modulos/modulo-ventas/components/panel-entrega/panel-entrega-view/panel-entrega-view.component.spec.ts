@@ -5,7 +5,6 @@ import { PanelEntregaViewComponent } from './panel-entrega-view.component';
 describe('PanelEntregaViewComponent', () => {
   let component: PanelEntregaViewComponent;
   let fixture: ComponentFixture<PanelEntregaViewComponent>;
-
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ PanelEntregaViewComponent ]
@@ -19,7 +18,7 @@ describe('PanelEntregaViewComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should view', () => {
     expect(component).toBeTruthy();
   });
 });

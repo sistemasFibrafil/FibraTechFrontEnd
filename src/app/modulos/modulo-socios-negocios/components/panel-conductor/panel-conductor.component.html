@@ -1,0 +1,158 @@
+<div class="card card-w-title">
+  <p-panel header="Registro de {{titulo}}">
+    <div class="grid p-fluid">
+      <div class="col-12">
+        <form [formGroup]="modeloForm">
+          <div class="p-formgrid grid">
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-cardCode">Código </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                <input id="float-input-cardCode" type="text" placeholder="Código" maxlength="50" size="50" formControlName="cardCode" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['cardCode'].errors && modeloForm.controls['cardCode'].dirty">
+                <p-message severity="error" text="Código es requerido" *ngIf="modeloForm.controls['cardCode'].errors['required']"></p-message>
+                <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['cardCode'].errors['minlength'] || modeloForm.controls['cardCode'].errors['maxlength'] "></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-cardName">Nombre </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                <input id="float-input-cardName" type="text" placeholder="Nombre de cliente" maxlength="50" size="50" formControlName="cardName" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['cardName'].errors && modeloForm.controls['cardName'].dirty">
+                <p-message severity="error" text="Nombre es requerido" *ngIf="modeloForm.controls['cardName'].errors['required']"></p-message>
+                <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['cardName'].errors['minlength'] || modeloForm.controls['cardName'].errors['maxlength'] "></p-message>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <label class="label-custom" for="float-input-licTradNum">RUC </label>
+              <div class="p-inputgroup">
+                <span class="p-inputgroup-addon"><i class="pi pi-user"></i></span>
+                <input id="float-input-licTradNum" type="text" placeholder="RUC" maxlength="50" size="50" formControlName="licTradNum" autocomplete="off" required pInputText>
+              </div>
+              <div *ngIf="modeloForm.controls['licTradNum'].errors && modeloForm.controls['licTradNum'].dirty">
+                <p-message severity="error" text="RUC es requerido" *ngIf="modeloForm.controls['licTradNum'].errors['required']"></p-message>
+                <p-message severity="error" text="Tener un min. de 2 y max. de 50 caractares" *ngIf="modeloForm.controls['licTradNum'].errors['minlength'] || modeloForm.controls['licTradNum'].errors['maxlength'] "></p-message>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="col-12">
+        <p-table
+          [value]="modeloLines"
+          [columns]="columnas"
+          editMode="row"
+          [rowHover]="true"
+          [autoLayout]="true"
+          [resizableColumns]="true"
+          responsiveLayout="scroll"
+          [showCurrentPageReport]="true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th class="custom-header"></th>
+              <th *ngFor="let col of columns" class="custom-header">
+                {{col.header}}
+              </th>
+            </tr>
+          </ng-template>
+          <!-- body -->
+          <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+            <tr [pContextMenuRow]="modelo">
+              <td class="custom-td-8">
+                <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                </p-splitButton>
+              </td>
+              <td class="p-fluid" pEditableColumn>
+                <p-cellEditor>
+                  <!-- MODO EDICIÓN -->
+                  <ng-template pTemplate="input">
+                    <input id="u_BPP_CHNO" pInputText type="text" autocomplete="off" [(ngModel)]="modelo.u_BPP_CHNO" maxlength="100" (ngModelChange)="markAsModified(modelo)">
+                  </ng-template>
+                  <!-- MODO VISUAL -->
+                  <ng-template pTemplate="output">
+                    {{ modelo.u_BPP_CHNO }}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td class="p-fluid" pEditableColumn>
+                <p-cellEditor>
+                  <!-- MODO EDICIÓN -->
+                  <ng-template pTemplate="input">
+                    <input id="u_FIB_CHAP" pInputText type="text" autocomplete="off" [(ngModel)]="modelo.u_FIB_CHAP" maxlength="100" (ngModelChange)="markAsModified(modelo)">
+                  </ng-template>
+                  <!-- MODO VISUAL -->
+                  <ng-template pTemplate="output">
+                    {{ modelo.u_FIB_CHAP }}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td class="p-fluid" pEditableColumn>
+                <p-cellEditor>
+                  <!-- MODO EDICIÓN -->
+                  <ng-template pTemplate="input">
+                    <p-dropdown [options]="identityDocumentTypeList" optionLabel="label" optionValue="value" [(ngModel)]="modelo.u_FIB_CHTD" appendTo="body" [style]="{'width':'100%'}" (ngModelChange)="markAsModified(modelo)"></p-dropdown>
+                  </ng-template>
+                  <!-- MODO VISUAL -->
+                  <ng-template pTemplate="output">
+                    {{ getIdentityDocumentTypeLabel(modelo.u_FIB_CHTD) }}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td class="custom-td-10" pEditableColumn>
+                <p-cellEditor>
+                  <!-- MODO EDICIÓN -->
+                  <ng-template pTemplate="input">
+                    <input id="u_FIB_CHND" pInputText type="text" autocomplete="off" [(ngModel)]="modelo.u_FIB_CHND" maxlength="100" (ngModelChange)="markAsModified(modelo)">
+                  </ng-template>
+                  <!-- MODO VISUAL -->
+                  <ng-template pTemplate="output">
+                    {{ modelo.u_FIB_CHND }}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td class="p-fluid" pEditableColumn>
+                <p-cellEditor>
+                  <!-- MODO EDICIÓN -->
+                  <ng-template pTemplate="input">
+                    <input id="u_BPP_CHLI" pInputText type="text" autocomplete="off" [(ngModel)]="modelo.u_BPP_CHLI" maxlength="100" (ngModelChange)="markAsModified(modelo)">
+                  </ng-template>
+                  <!-- MODO VISUAL -->
+                  <ng-template pTemplate="output">
+                    {{ modelo.u_BPP_CHLI }}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="columns.length + 1">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <p-footer>
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-2">
+          <button pButton type="submit" [disabled]="!hasChanges || !hasValidLines" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+        </div>
+        <div class="col-12 md:col-2">
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="back()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+        </div>
+      </div>
+    </p-footer>
+  </p-panel>
+</div>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>

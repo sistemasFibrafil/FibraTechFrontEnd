@@ -13,7 +13,7 @@ export interface IOrdenVentaSodimac {
   cntctCode                 : number;
   cntctName                 : string;
   address                   : string;
-  item                      : IOrdenVentaSodimacDetalle[];
+  lines                     : IOrdenVentaSodimacDetalle[];
 }
 
 export interface IOrdenVentaSodimacDetalle {
@@ -45,7 +45,7 @@ export interface IOrdenVentaSodimacByFiltro {
   CardName                  : string;
 }
 
-export interface IOrdenVentaSodimacConsulta {
+export interface IOrdenVentaSodimacGeneralQuery {
   id?                       : number;
   line1?                    : number;
   line2?                    : number;

@@ -62,7 +62,7 @@
           <!-- body -->
           <ng-template pTemplate = "body" let-modelo let-ri = "rowIndex">
             <tr [pSelectableRow]="modelo" [ngClass]="{'row-cerrado': modelo?.docStatus === 'C'}">
-              <td class="custom-td-2">
+              <td class="custom-td-8">
                 <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                 </p-splitButton>
               </td>

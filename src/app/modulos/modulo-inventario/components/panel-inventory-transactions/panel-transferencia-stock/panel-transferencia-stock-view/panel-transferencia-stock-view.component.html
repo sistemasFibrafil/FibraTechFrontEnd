@@ -7,22 +7,22 @@
             <div class="p-formgrid grid">
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-cardCode">Código de cliente </label>
-                <app-modal-socio-negocio [isHabilitarButton]="true" [title]="'Socios de Negocios'" [cardCode]="cardCode" [cardType] = "'C,S'" [transType] = "'N,Y'" (eventoAceptar)="onSelectedSocioNegocio($event)"></app-modal-socio-negocio>
+                <app-modal-socio-negocio [class.readonly-control]="true" [attr.tabindex]="-1" [isHabilitarButton]="true" [title]="'Socios de Negocios'" [cardCode]="cardCode" [cardType] = "'C,S'" [transType] = "'N,Y'"></app-modal-socio-negocio>
               </div>
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-cardName">Razón social o nombre </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-cardName" type="text" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-cardName" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Razón social o nombre" maxlength="100" size="50" formControlName="cardName" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-persona-contacto">Persona de contacto </label>
-                <app-modal-persona-contacto [cardCode]="cardCode" [cntctCode]="cntctCode" (eventoAceptar)="onSelectedPersonaContacto($event)"></app-modal-persona-contacto>
+                <app-modal-persona-contacto [class.readonly-control]="true" [attr.tabindex]="-1" [isHabilitarButton]="true" [cardCode]="cardCode" [cntctCode]="cntctCode"></app-modal-persona-contacto>
               </div>
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-address">Dirección de destino </label>
                 <div class="p-inputgroup">
-                  <textarea id="float-area-address" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText [readOnly]="true"></textarea>
+                  <textarea id="float-area-address" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" formControlName="address" autocomplete="off" placeholder="Dirección de destino" maxlength="254" rows="5" pInputText [readOnly]="true"></textarea>
                 </div>
               </div>
             </div>
@@ -36,28 +36,28 @@
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-docNum">Número</label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docNum" class="field-mandatory" type="text" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-docNum" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Número" maxlength="50" size="50" formControlName="docNum" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
               <div class="col-12 md:col-4">
                 <label class="label-custom" for="float-input-u_BPP_MDTD">Tipo </label>
-                <p-dropdown id="float-input-u_BPP_MDTD" class="field-mandatory" [options]="tipoDocumentoList" [filter]="true" placeholder="Seleccione el tipo" formControlName="u_BPP_MDTD" optionLabel="label" [showClear]="true"></p-dropdown>
+                <p-dropdown id="float-input-u_BPP_MDTD" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="documentTypeSunatList" [filter]="true" placeholder="Seleccione el tipo" formControlName="u_BPP_MDTD" optionLabel="label" [showClear]="true"></p-dropdown>
               </div>
               <div class="col-12 md:col-4">
                 <label class="label-custom" for="float-input-u_BPP_MDSD">Serie </label>
-                <app-modal-serie-documento class="field-mandatory" [isHabilitarButton]="true" [u_BPP_NDTD]="u_BPP_NDTD" [u_BPP_NDSD]="u_BPP_NDSD" [u_FIB_TDED]="u_FIB_TDED" [u_FIB_TDTD]="u_FIB_TDTD" [u_FIB_SEDE]="u_FIB_SEDE"></app-modal-serie-documento>
+                <app-modal-serie-documento [class.readonly-control]="true" [attr.tabindex]="-1" [isHabilitarButton]="true" [idUsuario]="idUsuario" [u_BPP_NDTD]="u_BPP_NDTD" [u_BPP_NDSD]="u_BPP_NDSD" [u_Delivery]="''" [u_SalesInvoices]="''" [u_Transfer]="'Y'"></app-modal-serie-documento>
               </div>
               <div class="col-12 md:col-4">
                 <label class="label-custom" for="float-input-u_BPP_MDCD">Número</label>
                 <div class="p-inputgroup">
-                  <input id="float-input-numero-u_BPP_MDCD" class="field-mandatory" type="text" placeholder="Número documento" maxlength="100" size="50" formControlName="u_BPP_MDCD" autocomplete="off" pInputText [readOnly]="true">
+                  <input id="float-input-numero-u_BPP_MDCD" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Número documento" maxlength="100" size="50" formControlName="u_BPP_MDCD" autocomplete="off" pInputText [readOnly]="true">
                 </div>
               </div>
 
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-docDate">Fecha de contabilización </label>
                 <div class="p-inputgroup">
-                  <p-calendar id="float-calendar-docDate" class="field-mandatory" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  <p-calendar id="float-calendar-docDate" [class.readonly-control]="true" [attr.tabindex]="-1" placeholder="Fecha de contabilización" formControlName="docDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
                 </div>
                 <div *ngIf="modeloFormDoc.controls['docDate'].errors && modeloFormDoc.controls['docDate'].dirty">
                   <p-message severity="error" text="Fecha de contabilización es requerida." *ngIf="modeloFormDoc.controls['docDate'].errors['required']"></p-message>
@@ -66,7 +66,7 @@
               <div class="col-12 md:col-12">
                 <label class="label-custom" for="float-input-taxDate">Fecha de traslado </label>
                 <div class="p-inputgroup">
-                  <p-calendar id="float-calendar-taxDate" class="field-mandatory" placeholder="Fecha de traslado" formControlName="taxDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  <p-calendar id="float-calendar-taxDate" [class.readonly-control]="true" [attr.tabindex]="-1" placeholder="Fecha de traslado" formControlName="taxDate" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
                 </div>
                 <div *ngIf="modeloFormDoc.controls['taxDate'].errors && modeloFormDoc.controls['taxDate'].dirty">
                   <p-message severity="error" text="Fecha de traslado es requerida." *ngIf="modeloFormDoc.controls['taxDate'].errors['required']"></p-message>
@@ -74,11 +74,11 @@
               </div>
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-filler">De almacén </label>
-                <p-dropdown id="float-input-filler" class="field-mandatory" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="filler" optionLabel="label" [showClear]="true"></p-dropdown>
+                <p-dropdown id="float-input-filler" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="filler" optionLabel="label" [showClear]="true"></p-dropdown>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-toWhsCode">Almacén destino </label>
-                <p-dropdown id="float-input-toWhsCode" class="field-mandatory" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="toWhsCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                <p-dropdown id="float-input-toWhsCode" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="toWhsCode" optionLabel="label" [showClear]="true"></p-dropdown>
               </div>
             </div>
           </form>
@@ -116,32 +116,38 @@
                   </tr>
                 </ng-template>
                 <!-- body -->
-                <ng-template pTemplate="body" let-linea let-ri="rowIndex">
-                  <tr [ngClass]="{'row-cerrado': linea?.lineStatus === '01'}">
-                    <td class="custom-td-2">
-                      <p-splitButton [disabled]="true" icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(linea)" appendTo = "body">
+                <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
+                  <tr [ngClass]="{'row-cerrado': modelo?.lineStatus === '01'}">
+                    <td class="custom-td-8">
+                      <p-splitButton [disabled]="(modelo?.u_FIB_FromPkg ?? 'N') === 'N'" icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                       </p-splitButton>
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Código: </span> {{linea.itemCode}}
+                      {{modelo.itemCode}}
                     </td>
                     <td class="p-fluid">
-                        <span class="p-column-title">Descripción: </span> {{linea.dscription}}
+                        {{modelo.dscription}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">De almacén: </span> {{linea.fromWhsCod}}
+                      {{modelo.fromWhsCod}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Almacén destino: </span> {{linea.whsCode}}
+                      {{modelo.whsCode}}
                     </td>
                     <td class="p-fluid">
-                      <span class="p-column-title">Tipo operación: </span> {{linea.u_tipoOpT12Nam}}
+                      {{modelo.u_tipoOpT12Nam}}
                     </td>
                     <td class="custom-td-3">
-                      <span class="p-column-title">UM: </span> {{linea.unitMsr}}
+                      {{modelo.unitMsr}}
                     </td>
                     <td class="custom-td-numero">
-                      <span class="p-column-title">Cantidad: </span> {{linea.quantity | number: '.3':'en-EN'}}
+                      {{modelo.u_FIB_NBulto | number: '.2':'en-EN'}}
+                    </td>
+                    <td class="custom-td-numero">
+                      {{modelo.u_FIB_PesoKg | number: '.2':'en-EN'}}
+                    </td>
+                    <td class="custom-td-numero">
+                      {{modelo.quantity | number: '.3':'en-EN'}}
                     </td>
                   </tr>
                 </ng-template>
@@ -164,74 +170,72 @@
                     <p-fieldset legend="Datos de transportista">
                       <div class="p-fluid p-formgrid grid">
                         <div class="col-12 md:col-12">
-                          <label class="label-custom" for="float-input-u_FIB_TIP_TRANS">Tipo de transporte </label>
-                          <p-dropdown id="float-input-u_FIB_TIP_TRANS"  [options]="tipoTransporteList" [filter]="true" placeholder="Seleccione el tipo de transporte" formControlName="u_FIB_TIP_TRANS" optionLabel="label" [showClear]="true"></p-dropdown>
+                          <label class="label-custom" for="float-input-typeTransport">Tipo de transporte </label>
+                          <p-dropdown id="float-input-typeTransport" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="typeTransportList" placeholder="Seleccione el tipo de transporte" formControlName="typeTransport" optionLabel="label" [showClear]="true"></p-dropdown>
                         </div>
-                        <div class="col-12 md:col-6">
-                          <label class="label-custom" for="float-input-u_FIB_TIPDOC_TRA">Tipo de documento </label>
-                          <p-dropdown id="float-input-u_FIB_TIPDOC_TRA" [options]="tipoDocumentoIdentidadTranList" [filter]="true" placeholder="Seleccione el tipo de documento" formControlName="u_FIB_TIPDOC_TRA" optionLabel="label" [showClear]="true"></p-dropdown>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-u_FIB_COD_TRA">Código </label>
+                          <app-modal-socio-negocio [class.readonly-control]="true" [attr.tabindex]="-1" [title]="'Transportistas'" [cardCode]="u_FIB_COD_TRA" [cardType] = "'C,S'" [transType] = "'Y'"></app-modal-socio-negocio>
                         </div>
-                        <div class="col-12 md:col-6">
-                          <label class="label-custom" for="float-input-ruc-transportista">RUC </label>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-typeCarrierIdentityDocument">Tipo de documento </label>
+                          <p-dropdown id="float-input-typeCarrierIdentityDocument" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="typeCarrierIdentityDocumentList" placeholder="Seleccione el tipo de documento" formControlName="typeCarrierIdentityDocument" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                        </div>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-u_BPP_MDRT">RUC </label>
                           <div class="p-inputgroup">
-                            <input id="float-input-ruc-transportista" type="text" placeholder="RUC de transportita" maxlength="11" size="50" formControlName="u_BPP_MDRT" autocomplete="off" pInputText>
+                            <input id="float-input-u_BPP_MDRT" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="RUC" maxlength="15" size="50" formControlName="u_BPP_MDRT" autocomplete="off" pInputText readonly>
                           </div>
                         </div>
-                        <div class="col-12 md:col-6">
-                          <label class="label-custom" for="float-input-nom-transportista">Nombre </label>
+                        <div class="col-12 md:col-3">
+                          <label class="label-custom" for="float-input-u_BPP_MDNT">Razón social </label>
                           <div class="p-inputgroup">
-                            <input id="float-input-nom-transportista" type="text" placeholder="Nombre de transportista" maxlength="100" size="50" formControlName="u_BPP_MDNT" autocomplete="off" pInputText>
+                            <input id="float-input-u_BPP_MDNT" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Razón social" maxlength="100" size="50" formControlName="u_BPP_MDNT" autocomplete="off" pInputText readonly>
                           </div>
                         </div>
-                        <div class="col-12 md:col-6">
-                          <label class="label-custom" for="float-input-num-pla-transportista">Número de placa </label>
-                          <div class="p-inputgroup">
-                            <input id="float-input-num-pla-transportista" type="text" placeholder="Número de placa" maxlength="100" size="50" formControlName="u_BPP_MDVC" autocomplete="off" pInputText>
-                          </div>
+                        <div class="col-12 md:col-12">
+                          <label class="label-custom" for="float-input-u_BPP_MDVC">Placa </label>
+                          <app-modal-vehiculo [class.readonly-control]="true" [attr.tabindex]="-1" [u_FIB_COTR]="u_FIB_COD_TRA" [u_BPP_VEPL]="u_BPP_MDVC"></app-modal-vehiculo>
                         </div>
                       </div>
                     </p-fieldset>
                   </div>
-
                   <div class="col-12">
                     <p-fieldset legend="Datos del conductor">
                       <div class="p-fluid p-formgrid grid">
-                        <div class="col-12 md:col-6">
-                          <label class="label-custom" for="float-input-u_FIB_TIPDOC_COND">Tipo de documento </label>
-                          <p-dropdown id="float-input-u_FIB_TIPDOC_COND" [options]="tipoDocumentoIdentidadCondList" [filter]="true" placeholder="Seleccione el tipo de documento" formControlName="u_FIB_TIPDOC_COND" optionLabel="label" [showClear]="true"></p-dropdown>
-                        </div>
-                        <div class="col-12 md:col-6">
-                          <label class="label-custom" for="float-input-num-doc-conductor">Número de documento </label>
-                          <div class="p-inputgroup">
-                            <input id="float-input-num-doc-conductor" type="text" placeholder="Número de documento" maxlength="15" size="50" formControlName="u_FIB_NUMDOC_COD" autocomplete="off" pInputText>
+                          <div class="col-12 md:col-6">
+                            <label class="label-custom" for="float-input-typeDriversIdentityDocument">Tipo de documento </label>
+                            <p-dropdown id="float-input-typeDriversIdentityDocument" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="typeDriversIdentityDocumentList" placeholder="Seleccione el tipo de documento" formControlName="typeDriversIdentityDocument" optionLabel="label" [showClear]="true"></p-dropdown>
+                          </div>
+                          <div class="col-12 md:col-6">
+                            <label class="label-custom" for="float-input-u_FIB_NUMDOC_COD">Número de documento </label>
+                            <app-modal-conductor [class.readonly-control]="true" [attr.tabindex]="-1" [u_FIB_COTR]="u_FIB_COD_TRA" [u_FIB_CHND]="u_FIB_NUMDOC_COD"></app-modal-conductor>
+                          </div>
+                          <div class="col-12 md:col-4">
+                            <label class="label-custom" for="float-input-u_FIB_NOM_COND">Nombre </label>
+                            <div class="p-inputgroup">
+                              <input id="float-input-u_FIB_NOM_COND" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Nombre" maxlength="100" size="50" formControlName="u_FIB_NOM_COND" autocomplete="off" pInputText readonly>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-4">
+                            <label class="label-custom" for="float-input-u_FIB_APE_COND">Apellidos </label>
+                            <div class="p-inputgroup">
+                              <input id="float-input-u_FIB_APE_COND" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Apellidos" maxlength="100" size="50" formControlName="u_FIB_APE_COND" autocomplete="off" pInputText readonly>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-4">
+                            <label class="label-custom" for="float-input-u_BPP_MDFN">Nombre completo </label>
+                            <div class="p-inputgroup">
+                              <input id="float-input-u_BPP_MDFN" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Nombre completo" maxlength="50" size="50" formControlName="u_BPP_MDFN" autocomplete="off" pInputText readonly>
+                            </div>
+                          </div>
+                          <div class="col-12 md:col-12">
+                            <label class="label-custom" for="float-input-u_BPP_MDFC">Licencia </label>
+                            <div class="p-inputgroup">
+                              <input id="float-input-u_BPP_MDFC" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Número de licencia" maxlength="15" size="50" formControlName="u_BPP_MDFC" autocomplete="off" pInputText readonly>
+                            </div>
                           </div>
                         </div>
-                        <div class="col-12 md:col-4">
-                          <label class="label-custom" for="float-input-nom-conductor">Nombre </label>
-                          <div class="p-inputgroup">
-                            <input id="float-input-nom-conductor" type="text" placeholder="Nombre" maxlength="100" size="50" formControlName="u_FIB_NOM_COND" autocomplete="off" pInputText>
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-4">
-                          <label class="label-custom" for="float-input-ape-conductor">Apellidos </label>
-                          <div class="p-inputgroup">
-                            <input id="float-input-ape-conductor" type="text" placeholder="Apellidos" maxlength="100" size="50" formControlName="u_FIB_APE_COND" autocomplete="off" pInputText>
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-4">
-                          <label class="label-custom" for="float-input-nom-com-conductor">Nombre completo </label>
-                          <div class="p-inputgroup">
-                            <input id="float-input-nom-com-conductor" type="text" placeholder="Nombre completo" maxlength="100" size="50" formControlName="u_BPP_MDFN" autocomplete="off" pInputText>
-                          </div>
-                        </div>
-                        <div class="col-12 md:col-12">
-                          <label class="label-custom" for="float-input-num-lic-conductor">Número de licencia </label>
-                          <div class="p-inputgroup">
-                            <input id="float-input-num-lic-conductor" type="text" placeholder="Número de licencia" maxlength="20" size="50" formControlName="u_BPP_MDFC" autocomplete="off" pInputText>
-                          </div>
-                        </div>
-
-                      </div>
                     </p-fieldset>
                   </div>
                 </div>
@@ -246,16 +250,25 @@
               <form [formGroup]="modeloFormOtr">
                 <div class="p-fluid p-formgrid grid">
                   <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-tipo-traslado">Tipo de traslado </label>
-                    <p-dropdown id="float-input-u_FIB_TIP_TRAS" class="field-mandatory" [options]="tipoTrasladoList" [filter]="true" placeholder="Seleccione el tipo de traslado" formControlName="u_FIB_TIP_TRAS" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <label class="label-custom" for="float-input-transferType">Tipo de traslado </label>
+                    <p-dropdown id="float-input-transferType"[class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1"  [options]="transferTypeList" [filter]="true" placeholder="Seleccione el tipo de traslado" formControlName="transferType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['transferType'].errors && modeloFormOtr.controls['transferType'].dirty">
+                      <p-message severity="error" text="Tipo de traslado es requerido." *ngIf="modeloFormOtr.controls['transferType'].errors['required']"></p-message>
+                    </div>
                   </div>
                   <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-motivo-traslado">Motivo de traslado </label>
-                    <p-dropdown id="float-input-u_BPP_MDMT" class="field-mandatory" [options]="motivoTrasladoList" [filter]="true" placeholder="Seleccione el motivo de traslado" formControlName="u_BPP_MDMT" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <label class="label-custom" for="float-input-reasonTransfer">Motivo de traslado </label>
+                    <p-dropdown id="float-input-reasonTransfer" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="reasonTransferList" [filter]="true" placeholder="Seleccione el motivo de traslado" formControlName="reasonTransfer" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['reasonTransfer'].errors && modeloFormOtr.controls['reasonTransfer'].dirty">
+                      <p-message severity="error" text="Motivo de traslado es requerido." *ngIf="modeloFormOtr.controls['reasonTransfer'].errors['required']"></p-message>
+                    </div>
                   </div>
                   <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-tipo-salida">Tipo de salida </label>
-                    <p-dropdown id="float-input-u_BPP_MDTS" class="field-mandatory" [options]="tipoSalidaList" [filter]="true" placeholder="Seleccione el tipo de salida" formControlName="u_BPP_MDTS" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <label class="label-custom" for="float-input-outputType">Tipo de salida </label>
+                    <p-dropdown id="float-input-outputType" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="outputTypeList" [filter]="true" placeholder="Seleccione el tipo de salida" formControlName="outputType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['outputType'].errors && modeloFormOtr.controls['outputType'].dirty">
+                      <p-message severity="error" text="Tipo de salida es requerido." *ngIf="modeloFormOtr.controls['outputType'].errors['required']"></p-message>
+                    </div>
                   </div>
                 </div>
               </form>
@@ -271,30 +284,30 @@
             <div class="p-formgrid grid">
               <div class="col-12 md:col-6">
                 <label class="label-custom" for="float-input-slpCode">Empleado de ventas </label>
-                <p-dropdown id="float-input-slpCode" class="field-mandatory" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="slpCode" optionLabel="label" [showClear]="true"></p-dropdown>
+                <p-dropdown id="float-input-slpCode" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="slpCode" optionLabel="label" [showClear]="true"></p-dropdown>
               </div>
               <div class="col-12 md:col-3">
-                <label class="label-custom" for="float-input-u_FIB_NBULTOS">Número de bultos </label>
+                <label class="label-custom" for="float-input-u_FIB_NBULTOS">N° bultos </label>
                 <div class="p-inputgroup">
-                  <p-inputNumber id="float-input-u_FIB_NBULTOS" styleClass="input-number" placeholder="Número de boltos" formControlName="u_FIB_NBULTOS" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="3" [maxFractionDigits]="3"></p-inputNumber>
+                  <input id="float-input-u_FIB_NBULTOS" type="text" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="N° bultos" maxlength="20" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormPie, 'u_FIB_NBULTOS', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormPie, 'u_FIB_NBULTOS', 3, true)">
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_KG">Total kilos </label>
                 <div class="p-inputgroup">
-                  <p-inputNumber id="float-input-u_FIB_KG" styleClass="input-number" placeholder="Total kilos" formControlName="u_FIB_KG" autocomplete="off" mode="decimal" locale="en-EN" [minFractionDigits]="3" [maxFractionDigits]="3"></p-inputNumber>
+                  <input id="float-input-u_FIB_KG" type="text" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Total kilos" maxlength="20" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormPie, 'u_FIB_KG', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormPie, 'u_FIB_KG', 3, true)">
                 </div>
               </div>
               <div class="col-12 md:col-6">
                 <label class="label-custom" for="float-input-jrnlMemo">Comentarios </label>
                 <div class="p-inputgroup">
-                  <textarea formControlName="jrnlMemo" autocomplete="off" placeholder="Comentarios" maxlength="50" rows="2" pInputText></textarea>
+                  <textarea formControlName="jrnlMemo" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" autocomplete="off" placeholder="Comentarios" maxlength="50" rows="2" pInputText></textarea>
                 </div>
               </div>
               <div class="col-12 md:col-6">
                 <label class="label-custom" for="float-input-comments">Comentarios </label>
                 <div class="p-inputgroup">
-                  <textarea formControlName="comments" autocomplete="off" placeholder="Comentarios" maxlength="254" rows="2" pInputText></textarea>
+                  <textarea formControlName="comments" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" autocomplete="off" placeholder="Comentarios" maxlength="254" rows="2" pInputText></textarea>
                 </div>
               </div>
             </div>
@@ -306,10 +319,10 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="true" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}"></button>
+          <button pButton type="submit" [disabled]="true" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}"></button>
         </div>
         <div class="col-12 md:col-2">
-          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>
         </div>
       </div>
     </p-footer>
@@ -317,17 +330,17 @@
 </div>
 
 
-<p-dialog header="Código de barra" [(visible)]="isVisualizarBarcode" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true" (onHide)="onHide()">
+<p-dialog header="Código de barra" [(visible)]="isVisualizarCodebar" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true" (onHide)="onHideModal()">
   <p-panel id="modal" header="Opciones de búsqueda" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
     <form [formGroup]="modeloFormBar">
       <div class="grid p-fluid">
         <div class="col-12 md:col-6">
           <div class="p-inputgroup">
-            <input id="float-input-text1" type="text" placeholder="Buscar por código de barra" maxlength="100" size="50" formControlName="text1" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+            <input id="float-input-text1" type="text" placeholder="Buscar por código de barra" maxlength="100" size="50" formControlName="u_CodeBar" autocomplete="off" pInputText (keyup.enter)="onClickBuscarModal()">
           </div>
         </div>
         <div class="col-12 md:col-6">
-          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscarModal()"></button>
         </div>
       </div>
     </form>
@@ -335,7 +348,7 @@
   <p-panel header="Lista de códigos de barras" [toggleable]="true">
     <p-table
     [value]="bardcodeList"
-    [columns]="columnas"
+    [columns]="columnasModal"
     [rowHover]="true"
     [autoLayout]="true"
     [responsive]="true"
@@ -350,29 +363,36 @@
             <p-sortIcon field="{{col.field}}"></p-sortIcon>
             {{col.header}}
           </th>
+          <th class="custom-header"></th>
         </tr>
       </ng-template>
       <!-- body -->
       <ng-template pTemplate="body" let-modelo let-editing="editing">
-        <tr class="p-selectable-row">
+        <tr [pSelectableRow]="modelo" class="row-cerrado">
           <td class="p-fluid">
-            <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+            {{modelo.u_ItemCode}}
           </td>
           <td class="p-fluid">
-            <span class="p-column-title">Barcode: </span> {{modelo.barcode}}
+            {{modelo.u_CodeBar}}
+          </td>
+          <td class="custom-td-10">
+            {{ modelo?.u_UnitMsr | uppercase }}
           </td>
           <td class="custom-td-numero">
-            <span class="p-column-title">Cantidad: </span> {{modelo.quantity | number: '.3':'en-EN'}}
+            {{modelo.u_WeightKg | number: '.3':'en-EN'}}
           </td>
           <td class="custom-td-numero">
-            <span class="p-column-title">Peso: </span> {{modelo.peso | number: '.3':'en-EN'}}
+            {{modelo.u_Quantity | number: '.3':'en-EN'}}
+          </td>
+          <td class="custom-td-5">
+            <button pButton [disabled]="true" icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}"></button>
           </td>
         </tr>
       </ng-template>
     </p-table>
   </p-panel>
   <ng-template pTemplate="footer">
-    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickBarcodeClose()"></p-button>
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseModal()"></p-button>
   </ng-template>
 </p-dialog>
 

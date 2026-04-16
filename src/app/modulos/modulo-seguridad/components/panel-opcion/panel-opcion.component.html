@@ -51,12 +51,12 @@
                                         </ng-template>
                                     </p-cellEditor>
                                 </td>
-                                <td [ngClass]="editing ? 'custom-td-9' : 'custom-td-2'">
+                                <td [ngClass]="editing ? 'custom-td-9' : 'custom-td-5'">
                                     <button [disabled]="buttonAcces.btnEditar" *ngIf="!editing" pButton type="button" pInitEditableRow icon="{{globalConstants.icoEditar}}" (click)="onRowEditInit(modelo)"></button>
                                     <button *ngIf="editing" pButton type="button" pSaveEditableRow icon="{{globalConstants.icoGrabar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onRowEditSave(modelo)"></button>
                                     <button *ngIf="editing" pButton type="button" pCancelEditableRow icon="{{globalConstants.icoCancelar}}" class="{{globalConstants.cStyleButtonDanger}}" style="margin-left: .5em" (click)="onRowEditCancel(modelo, ri)"></button>
                                 </td>
-                                <td class="custom-td-2">
+                                <td class="custom-td-5">
                                     <button [disabled]="buttonAcces.btnEliminar" pButton icon="{{globalConstants.icoEliminar}}" class="{{globalConstants.cStyleButtonDanger}}" (click)="onToRowSelectDelete(modelo)"></button>
                                 </td>
                             </tr>

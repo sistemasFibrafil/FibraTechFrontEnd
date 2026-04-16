@@ -180,7 +180,6 @@ export class OrdenMantenimientoWebCreateComponent implements OnInit, OnDestroy {
   }
 
   centroSeleccionado(event: any) {
-    debugger
     this.modeloForm.patchValue({
       codCentro: event.codcentro,
       desCentro: event.nombre,
@@ -194,7 +193,6 @@ export class OrdenMantenimientoWebCreateComponent implements OnInit, OnDestroy {
   }
 
   onClickSave() {
-    // debugger
     // this.modelo.apellidoPaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoPaterno'].value);
     // this.modelo.apellidoMaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoMaterno'].value);
     // this.modelo.nombre = this.utilService.convertirMayuscula(this.modeloForm.controls['nombre'].value);

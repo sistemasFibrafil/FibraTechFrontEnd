@@ -91,7 +91,6 @@ export class PanelSistemaComponent implements OnInit, OnDestroy {
     .subscribe(resp => {
       if (resp) {
         this.modelo = resp;
-        console.log(this.modelo);
         this.setRegistroObtenido();
         }
       },
@@ -124,7 +123,6 @@ export class PanelSistemaComponent implements OnInit, OnDestroy {
     this.modeloForm.controls['asuntoFinanza'].setValue(this.modelo.asuntoFinanza);
     this.modeloForm.controls['cuerpoFinanza'].setValue(this.modelo.cuerpoFinanza);
     this.modeloForm.controls['diasPorVencerFinanza'].setValue(this.modelo.diasPorVencerFinanza);
-    debugger
     this.modeloForm.controls['horaEnvioFinanza'].setValue( this.utilService.obtenerFechaHora(new Date(),this.modelo.horaEnvioFinanza));
 
     this.modeloForm.controls['emailGoogleDrive'].setValue(this.modelo.emailGoogleDrive);
@@ -158,9 +156,6 @@ export class PanelSistemaComponent implements OnInit, OnDestroy {
   }
 
   onClickSave() {
-
-    debugger
-
     if (this.modeloForm.controls['flgDimensionSAP'].value) {
       if (this.modeloForm.controls['dimensionSAP'].value === null) {
         this.swaCustomService.swaMsgInfo('SELECCIONAR DIMENSIÓN SAP');

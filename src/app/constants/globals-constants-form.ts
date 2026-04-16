@@ -9,6 +9,8 @@ export class GlobalsConstantsForm {
     cEliminar: string;
     cLimpiar: string;
     cGrabar: string;
+    cCrear: string;
+    cActualizar: string;
     cCancelar: string;
     cRegresar: string;
     cVisualizar: string;
@@ -59,6 +61,8 @@ export class GlobalsConstantsForm {
     cStyleButtonInfo: string;
     cStyleButtonWarning: string;
     cStyleButtonHelp: string;
+    cStyleButtonExpand: string;
+    cStyleButtonBack: string
     cStyleTableGridLines: string;
 
     // Table
@@ -148,8 +152,8 @@ export class GlobalsConstantsForm {
     titleAnular: string;
     subTitleAnular: string;
 
-    titleCierre: string;
-    subTitleCierre: string;
+    titleCancelar: string;
+    subTitleCancelar: string;
 
     titleGrabar: string;
     subTitleGrabar: string;
@@ -159,6 +163,9 @@ export class GlobalsConstantsForm {
 
     titleConfirmar: string;
     subTitleConfirmar: string;
+
+    titleChangeTaxGroup: string;
+    subTitleChangeTaxGroup: string;
 
     // Variables mensaje
     msgExitoSummary: string;
@@ -186,6 +193,8 @@ export class GlobalsConstantsForm {
         this.cRefrecar = 'Refrescar';
         this.cConsultar = 'Consultar';
         this.cGrabar = 'Grabar';
+        this.cCrear = 'Crear';
+        this.cActualizar = 'Actualizar';
         this.cCancelar = 'Cancelar';
         this.cEliminar = 'Eliminar';
         this.cLimpiar = 'Limpiar'
@@ -239,6 +248,9 @@ export class GlobalsConstantsForm {
         this.cStyleButtonInfo = 'p-button-info';
         this.cStyleButtonWarning = 'p-button-warning';
         this.cStyleButtonHelp = 'p-button-help';
+        this.cStyleButtonBack = 'p-button-back';
+        this.cStyleButtonExpand = 'p-button-light';
+
         this.cStyleTableGridLines = 'p-datatable-gridlines';
         // Table
         this.currentPageReportTemplate = 'Mostrando {first} a {last} de {totalRecords} registros';
@@ -314,7 +326,7 @@ export class GlobalsConstantsForm {
         this.titleActualizarAAlmacen = 'Confirmación de actualización';
         this.subTitleActualizarAAlmacen = '¿Desea actualizar el valor de <b>Almacén destino"</b> en las líneas existentes?';
 
-        this.titleAddItemNotPicking = 'Confirmación para agregar ítem';
+        this.titleAddItemNotPicking = 'Agregar ítem';
         this.subTitleAddItemNotPicking = '¿Seguro de agregar ítem fuera de picking?';
 
         this.titleCerrar = 'Confirmación de cerrar';
@@ -323,17 +335,20 @@ export class GlobalsConstantsForm {
         this.titleAnular = 'Confirmación de anulación';
         this.subTitleAnular = '¿Seguro de anular el registro seleccionado?';
 
-        this.titleCierre = 'Confirmación de cierre';
-        this.subTitleCierre = '¿Seguro de cerrar el registro seleccionado?';
+        this.titleCancelar = 'Confirmación de cancelación';
+        this.subTitleCancelar = '¿Seguro de cancelar el registro seleccionado?';
 
         this.titleGrabar = 'Confirmación de grabar';
         this.subTitleGrabar = '¿Seguro de grabar?';
-        
+
         this.titleLiberar = 'Confirmación de liberación';
         this.subTitleLiberar = '¿Seguro de liberar?';
 
         this.titleConfirmar = 'Confirmacion de registro';
         this.subTitleConfirmar = '¿Seguro de confirmar VALE DE SALIDA, una vez confirmado no se podra anular?';
+
+        this.titleChangeTaxGroup = 'Confirmación actualización de impuesto';
+        this.subTitleChangeTaxGroup = '¿Desea actualizar filas existentes?';
 
         // Msg Prime Ng
         this.msgExitoSummary = 'Mensaje de éxito : ';

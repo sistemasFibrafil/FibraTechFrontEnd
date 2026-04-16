@@ -1,23 +1,22 @@
 import { SelectItem } from 'primeng/api';
-import { Subscription, forkJoin } from 'rxjs';
-import { PerfilModel } from '../../../models/pefil.model';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute, Params } from '@angular/router';
 import { LayoutComponent } from '../../../../../layout/layout.component';
-import { ConstantesGenerales } from 'src/app/constants/Constantes-generales';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from '../../../../../constants/globals-constants-form';
+import { Subject, Subscription, finalize, forkJoin, switchMap, takeUntil } from 'rxjs';
 
+import { PerfilModel } from '../../../models/pefil.model';
 import { UsuarioModel } from '../../../models/usuario.model';
-import { ParametroSistemaModel } from '../../../models/parametro-sistema.model';
 
 import { PerfilService } from '../../../services/perfil.service';
 import { UtilService } from '../../../../../services/util.service';
 import { UsuarioService } from '../../../services/usuario.service';
-import { SeguridadService } from '../../../services/seguridad.service';
 import { SwaCustomService } from '../../../../../services/swa-custom.service';
 import { CifrarDataService } from '../../../../../services/cifrar-data.service';
-import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/users.service';
+import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+
 
 
 @Component({
@@ -27,32 +26,37 @@ import { UsersService } from 'src/app/modulos/modulo-gestion/services/sap/defini
 })
 export class PersonaUpdateComponent implements OnInit, OnDestroy {
 
+  private readonly destroy$ = new Subject<void>();
+
   // Titulo del componente
-  titulo = 'Usuario';
+  titulo                    = 'Usuario';
 
   // Name de los botones de accion
-  globalConstants: GlobalsConstantsForm = new GlobalsConstantsForm();
+  globalConstants           : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  modeloForm: FormGroup;
+  modeloForm                : FormGroup;
 
-  modelo: UsuarioModel = new UsuarioModel();
-  modeloSistema: ParametroSistemaModel = new ParametroSistemaModel();
-  modeloPerfil: PerfilModel = new PerfilModel();
+  isDisplay                 : boolean = false;
 
-  themes: any[];
+  modelo                    : UsuarioModel = new UsuarioModel();
+//  modeloSistema             : ParametroSistemaModel = new ParametroSistemaModel();
+  modeloPerfil              : PerfilModel = new PerfilModel();
 
-  userSapList: SelectItem[] = [];
-  perfilList: SelectItem[] = [];
+  themes                    : any[];
 
-  idUsuario: number;
-  private combosLoaded: boolean = false;
+  userSapList               : SelectItem[] = [];
+  perfilList                : SelectItem[] = [];
+  salesPersonsList          : SelectItem[] = [];
+
+  idUsuario                 : number;
+  private combosLoaded      : boolean = false;
 
   // Imagen
-  sellersPermitString: string;
-  sellersPermitFile;
+  sellersPermitString       : string;
+  sellersPermitFile         :  any;
 
-  subscription: Subscription;
-  isHabilitarView: boolean;
+  subscription              : Subscription;
+  isHabilitarView           : boolean;
 
   constructor
   (
@@ -60,13 +64,13 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     public app: LayoutComponent,
     private usersService: UsersService,
-    private seguridadService: SeguridadService,
     private perfilService: PerfilService,
     private readonly route: ActivatedRoute,
     private readonly utilService: UtilService,
     private readonly usuarioService: UsuarioService,
     private readonly swaCustomService: SwaCustomService,
     private readonly cifrarDataService: CifrarDataService,
+    private readonly salesPersonsService: SalesPersonsService,
   ) {}
 
   ngOnInit() {
@@ -75,53 +79,7 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
     ];
     this.onBuildForm();
     this.onBuildColumn();
-    // Cargar combos en paralelo y luego obtener parámetros del sistema
-    forkJoin({
-      users: this.usersService.getList(),
-      perfiles: this.perfilService.getList()
-    }).subscribe({
-      next: (result: any) => {
-        // Procesar sedes
-        if (result.users) {
-          this.userSapList = [];
-          for (let item of result.users) {
-            this.userSapList.push({ label: item.u_NAME, value: item.userid });
-          }
-        }
-
-        // Procesar perfiles
-        if (result.perfiles) {
-          this.perfilList = [];
-          for (let item of result.perfiles) {
-            this.perfilList.push({ label: item.descripcionPerfil, value: item.idPerfil });
-          }
-        }
-
-        // Finalmente obtener parámetros del sistema
-        this.onObtieneRegistro();
-
-        // Marcar combos cargados y, si ya tenemos idUsuario, obtener la persona
-        this.combosLoaded = true;
-        if (this.idUsuario) {
-          this.getToObtienePersonaPorId();
-        }
-      },
-      error: (e) => {
-        this.swaCustomService.swaMsgError(e?.error?.resultadoDescripcion || e?.message || 'Error cargando datos iniciales.');
-        // Aun en caso de error, intentar obtener los parámetros para no bloquear la pantalla
-        this.onObtieneRegistro();
-      }
-    });
-
-
-    this.route.params.subscribe((params: Params) => {
-      this.idUsuario = params['id'];
-      // Si los combos ya fueron cargados, obtener la persona inmediatamente;
-      // si no, la llamada se realizará cuando termine el forkJoin (ver arriba).
-      if (this.combosLoaded) {
-        this.getToObtienePersonaPorId();
-      }
-    });
+    this.loadAllCombos();
   }
 
  onBuildForm() {
@@ -133,6 +91,7 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
         'numeroDocumento' : new FormControl('', Validators.compose([Validators.required])),
         'numeroTelefono' : new FormControl(''),
         'userSap' : new FormControl('', Validators.compose([Validators.required])),
+        'salesEmployees'    : new FormControl('', Validators.compose([Validators.required])),
         'activo' : new FormControl(true, Validators.compose([Validators.required])),
         'usuario' : new FormControl({value: '', disabled: true}, Validators.compose([Validators.required, Validators.maxLength(20), Validators.minLength(2)])),
         'password' : new FormControl('', Validators.compose([Validators.maxLength(15), Validators.minLength(6)])),
@@ -149,55 +108,91 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
   onBuildColumn() {
   }
 
-  onObtieneRegistro() {
-    this.subscription = new Subscription();
-    this.subscription = this.seguridadService.getParametroSistemaPorId()
-    .subscribe(resp => {
-      if (resp) {
-        this.modeloSistema = resp;
-        }
+  private loadAllCombos(): void {
+    this.isDisplay = true;
+
+    forkJoin({
+      users: this.usersService.getList(),
+      perfiles: this.perfilService.getList(),
+      salesPersons: this.salesPersonsService.getList(),
+    })
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isDisplay = false; })
+    )
+    .subscribe({
+      next: (res: any) => {
+        this.userSapList      = (res.users || []).map(item => ({ label: item.userName, value: item.userId }));
+        this.salesPersonsList = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+        this.perfilList       = (res.perfiles || []).map(item => ({ label: item.descripcionPerfil, value: item.idPerfil }));
+
+        this.loadData();
       },
-      (error) => {
-        this.swaCustomService.swaMsgError(error.error.resultadoDescripcion);
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', () => this.swaCustomService);
       }
-    );
+    });
   }
 
-  getToObtienePersonaPorId() {
-    this.isHabilitarView = true;
-    this.subscription = new Subscription();
-    this.subscription = this.usuarioService.getById(this.idUsuario)
-    .subscribe(data => {
-      this.modelo = data;
-      this.modeloForm.controls['apellidoPaterno'].setValue(this.modelo.apellidoPaterno);
-      this.modeloForm.controls['apellidoMaterno'].setValue(this.modelo.apellidoMaterno);
-      this.modeloForm.controls['nombre'].setValue(this.modelo.nombre);
-      this.modeloForm.controls['numeroDocumento'].setValue(this.modelo.nroDocumento);
-      this.modeloForm.controls['numeroTelefono'].setValue(this.modelo.nroTelefono);
+  private loadData(): void {
+    this.route.params
+    .pipe(
+      takeUntil(this.destroy$),
+      switchMap(params => {
+        this.idUsuario = +params['id'];
 
-      const userSapItem = this.userSapList?.find(s => String(s.value) === String(this.modelo.idUserSap));
+        // 🔥 aquí sí se activa de forma confiable
+        this.isDisplay = true;
+
+        return this.usuarioService
+          .getById(this.idUsuario)
+          .pipe(
+            finalize(() => {
+              this.isDisplay = false;
+            })
+          );
+      })
+    )
+    .subscribe({
+      next: (data: UsuarioModel) => {
+        this.modelo = data;
+        this.setFormValues(this.modelo);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
+    });
+  }
+
+  private setFormValues(value: UsuarioModel): void {
+    this.modeloForm.controls['apellidoPaterno'].setValue(value.apellidoPaterno);
+      this.modeloForm.controls['apellidoMaterno'].setValue(value.apellidoMaterno);
+      this.modeloForm.controls['nombre'].setValue(value.nombre);
+      this.modeloForm.controls['numeroDocumento'].setValue(value.nroDocumento);
+      this.modeloForm.controls['numeroTelefono'].setValue(value.nroTelefono);
+
+      const userSapItem = this.userSapList?.find(s => String(s.value) === String(value.idUserSap));
       if (userSapItem) {
         this.modeloForm.controls['userSap'].setValue(userSapItem);
       }
 
-      this.modeloForm.controls['activo'].setValue(this.modelo.activo);
-      this.modeloForm.controls['usuario'].setValue(this.modelo.usuario);
-      this.modeloForm.controls['password'].setValue(this.cifrarDataService.decrypt(this.modelo.clave));
-      this.modeloForm.controls['email'].setValue(this.modelo.email);
+      this.modeloForm.controls['activo'].setValue(value.activo);
+      this.modeloForm.controls['usuario'].setValue(value.usuario);
+      this.modeloForm.controls['password'].setValue(this.cifrarDataService.decrypt(value.clave));
+      this.modeloForm.controls['email'].setValue(value.email);
 
-      const perfilItem = this.perfilList?.find(s => String(s.value) === String(this.modelo.idPerfil));
+      const perfilItem = this.perfilList?.find(s => String(s.value) === String(value.idPerfil));
       if (perfilItem) {
         this.modeloForm.controls['perfil'].setValue(perfilItem);
       }
 
-      this.modeloForm.controls['foto'].setValue(this.modelo.imagen);
-      this.sellersPermitString = this.modelo.imagen;
-      this.modeloForm.controls['dark'].setValue(this.modelo.themeDark);
-      this.modeloForm.controls['menu'].setValue(this.modelo.typeMenu);
-      this.modeloForm.controls['theme'].setValue(this.modelo.themeColor);
+      this.modeloForm.controls['foto'].setValue(value.imagen);
+      this.sellersPermitString = value.imagen;
+      this.modeloForm.controls['dark'].setValue(value.themeDark);
+      this.modeloForm.controls['menu'].setValue(value.typeMenu);
+      this.modeloForm.controls['theme'].setValue(value.themeColor);
 
       this.isHabilitarView = false;
-    });
   }
 
   onBasicUpload(event: any) {
@@ -251,19 +246,7 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
     this.modelo.imagen = this.modeloForm.controls['foto'].value;
     this.modelo.usuario = this.utilService.convertirMayuscula(this.modeloForm.controls['usuario'].value);
 
-    if (this.modeloSistema.tipoAutenticacion === 'AUTO-NORMAL') {
-
-      let password = this.modeloForm.controls['password'].value === null || this.modeloForm.controls['password'].value === undefined || this.modeloForm.controls['password'].value === '' ? '' : this.modeloForm.controls['password'].value;
-
-      if (password === '') {
-        this.swaCustomService.swaMsgInfo('INGRESAR CONTRASEÑA');
-        return;
-      }
-
-      this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
-    } else {
-      this.modelo.clave = this.cifrarDataService.encrypt(ConstantesGenerales.PASSWORD_DEFAULT);
-    }
+    this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
 
     this.modelo.email = this.utilService.convertirMayuscula(this.modeloForm.controls['email'].value);
 

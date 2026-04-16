@@ -1,0 +1,127 @@
+
+<div class="flex justify-content-center">
+  <div class="grid p-fluid col-12 md:col-10 lg:col-8 xl:col-6">
+    <div class="card card-w-title">
+
+      <h1><strong>{{titulo}}</strong></h1>
+
+      <p-panel header="Criterios de selección" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+        <form [formGroup]="modeloForm">
+          <div class="grid p-fluid">
+            <div class="col-12 md:col-12">
+              <div class="card no-margin">
+                <div class="p-formgrid grid">
+                  <!-- Grupo 1 -->
+                  <div class="col-12 md:col-4">
+                    <p-checkbox id="float-input-pending" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="pending" label="Pendiente"></p-checkbox>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-checkbox id="float-input-authorized" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="authorized" label="Autorizado"></p-checkbox>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-checkbox id="float-input-rejected" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="rejected" label="Rechazado"></p-checkbox>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-checkbox id="float-input-createdBy" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="createdBy" label="Creado por"></p-checkbox>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-checkbox id="float-input-createdByResponsibleAuthorization" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="createdByResponsibleAuthorization" label="Creado por resp. autorización"></p-checkbox>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-checkbox id="float-input-canceled" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="canceled" label="Cancelado"></p-checkbox>
+                  </div>
+
+                  <!-- Espacio -->
+                  <div class="col-12 md:col-12"></div>
+                  <div class="col-12 md:col-12"></div>
+
+                  <!-- Grupo 2 -->
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-startAuthorOf">Autor de</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <app-modal-usuario></app-modal-usuario>
+                  </div>
+                  <div class="col-12 md:col-1">
+                    <label class="label-custom" for="float-input-endAuthorOf">Hasta</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <app-modal-usuario></app-modal-usuario>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-startAuthorizerOf">Autorizador de</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <app-modal-usuario></app-modal-usuario>
+                  </div>
+                  <div class="col-12 md:col-1">
+                    <label class="label-custom" for="float-input-endAuthorizerOf">Hasta</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <app-modal-usuario></app-modal-usuario>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-startDate">Fecha de solicitud de</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-calendar formControlName="startDate" placeholder="Fecha inicio" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  </div>
+                  <div class="col-12 md:col-1">
+                    <label class="label-custom" for="float-input-endDate">Hasta</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <p-calendar formControlName="endDate" placeholder="Fecha fin" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <label class="label-custom" for="float-input-startCardCode">Desde código SN</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <app-modal-socio-negocio [title]="'Socios de Negocios'" [cardCode]="" [cardType] = "'C'" [transType] = "'N,Y'" (eventoAceptar)="onClickSelectedStartCardCode($event)"></app-modal-socio-negocio>
+                  </div>
+                  <div class="col-12 md:col-1">
+                    <label class="label-custom" for="float-input-endCardCode">Hasta</label>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <app-modal-socio-negocio [title]="'Socios de Negocios'" [cardCode]="" [cardType] = "'C'" [transType] = "'N,Y'" (eventoAceptar)="onClickSelectedEndCardCode($event)"></app-modal-socio-negocio>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 md:col-12">
+              <div class="card no-margin">
+                <div class="p-formgrid grid">
+                  <!-- Grupo 1 -->
+                  <div class="col-12 md:col-12" hidden>
+                    <p-checkbox id="float-input-quotations" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="quotations" label="Oferta de ventas"></p-checkbox>
+                  </div>
+                  <div class="col-12 md:col-12">
+                    <p-checkbox id="float-input-orders" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="orders" label="Pedido de cliente"></p-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </form>
+
+        <p-footer>
+          <div class="grid p-fluid">
+            <div class="col-12 md:col-3">
+              <button [disabled]="buttonAcces.btnBuscar || isBuscarDisabled" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+          </div>
+        </p-footer>
+      </p-panel>
+
+
+    </div>
+  </div>
+</div>

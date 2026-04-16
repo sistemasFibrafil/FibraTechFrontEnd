@@ -122,7 +122,7 @@
               <!-- body -->
               <ng-template pTemplate="body" let-modelo let-ri="rowIndex">
                 <tr>
-                  <td class="custom-td-2">
+                  <td class="custom-td-8">
                     <p-splitButton icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
                     </p-splitButton>
                   </td>
@@ -271,7 +271,7 @@
           <button pButton type="submit" [disabled]="!modeloFormDatCom.valid || !modeloFormDatPrd.valid" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
         <div class="col-12 md:col-2">
-          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonDanger}}"></button>
+          <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>
         </div>
       </div>
     </p-footer>

@@ -16,7 +16,6 @@ export class OSKPService {
   ) { }
 
   setCreate(value: OSKPCreateModel) {
-    debugger
     const param: string = JSON.stringify(value);
     return this.http.post<any[]>(`${environment.url_api_fib}OSKP/SetCreate/`, param);
   }

@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 
 import { IVentaProyeccionByFecha } from 'src/app/modulos/modulo-ventas/interfaces/factura-venta.interface';
-import { FacturaVentaService } from 'src/app/modulos/modulo-ventas/services/sap/factura-venta-sap.service';
+import { FacturaVentaService } from 'src/app/modulos/modulo-ventas/services/sap-business-one/factura-venta-sap.service';
 
 
 @Component({

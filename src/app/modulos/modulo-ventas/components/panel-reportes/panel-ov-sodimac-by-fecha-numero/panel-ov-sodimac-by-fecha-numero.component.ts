@@ -2,17 +2,18 @@ import { saveAs } from 'file-saver';
 import { SelectItem } from 'primeng/api';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-
+import { finalize, Subject, takeUntil } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+
+import { OrdenVentaSodimacService } from '../../../services/web/orden-venta-sodimac.service';
+import { IOrdenVentaSodimacGeneralQuery } from '../../../interfaces/web/orden-venta-sodimac.interface';
+
+import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IOrdenVentaSodimacConsulta } from '../../../interfaces/web/orden-venta-sodimac.interface';
-import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { OrdenVentaSodimacService } from '../../../services/web/orden-venta-sodimac.service';
 
 
 
@@ -22,6 +23,7 @@ import { OrdenVentaSodimacService } from '../../../services/web/orden-venta-sodi
   styleUrls: ['./panel-ov-sodimac-by-fecha-numero.component.css']
 })
 export class PanelOrdenVentaSodimacByFechaNumeroComponent implements OnInit {
+  private readonly destroy$                     = new Subject<void>();
   modeloForm: FormGroup;
 
   // Titulo del componente
@@ -37,12 +39,14 @@ export class PanelOrdenVentaSodimacByFechaNumeroComponent implements OnInit {
 
   columnas: any[];
   listTipo: SelectItem[];
-  reporteList: IOrdenVentaSodimacConsulta[];
-  params: FilterRequestModel = new FilterRequestModel();
+  modelo: IOrdenVentaSodimacGeneralQuery[];
 
   fecha: string = this.datePipe.transform(new Date(), 'dd-MM-yyyy');
   nombreArchivo: string = 'Reporte - Despacho de Sodimac -';
 
+  // Paginación de la tabla
+  rows                                          = 20;
+  rowsPerPageOptions                            = [20, 40, 60, 80, 100];
 
   constructor
   (
@@ -50,16 +54,16 @@ export class PanelOrdenVentaSodimacByFechaNumeroComponent implements OnInit {
     private datePipe: DatePipe,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private ordenVentaSodimacService: OrdenVentaSodimacService
+    private readonly ordenVentaSodimacService: OrdenVentaSodimacService,
+    public  readonly utilService: UtilService,
   ) {}
 
   ngOnInit() {
-    this.modeloForm = this.fb.group(
-    {
-      'dat1'      : new FormControl(new Date(new Date()), Validators.compose([Validators.required])),
-      'dat2'      : new FormControl(new Date(new Date()), Validators.compose([Validators.required])),
-      'tipo'      : new FormControl('', Validators.compose([Validators.required])),
-      'text1'     : new FormControl(''),
+    this.modeloForm = this.fb.group({
+      startDate : [new Date(), Validators.required],
+      endDate   : [new Date(), Validators.required],
+      tipo      : ['', Validators.required],
+      searchText: ['']
     });
 
     this.columnas = [
@@ -81,8 +85,13 @@ export class PanelOrdenVentaSodimacByFechaNumeroComponent implements OnInit {
     this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-ven-panel-ov-sodimac-by-fecha-numero');
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   onToBuscar() {
-    this.onListar();
+    this.loadData();
   }
 
   getListTipo()
@@ -97,38 +106,40 @@ export class PanelOrdenVentaSodimacByFechaNumeroComponent implements OnInit {
     this.modeloForm.controls['tipo'].setValue({ label: item.label, value: item.value });
   }
 
-  onSetParametro()
-  {
-    this.params = this.modeloForm.getRawValue();
-    if (this.modeloForm.controls['tipo'].value) {
-      let itemTipo = this.modeloForm.controls['tipo'].value;
-      this.params.cod1 = itemTipo.value;
-    }
+  buildFilterParams(): any {
+    const form = this.modeloForm.getRawValue();
+
+    return {
+      ...form,
+      tipo: form.tipo?.value ?? ''
+    };
   }
 
-  onListar() {
+  loadData(): void {
     this.isDisplay = true;
-    this.reporteList = [];
-    this.onSetParametro();
-    this.ordenVentaSodimacService.getListOrdenVentaSodimacByFechaNumero(this.params)
-    .subscribe({next:(data: IOrdenVentaSodimacConsulta[]) =>{
-      if(data)
-      {
+
+    this.ordenVentaSodimacService
+    .getListOrdenVentaSodimacByFechaNumero(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
         this.isDisplay = false;
-        this.reporteList = data;
-      }
-      this.isDisplay = false;
-      },error:(e)=>{
-        this.isDisplay = false;
-        this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
+      })
+    )
+    .subscribe({
+      next: (data: IOrdenVentaSodimacGeneralQuery[]) => {
+        this.modelo = data;
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
 
   onToExcel() {
     this.isDisplay = true;
-    this.onSetParametro();
-    this.ordenVentaSodimacService.getListOrdenVentaSodimacExcelByFechaNumero(this.params)
+    this.ordenVentaSodimacService
+    .getListOrdenVentaSodimacExcelByFechaNumero(this.buildFilterParams())
     .subscribe({next:(response: any) => {
         saveAs(
           new Blob([response],

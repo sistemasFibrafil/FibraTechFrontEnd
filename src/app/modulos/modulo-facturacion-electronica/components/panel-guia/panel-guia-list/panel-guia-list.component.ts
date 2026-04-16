@@ -14,7 +14,7 @@ import { IEntregaLocalElectronica } from '../../../interfaces/entrega.interface'
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { PackingListService } from '../../../services/packingList.service';
 import { FacturacionElectronicaSapService } from '../../../services/facturacion-electronica.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/general/campo-defnido-usuario.service';
+import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 interface ITipDocumento {
   code  : string,

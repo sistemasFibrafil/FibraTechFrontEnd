@@ -1,17 +1,26 @@
 import { Router } from '@angular/router';
+import { SelectItem } from 'primeng/api';
 import { Component, OnInit } from '@angular/core';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-
+import { HttpEventType } from '@angular/common/http';
+import { Subject, of, Observable, takeUntil } from 'rxjs';
+import { catchError, finalize, map, take } from 'rxjs/operators';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
+import { ButtonAcces } from 'src/app/models/acceso-button.model';
+import { DeliveryNotesFilterModel } from '../../../models/sap-business-one/delivery-notes.model';
+
+import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
+import { IDeliveryNotesQuery } from '../../../interfaces/sap-business-one/delivery-notes.interface';
+import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+
+import { UtilService } from 'src/app/services/util.service';
+import { LocalDataService } from 'src/app/services/local-data.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { IPickingVentaByFiltro } from '../../../interfaces/picking-venta.interface';
-import { PickingVentaService } from '../../../services/web/picking-venta.service';
-
+import { DeliveryNotesService } from '../../../services/sap-business-one/delivery-notes.service';
+import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
 
 
 @Component({
@@ -20,49 +29,90 @@ import { PickingVentaService } from '../../../services/web/picking-venta.service
   styleUrls: ['./panel-entrega-list.component.css']
 })
 export class PanelEntregaListComponent implements OnInit {
-  modeloForm: FormGroup;
+  // Lifecycle management
+  private readonly destroy$                     = new Subject<void>();
 
-  // Titulo del componente
-  titulo = 'Entrega';
-  // Acceso de botones
-  buttonAcces: ButtonAcces = new ButtonAcces();
-  // Name de los botones de accion
-  globalConstants: GlobalsConstantsForm = new GlobalsConstantsForm();
+  // Forms
+  modeloForm                                    : FormGroup;
 
-  columnas: any[];
-  opciones: any = [];
+  // Configuration
+  readonly titulo                               : string = 'Entrega de Venta';
+  buttonAcces                                   : ButtonAcces = new ButtonAcces();
+  globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  modeloDelete: IPickingVentaByFiltro;
-  modeloSelected: IPickingVentaByFiltro;
-  listPicking: IPickingVentaByFiltro[] = [];
+  codGrpCustNat                                 : number = 0;
+  codGrpCustFor                                 : number = 0;
 
-  isDisplay: Boolean = false;
-  isDeleting: boolean = false;
+  // UI State
+  isCancel                                     : boolean = false;
+  isClosing                                     : boolean = false;
+  isDisplay                                     : boolean = false;
+  isDisplayVisor                                : boolean = false;
+  isDisplayGenerandoVisor                       : boolean = false;
 
+  // Table configuration
+  opciones                                      : MenuItem[] = [];
+  columnas                                      : TableColumn[] = [];
+  private opcionesMap                           : Map<string, MenuItem>;
+
+  docStatusList                                 : SelectItem[] = [];
+
+  // Paginación de la tabla
+  rows                                          = 20;
+  rowsPerPageOptions                            = [20, 40, 60, 80, 100];
+
+  // Data
+  modelo                                        : IDeliveryNotesQuery[] = [];
+  modeloSelected                                : IDeliveryNotesQuery;
+
+  isDataBlob                                    : Blob;
 
   constructor(
-    private router: Router,
-    private fb: FormBuilder,
-    private userContextService: UserContextService,
-    private pickingVentaService: PickingVentaService,
+    private readonly router: Router,
+    private readonly fb: FormBuilder,
     private readonly swaCustomService: SwaCustomService,
-    private readonly accesoOpcionesService: AccesoOpcionesService
+    private readonly localDataService: LocalDataService,
+    private readonly userContextService: UserContextService,
+    private readonly deliveryNotesService: DeliveryNotesService,
+    private readonly exchangeRatesService: ExchangeRatesService,
+    private readonly accesoOpcionesService: AccesoOpcionesService,
+    public  readonly utilService: UtilService
   ) {}
 
 
   ngOnInit() {
+    this.initializeComponent();
+  }
+
+  // ===========================
+  // Initialization
+  // ===========================
+
+  private initializeComponent(): void {
     this.onBuildForm();
     this.onBuildColumn();
     this.opcionesTabla();
+    this.loadStatusList();
 
-    //if(!this.buttonAcces.btnBuscar){ this.onListar(); }
+    this.codGrpCustNat = this.userContextService.getCodGrpCustNat();
+    this.codGrpCustFor = this.userContextService.getCodGrpCustFor();
+
+    if (!this.buttonAcces.btnBuscar) {
+      this.loadData();
+    }
   }
 
-  onBuildForm() {
-    this.modeloForm = this.fb.group(
-    {
-      'fecInicial'  : new FormControl(new Date(new Date()), Validators.compose([Validators.required])),
-      'fecFinal'    : new FormControl(new Date(new Date()), Validators.compose([Validators.required]))
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private onBuildForm(): void {
+    this.modeloForm = this.fb.group({
+      startDate   : [this.utilService.firstDayMonth(), Validators.required],
+      endDate     : [this.utilService.currentDate(), Validators.required],
+      docStatus   : ['', Validators.required],
+      searchText  : ['']
     });
 
     this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-ven-panel-entrega-list');
@@ -70,95 +120,339 @@ export class PanelEntregaListComponent implements OnInit {
 
   onBuildColumn() {
     this.columnas = [
-      { field: 'numPicking',      header: 'Número' },
-      { field: 'numPicking',      header: 'Fecha' },
-      { field: 'nomTipoPicking',  header: 'Tipo' },
-      { field: 'nomEstado',       header: 'Estado' },
-      { field: 'cardCode',        header: 'Código de Cliente' },
-      { field: 'cardName',        header: 'Nombre de Cliente' }
+      { field: 'docNum',        header: 'Número' },
+      { field: 'docStatus',     header: 'Estado' },
+      { field: 'u_BPP_MDCD',    header: 'Guía' },
+      { field: 'docDate',       header: 'Fecha de contabilización' },
+      { field: 'docDueDate',    header: 'Fecha de entrega' },
+      { field: 'taxDate',       header: 'Fecha de documento' },
+      { field: 'groupCode',     header: 'Tipo venta' },
+      { field: 'cardCode',      header: 'Código de cliente' },
+      { field: 'cardName',      header: 'Nombre de cliente' },
+      { field: 'slpName',       header: 'Vendedor' },
+      { field: 'docCur',        header: 'Moneda' },
+      { field: 'docTotal',      header: 'Total MN' },
+      { field: 'docTotalSy',    header: 'Total ME' }
     ];
   }
 
   opcionesTabla() {
     this.opciones = [
-      { label: 'Vizualizar',  icon: 'pi pi-eye',            command: () => { this.ver() } },
-      { label: 'Editar',      icon: 'pi pi-pencil',         command: () => { this.editar() } },
-      { label: 'Eliminar',    icon: 'pi pi-trash',          command: () => { this.eliminar() } },
+      { value: '1', label: 'Ver',         icon: 'pi pi-eye',      command: () => { this.onClickVer(); } },
+      { value: '2', label: 'Editar',      icon: 'pi pi-pencil',   command: () => { this.onClickEditar(); } },
+      { value: '3', label: 'Cerrar',      icon: 'pi pi-times',    command: () => { this.onClickCerrar(); } },
+      { value: '4', label: 'Cancelar',    icon: 'pi pi-ban',      command: () => { this.onClickCancelar(); } },
+      { value: '5', label: 'Imprimir',    icon: 'pi pi-print',    command: () => { this.onClickPrint(); } },
     ];
+
+    // Mapa para controlar visibilidad de opciones por etiqueta
+    this.opcionesMap = new Map(this.opciones.map(op => [op.label, op]));
   }
 
-  onListar() {
-    this.isDisplay = true;
-    const find = this.modeloForm.getRawValue();
-    this.pickingVentaService.getListPickingVentaByFiltro(find)
-    .subscribe({next:(data: IPickingVentaByFiltro[]) =>
-    {
-      this.isDisplay = false;
-      this.listPicking = data;
-    },error:(e)=>{
-      this.isDisplay = false;
-      this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
+  // ===========================
+  // Helper Methods
+  // ===========================
+
+  private validateSelection(): boolean {
+    if (!this.modeloSelected) {
+      this.swaCustomService.swaMsgInfo('Debe seleccionar un registro');
+      return false;
     }
+    return true;
+  }
+
+  private updateMenuVisibility(modelo: IDeliveryNotesQuery): void {
+    // Determine basic flags based on document state and permissions
+    const isView      = !(this.buttonAcces.btnVer);
+    const isEditable  = !(this.buttonAcces.btnEditar);
+    const isClose     = !(this.buttonAcces.btnCerrar || modelo.docStatus !== 'O');
+    const isCancel    = !(this.buttonAcces.btnCancelar || modelo.docStatus !== 'O');
+
+    this.opcionesMap.get('Ver')!.visible    = isView;
+    this.opcionesMap.get('Editar')!.visible = isEditable;
+    this.opcionesMap.get('Cerrar')!.visible = isClose;
+    this.opcionesMap.get('Cancelar')!.visible = isCancel;
+  }
+
+  // ===========================
+  // Table Events
+  // ===========================
+
+  onToItemSelected(modelo: IDeliveryNotesQuery): void {
+    this.modeloSelected = modelo;
+    this.updateMenuVisibility(modelo);
+  }
+
+  // ===========================
+  // Data Operations
+  // ===========================
+
+  private loadStatusList(): void {
+    const statuses = this.localDataService.getListStatusDocuments();
+    this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
+    this.modeloForm.get('docStatus').setValue(statuses);
+  }
+
+  // ===========================
+  // Data Operations
+  // ===========================
+
+  private buildFilterParams(): DeliveryNotesFilterModel {
+    const {
+      startDate,
+      endDate,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
+
+    return {
+      startDate,
+      endDate,
+      docStatus: (docStatus || []).map(x => x.code).join(','),
+      searchText
+    };
+  }
+
+  private loadData(): void {
+      this.isDisplay = true;
+
+    this.deliveryNotesService.getListByFilter(this.buildFilterParams())
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isDisplay = false)
+    )
+    .subscribe({
+      next: (data: IDeliveryNotesQuery[]) => {
+        this.modelo = data;
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
+      }
     });
   }
 
-  onToBuscar() {
-    this.onListar();
+  // ===========================
+  // UI Actions
+  // ===========================
+
+  onClickBuscar(): void {
+    this.loadData();
   }
 
-  onToCreate() {
-    this.router.navigate(['/main/modulo-ven/panel-entrega-create','', 0]);
+  getEstado(modelo: any) {
+    const reglas = [
+      {
+        cond: () => modelo.canceled === 'Y',
+        value: { text: 'Cancelado', class: 'estado-cancelado' }
+      },
+      {
+        cond: () => modelo.docStatus === 'O',
+        value: { text: 'Abierto', class: 'estado-abierto' }
+      },
+      {
+        cond: () => modelo.docStatus === 'C',
+        value: { text: 'Cerrado', class: 'estado-cerrado' }
+      }
+    ];
+
+    return reglas.find(r => r.cond())?.value ?? { text: '', class: '' };
   }
 
-  onToItemSelected(modelo: IPickingVentaByFiltro) {
-    this.modeloSelected = modelo;
-    if(this.buttonAcces.btnEditar || modelo.codEstado === '02' || modelo.codEstado === '03'){
-      this.opciones.find(x => x.label == "Editar").visible = false;
-    } else {
-      this.opciones.find(x => x.label == "Editar").visible = true;
+  getGroupType(modelo: any) {
+    const reglas = [
+      {
+        cond: () => modelo?.groupCode != this.codGrpCustFor,
+        value: { text: 'Nacional', class: 'type-nacional' }
+      },
+      {
+        cond: () => modelo?.groupCode == this.codGrpCustFor,
+        value: { text: 'Exportación', class: 'type-exportacion' }
+      }
+    ];
+
+    return reglas.find(r => r.cond())?.value ?? { text: '', class: '' };
+  }
+
+  private fetchTipoCambioRate(): Observable<IExchangeRates | null> {
+    const docDate: Date = new Date();
+    const sysCurrncy    = this.userContextService.getSysCurrncy();
+
+    if (!docDate) {
+      return of(null);
     }
 
-    if(this.buttonAcces.btnEliminar || modelo.codEstado === '02' || modelo.codEstado === '03'){
-      this.opciones.find(x => x.label == "Eliminar").visible = false;
-    } else {
-      this.opciones.find(x => x.label == "Eliminar").visible = true;
-    }
+    const params = {
+      rateDate: this.utilService.normalizeDateOrToday(docDate),
+      currency: '', // Se envía vacío por diseño (backend define moneda)
+      sysCurrncy
+    };
+
+    return this.exchangeRatesService.getByDocDateAndCurrency(params)
+    .pipe(
+      map(data => data ?? null),
+      catchError(() => of(null))
+    );
   }
 
-  ver(){
-    this.router.navigate(['/main/modulo-ven/panel-entrega-view', this.modeloSelected.idPicking]);
+  private validarTipoCambioYContinuar(continuar: () => void): void {
+    this.fetchTipoCambioRate()
+    .pipe(take(1))
+    .subscribe(rate => {
+      if (!rate || rate.sysRate === 0) {
+        this.swaCustomService.swaMsgInfo(
+          'Falta registrar el tipo de cambio de hoy en SAP Business One.'
+        );
+        return;
+      }
+
+      // ✅ Si pasa la validación
+      continuar();
+    });
   }
 
-  editar(){
-    this.router.navigate(['/main/modulo-ven/panel-entrega-update', this.modeloSelected.idPicking]);
+  onClickCreate() {
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-ven/panel-entrega-create'], { state: { mode: 'create' } });
+    });
   }
 
-  onToDelete() {
-    this.isDeleting = true;
-    const param: any = { idPicking: this.modeloSelected.idPicking, idUsuario: this.userContextService.getIdUsuario() };
-    this.pickingVentaService.setDelete(param)
-    .subscribe({ next: (resp:any)=>{
-        this.onListar();
-        this.isDeleting = false;
+  onClickVer(){
+    if (!this.validateSelection()) return;
+
+    this.router.navigate(['/main/modulo-ven/panel-entrega-view', this.modeloSelected.docEntry]);
+  }
+
+  onClickEditar() {
+    if (!this.validateSelection()) return;
+
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-ven/panel-entrega-edit', this.modeloSelected.docEntry]);
+    });
+  }
+
+  close(): void {
+    this.isClosing = true;
+
+    const userId        = this.userContextService.getIdUsuario();
+    const { docEntry }  = this.modeloSelected;
+
+    const param = {
+      docEntry,
+      u_UsrClose: userId
+    };
+
+    this.deliveryNotesService
+    .setClose(param)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => (this.isClosing = false))
+    )
+    .subscribe({
+      next: () => {
+        this.loadData();
         this.swaCustomService.swaMsgExito(null);
       },
-      error:(e)=>{
-        this.isDeleting = false;
-        this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
-      }
+      error: (e) =>
+        this.utilService.handleErrorSingle(e, 'close', this.swaCustomService)
     });
   }
 
-  eliminar()
-  {
-    this.swaCustomService.swaConfirmation(
-      this.globalConstants.titleEliminar,
-      this.globalConstants.subTitleEliminar,
-      this.globalConstants.icoSwalQuestion
-    ).then((result) => {
-      if (result.isConfirmed) {
-        this.onToDelete();
-      }
+  onClickCerrar() {
+    if (!this.validateSelection()) return;
+
+    this.validarTipoCambioYContinuar(() => {
+      this.swaCustomService.swaConfirmation(
+        this.globalConstants.titleCerrar,
+        this.globalConstants.subTitleCerrar,
+        this.globalConstants.icoSwalQuestion
+      ).then((result) => {
+        if (result.isConfirmed) {
+          this.close();
+        }
+      });
     });
+  }
+
+  cancel(): void {
+    this.isCancel = true;
+
+    const userId        = this.userContextService.getIdUsuario();
+    const { docEntry }  = this.modeloSelected;
+
+    const param = {
+      docEntry,
+      u_UsrCreate: userId,
+      u_UsrCancel: userId
+    };
+
+    this.deliveryNotesService
+    .setCancel(param)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => (this.isCancel = false))
+    )
+    .subscribe({
+      next: () => {
+        this.loadData();
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) =>
+        this.utilService.handleErrorSingle(e, 'cancel', this.swaCustomService)
+    });
+  }
+
+  onClickCancelar() {
+    if (!this.validateSelection()) return;
+
+    this.validarTipoCambioYContinuar(() => {
+      this.swaCustomService.swaConfirmation(
+        this.globalConstants.titleCancelar,
+        this.globalConstants.subTitleCancelar,
+        this.globalConstants.icoSwalQuestion
+      ).then((result) => {
+        if (result.isConfirmed) {
+          this.cancel();
+        }
+      });
+    });
+  }
+
+  onClickPrint(): void {
+    if (!this.validateSelection()) {
+      return;
+    }
+
+    if (!this.validateSelection()) return;
+
+
+    const docEntry  = this.modeloSelected.docEntry;
+    const groupCode = Number(this.modeloSelected.groupCode);
+
+    // Solo 115 usa formato exportación, todo lo demás es nacional
+    const request$ =
+      groupCode === 115
+        ? this.deliveryNotesService.getPrintExportDocEntry(docEntry)
+        : this.deliveryNotesService.getPrintNationalDocEntry(docEntry);
+
+    this.isDisplayGenerandoVisor = true;
+
+    request$
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isDisplayGenerandoVisor = false;
+        })
+      )
+      .subscribe({
+        next: (resp: any) => {
+          if (resp.type === HttpEventType.Response) {
+            this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
+            this.isDisplayVisor = true;
+          }
+        },
+        error: (e) => {
+          this.utilService.handleErrorSingle(e, 'onClickPrint', this.swaCustomService);
+        }
+      });
   }
 }

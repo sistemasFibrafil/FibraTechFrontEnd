@@ -6,16 +6,16 @@
       <form [formGroup]="modeloForm">
         <div class="grid p-fluid">
           <div class="col-12 md:col-2">
-            <p-calendar formControlName="dat1" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+            <p-calendar formControlName="startDate" placeholder="Seleccionar fecha inicial" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
           </div>
           <div class="col-12 md:col-2">
-            <p-calendar formControlName="dat2" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+            <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
           </div>
           <div class="col-12 md:col-2">
             <p-dropdown id="float-input-tipo" [options]="listTipo" class="p dropdown-item-text" placeholder="Seleccionar el tipo" formControlName="tipo" [required] optionLabel="label" [showClear]="true"></p-dropdown>
           </div>
           <div class="col-12 md:col-6">
-            <input id="float-input-text1" type="text" placeholder="Buscar por número o nombre de local" maxlength="100" size="50" pInputText formControlName="text1" autocomplete="off" (keyup.enter)="onToBuscar()">
+            <input id="float-input-searchText" type="text" placeholder="Buscar por número o nombre de local" maxlength="100" size="50" pInputText formControlName="searchText" autocomplete="off" (keyup.enter)="onToBuscar()">
           </div>
         </div>
       </form>
@@ -38,18 +38,20 @@
     <!-- Grilla de Datos     -->
     <p-panel header="Lista de {{subtitulo}}">
       <p-table
-      [value]="reporteList"
-      [columns]="columnas"
-      [paginator]="true"
-      [rows]="globalConstants.sizePage"
-      dataKey="docEntry"
-      editMode="row"
-      [autoLayout]="true"
-      [responsive]="true"
-      styleClass="{{globalConstants.cStyleTableGridLines}}"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
-      [rowHover]="true">
+        [value]="modelo"
+        [columns]="columnas"
+        [rows]="rows"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        selectionMode="single"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}"
+      >
       <!-- Header -->
       <ng-template pTemplate="header" let-columns>
         <tr>
@@ -62,42 +64,42 @@
         <!-- body -->
         <ng-template pTemplate="body" let-modelo>
           <tr class="p-selectable-row">
-            <td class="custom-td-5">
-              <span class="p-column-title">Número OC</span> {{modelo.numOrdenCompra}}
-            </td>
-            <td class="custom-td-5">
-              <span class="p-column-title">Fecha esperada</span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
-            </td>
-            <td class="custom-td-5">
-              <span class="p-column-title">Fecha venciamiento</span> {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
-            </td>
-            <td class="custom-td-5">
-              <span class="p-column-title">UPC</span> {{modelo.ean}}
-            </td>
-            <td class="custom-td-5">
-              <span class="p-column-title">Sku</span> {{modelo.sku}}
+            <td class="p-fluid">
+              {{modelo.numOrdenCompra}}
             </td>
             <td class="p-fluid">
-              <span class="p-column-title">Descripción</span> {{modelo.dscription}}
+              {{modelo.taxDate | date: 'dd/MM/yyyy'}}
             </td>
             <td class="p-fluid">
-              <span class="p-column-title">Descripción larga</span> {{modelo.dscriptionLarga}}
+              {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
             </td>
             <td class="p-fluid">
-              <span class="p-column-title">Local</span> {{modelo.nomLocal}}
+              {{modelo.ean}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.sku}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.dscription}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.dscriptionLarga}}
+            </td>
+            <td class="p-fluid">
+              {{modelo.nomLocal}}
             </td>
             <td class="custom-td-numero">
-              <span class="p-column-title">Cantidad</span> {{modelo.quantity | number: '.2':'en-EN'}}
+              {{modelo.quantity | number: '.2':'en-EN'}}
             </td>
             <td class="p-fluid">
-              <span class="p-column-title">CB</span> {{modelo.lpn}}
+              {{modelo.lpn}}
             </td>
           </tr>
         </ng-template>
         <!-- emptymessage -->
-        <ng-template pTemplate="emptymessage">
+        <ng-template pTemplate="emptymessage" let-columns>
           <tr>
-            <td colspan="10">{{globalConstants.currentTableEmptyMessage}}</td>
+            <td [attr.colspan]="columns.length">{{globalConstants.currentTableEmptyMessage}}</td>
           </tr>
         </ng-template>
       </p-table>

@@ -167,7 +167,6 @@ export class OrdenMantenimientoWebListComponent implements OnInit, OnDestroy {
   }
 
   onToRowSelectPrint(modelo: IOrdenMantenimientoWeb) {
-    debugger
     this.isDisplayGenerandoVisor = true;
     this.subscription = new Subscription();
     this.subscription  = this.ordenMantenimientoWebService.getPdfByIdOrdenMantenimiento(modelo.idOrdenMantenimiento)

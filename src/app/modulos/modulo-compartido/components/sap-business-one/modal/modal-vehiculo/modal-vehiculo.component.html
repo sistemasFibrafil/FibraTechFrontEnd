@@ -1,0 +1,70 @@
+<form [formGroup]="modeloFormVisor">
+  <div class="p-inputgroup">
+    <input id="float-input-cardCode" type="text" placeholder="Número de placa" maxlength="50" size="100" formControlName="u_BPP_VEPL" autocomplete="off" pInputText readonly>
+    <button pButton type="button" [disabled]="isHabilitarButton" icon="{{globalConstants.icoBuscar}}" (click)="isVisualizar = true"></button>
+  </div>
+</form>
+<p-dialog header="Vehículo" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <p-panel id="modal" header="Opciones de búsqueda" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+    <form [formGroup]="modeloFormBusqueda">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-6">
+          <div class="p-inputgroup">
+            <input id="float-input-searchText" type="text" placeholder="Buscar por placa, marca o modelo" maxlength="100" size="50" formControlName="searchText" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+          </div>
+        </div>
+        <div class="col-12 md:col-6">
+          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+  <p-panel header="Lista de vehículos" [toggleable]="true">
+    <p-table
+    [value]="modelo"
+    [columns]="columnas"
+    [rowHover]="true"
+    [autoLayout]="true"
+    selectionMode="single"
+    [resizableColumns]="true"
+    responsiveLayout="scroll"
+    [showCurrentPageReport]="true"
+    [rows]="globalConstants.sizePageModal"
+    styleClass="{{globalConstants.cStyleTableGridLines}}"
+    currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+    <!-- Header -->
+    <ng-template pTemplate="header" let-columns>
+      <tr>
+        <th pSortableColumn="{{col.field}}" *ngFor="let col of columns" class="custom-header">
+          <p-sortIcon field="{{col.field}}"></p-sortIcon>
+          {{col.header}}
+        </th>
+        <th class="custom-header"></th>
+      </tr>
+    </ng-template>
+    <!-- body -->
+    <ng-template pTemplate="body" let-modelo let-editing="editing">
+      <tr class="p-selectable-row" [pSelectableRow]="modelo">
+        <td class="p-fluid">
+          {{modelo.u_BPP_VEPL}}
+        </td>
+        <td class="p-fluid">
+          {{modelo.u_BPP_VEMA}}
+        </td>
+        <td class="p-fluid">
+          {{modelo.u_BPP_VEMO}}
+        </td>
+        <td class="custom-td-5">
+          <button pButton icon="{{globalConstants.icoAceptar}}" class="{{globalConstants.cStyleButtonSuccess}}" (click)="onToSelected(modelo)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" styleClass="p-button-success" (onClick)="onClickNew()"></p-button>
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickClose()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>

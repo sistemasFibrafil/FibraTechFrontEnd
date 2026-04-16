@@ -15,16 +15,17 @@ import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
 // Interfaces
-import { ISocioNegocio } from '../../../interfaces/socio-segocio.interface';
-import { ISectorSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/socio-negocios/sector-socio-negocio-sap.interface';
+import { IBusinessPartners, IBusinessPartnersQuery } from '../../../interfaces/business-partners.interface';
+
 
 // Services
 import { UtilService } from 'src/app/services/util.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { SocioNegocioService } from '../../../services/socio-negocios.service';
+import { BusinessPartnersService } from '../../../services/business-partners.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { SectorSapService } from 'src/app/modulos/modulo-gestion/services/sap/definiciones/socio-negocios/sector-socio-negocio.service';
+import { SectorSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/sector-socio-negocio.service';
+import { ISectorSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/sector-socio-negocio-sap.interface';
 
 
 @Component({
@@ -58,8 +59,8 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
   statusList          : SelectItem[];
 
   // Datos mostrados
-  list                : ISocioNegocio[];
-  listOriginal        : ISocioNegocio[];
+  list                : IBusinessPartnersQuery[];
+  listOriginal        : IBusinessPartnersQuery[];
 
   // Texto para filtrar resultados en tabla
   filtroTexto         : string = '';
@@ -78,9 +79,9 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
     private readonly datePipe: DatePipe,
     public  readonly utilService: UtilService,
     private sectorSapService: SectorSapService,
-    private SocioNegocioService: SocioNegocioService,
     private readonly localDataService: LocalDataService,
     private readonly swaCustomService: SwaCustomService,
+    private businessPartnersService: BusinessPartnersService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
   ) {}
 
@@ -160,7 +161,7 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
           this.loadData();
         },
         error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadWarehouseList', () => {}, this.swaCustomService);
+          this.utilService.handleErrorSingle(e, 'loadCombos', this.swaCustomService);
         }
     });
   }
@@ -192,7 +193,8 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
 
     const params = this.buildParams();
 
-    this.SocioNegocioService.getListClienteBySectorStatus(params)
+    this.businessPartnersService
+    .getListClienteBySectorStatus(params)
     .pipe(
       takeUntil(this.destroy$),
       finalize(() => {
@@ -205,7 +207,7 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
         this.list = data;
       },
       error: e => {
-        this.utilService.handleErrorSingle(e, 'loadData', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadData', this.swaCustomService);
       }
     });
   }
@@ -241,7 +243,8 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
 
     const params = this.buildParams();
 
-    this.SocioNegocioService.getClienteBySectorStatusExcel(params)
+    this.businessPartnersService
+    .getClienteBySectorStatusExcel(params)
     .subscribe({next:(response: any) => {
         saveAs(
           new Blob([response],

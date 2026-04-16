@@ -10,7 +10,7 @@ import { LayoutComponent } from 'src/app/layout/layout.component';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { OrdenVentaSodimacLpnUpdateModel } from 'src/app/modulos/modulo-ventas/models/web/orden-venta-sodimac.model';
-import { IOrdenVentaSodimacConsulta } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
+import { IOrdenVentaSodimacGeneralQuery } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { OrdenVentaSodimacService } from 'src/app/modulos/modulo-ventas/services/web/orden-venta-sodimac.service';
 
@@ -46,12 +46,12 @@ export class PanelSodimacPalletAsignacionComponent implements OnInit {
 
   // DETALLE
   columnas: any[];
-  detail: IOrdenVentaSodimacConsulta[] = [];
+  detail: IOrdenVentaSodimacGeneralQuery[] = [];
 
   // MODAL
   columnasModal: any[];
-  selected: IOrdenVentaSodimacConsulta[] = [];
-  listModal: IOrdenVentaSodimacConsulta[] = [];
+  selected: IOrdenVentaSodimacGeneralQuery[] = [];
+  listModal: IOrdenVentaSodimacGeneralQuery[] = [];
   params: FilterRequestModel = new FilterRequestModel();
 
 
@@ -104,7 +104,7 @@ export class PanelSodimacPalletAsignacionComponent implements OnInit {
     ];
   }
 
-  onToSelectedOrdenVenta(value: IOrdenVentaSodimacConsulta)
+  onToSelectedOrdenVenta(value: IOrdenVentaSodimacGeneralQuery)
   {
     this.modeloForm.patchValue({
       'id'              : value.id,
@@ -118,13 +118,12 @@ export class PanelSodimacPalletAsignacionComponent implements OnInit {
 
   onToBuscar()
   {
-    debugger
     this.isDisplay = true;
     this.listModal = [];
     this.params = this.modeloFormBusqueda.getRawValue();
     this.params.id1 = this.modeloForm.controls['id'].value;
     this.ordenVentaSodimacService.getListOrdenVentaSodimacDetallePendienteLpnByIdAndFiltro(this.params)
-    .subscribe({next:(data: IOrdenVentaSodimacConsulta[]) =>{
+    .subscribe({next:(data: IOrdenVentaSodimacGeneralQuery[]) =>{
         this.isDisplay = false;
         this.listModal = data;
       },error:(e)=>{
@@ -177,7 +176,7 @@ export class PanelSodimacPalletAsignacionComponent implements OnInit {
     this.onClickCloseOrdenVenta();
   }
 
-  onToRowSelected(value: IOrdenVentaSodimacConsulta)
+  onToRowSelected(value: IOrdenVentaSodimacGeneralQuery)
   {
     let swalWithBootstrapButtons = swal.mixin({ customClass: { container: 'my-swal' }, target: document.getElementById('modal') });
 
@@ -199,7 +198,7 @@ export class PanelSodimacPalletAsignacionComponent implements OnInit {
   }
 
 
-  onToRowDelete(value: IOrdenVentaSodimacConsulta, index: number)
+  onToRowDelete(value: IOrdenVentaSodimacGeneralQuery, index: number)
   {
     this.detail.splice(index, 1);
   }

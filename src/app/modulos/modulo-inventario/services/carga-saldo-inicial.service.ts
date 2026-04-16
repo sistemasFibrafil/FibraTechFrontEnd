@@ -2,7 +2,8 @@ import { DatePipe } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { IProceso } from 'src/app/modulos/modulo-gestion/interfaces/sap/definiciones/general/proceso.interface';
+
+import { IProceso } from '../../modulo-gestion/interfaces/sap-business-one/definiciones/general/proceso.interface';
 
 
 @Injectable({providedIn: 'root'})

@@ -53,12 +53,12 @@ const ROUTES: Routes =
   { path: 'panel-take-inventory-spare-parts-create',            data: { breadcrumb: 'Toma de inventario' },                             component: PanelTakeInventorySparePartsCreateComponent },
 
   { path: 'panel-solicitud-traslado-list',                      data: { breadcrumb: 'Solicitud de Traslado' },                          component: PanelSolicitudTrasladoListComponent },
-  { path: 'panel-solicitud-traslado-create/:json',              data: { breadcrumb: 'Solicitud de Traslado' },                          component: PanelSolicitudTrasladoCreateComponent },
+  { path: 'panel-solicitud-traslado-create',                    data: { breadcrumb: 'Solicitud de Traslado' },                          component: PanelSolicitudTrasladoCreateComponent },
   { path: 'panel-solicitud-traslado-edit/:id',                  data: { breadcrumb: 'Solicitud de Traslado' },                          component: PanelSolicitudTrasladoEditComponent },
   { path: 'panel-solicitud-traslado-view/:id',                  data: { breadcrumb: 'Solicitud de Traslado' },                          component: PanelSolicitudTrasladoViewComponent },
 
   { path: 'panel-transferencia-stock-list',                     data: { breadcrumb: 'Transferencia de Stock' },                         component: PanelPanelTransferenciaStockListComponent },
-  { path: 'panel-transferencia-stock-create/:json',             data: { breadcrumb: 'Transferencia de Stock' },                         component: PanelPanelTransferenciaStockCreateComponent },
+  { path: 'panel-transferencia-stock-create',                   data: { breadcrumb: 'Transferencia de Stock' },                         component: PanelPanelTransferenciaStockCreateComponent },
   { path: 'panel-transferencia-stock-edit/:id',                 data: { breadcrumb: 'Transferencia de Stock' },                         component: PanelPanelTransferenciaStockEditComponent },
   { path: 'panel-transferencia-stock-view/:id',                 data: { breadcrumb: 'Transferencia de Stock' },                         component: PanelPanelTransferenciaStockViewComponent },
 

@@ -8,9 +8,9 @@ import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service'
 
 import { UtilService } from 'src/app/services/util.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-import { IArticulo } from '../../interfaces/articulo.interface';
-import { ArticuloModel } from '../../models/articulo.model';
-import { ArticuloService } from '../../services/articulo.service';
+import { IArticulo } from '../../interfaces/items.interface';
+import { ArticuloModel } from '../../models/items.model';
+import { ItemsService } from '../../services/items.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
 
@@ -49,7 +49,7 @@ export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
     private readonly accesoOpcionesService: AccesoOpcionesService,
     private readonly swaCustomService: SwaCustomService,
     private readonly userContextService: UserContextService,
-    private readonly articuloService: ArticuloService,
+    private readonly itemsService: ItemsService,
     public  readonly utilService: UtilService
   ) {}
 
@@ -228,12 +228,12 @@ export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
 
         this.swaCustomService.swaMsgExito('Archivo procesado. Filas: ' + this.modelo.length);
       } catch (err: any) {
-        this.utilService.handleErrorSingle(err, 'onClickUpload', () => {}, this.swaCustomService);
+        this.utilService.handleErrorSingle(err, 'onClickUpload', this.swaCustomService);
       }
     };
 
     reader.onerror = (err) => {
-      this.utilService.handleErrorSingle(err, 'onClickUpload', () => {}, this.swaCustomService);
+      this.utilService.handleErrorSingle(err, 'onClickUpload', this.swaCustomService);
     };
 
     reader.readAsArrayBuffer(fileObj);
@@ -287,7 +287,7 @@ export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
 
     modeloToSave.line = mapped;
 
-    this.articuloService.setCreateMassive(modeloToSave)
+    this.itemsService.setCreateMassive(modeloToSave)
     .pipe(
       takeUntil(this.destroy$),
       finalize(() => {
@@ -299,7 +299,7 @@ export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
         this.swaCustomService.swaMsgExito(null);
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'save', () => { this.isSaving = false; }, this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
       }
     });
   }

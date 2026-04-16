@@ -61,9 +61,10 @@ export class PanelPersonaComponent implements OnInit, OnDestroy {
 
   private opcionesTabla(): void {
     this.opciones = [
-      { value: '1', label: 'Editar',                icon: 'pi pi-pencil',      command: () => this.onClickEdit() },
-      { value: '2', label: 'Eliminar',              icon: 'pi pi-trash',       command: () => this.onClickDelete() },
-      { value: '3', label: 'Permisos logísticos',   icon: 'pi pi-shield',      command: () => this.onClickPermisoLogistico() },
+      { value: '1', label: 'Editar',                        icon: 'pi pi-pencil',      command: () => this.onClickEdit() },
+      { value: '2', label: 'Eliminar',                      icon: 'pi pi-trash',       command: () => this.onClickDelete() },
+      { value: '3', label: 'Permisos logísticos',           icon: 'pi pi-shield',      command: () => this.onClickPermisoLogistico() },
+      { value: '4', label: 'Configuración serie documento', icon: 'pi pi-shield',      command: () => this.onClickConfiguracionSerieDocumento() },
     ];
     this.opcionesMap = new Map(this.opciones.map(op => [op.value, op]));
   }
@@ -139,6 +140,11 @@ export class PanelPersonaComponent implements OnInit, OnDestroy {
   onClickPermisoLogistico(): void {
     if (!this.validateSelection()) return;
     this.router.navigate(['/main/modulo-seg/persona-permiso-logistico', this.modeloSelected.idUsuario]);
+  }
+
+  onClickConfiguracionSerieDocumento(): void {
+    if (!this.validateSelection()) return;
+    this.router.navigate(['/main/modulo-seg/persona-configuracion-serie-documento', this.modeloSelected.idUsuario]);
   }
 
   ngOnDestroy() {

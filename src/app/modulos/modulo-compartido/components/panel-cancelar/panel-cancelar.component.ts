@@ -6,7 +6,7 @@ import { Component, EventEmitter, Input, OnInit, OnDestroy } from '@angular/core
 })
 export class PanelCancelarComponent implements OnInit, OnDestroy {
 
-  @Input() isDisplay: Boolean;
+  @Input() isCancel: Boolean;
   constructor() { }
 
   ngOnInit(): void {}

@@ -2,10 +2,9 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PanelEntregaCreateComponent } from './panel-entrega-create.component';
 
-describe('PanelVenEntregaCreateComponent', () => {
+describe('PanelEntregaCreateComponent', () => {
   let component: PanelEntregaCreateComponent;
   let fixture: ComponentFixture<PanelEntregaCreateComponent>;
-
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ PanelEntregaCreateComponent ]

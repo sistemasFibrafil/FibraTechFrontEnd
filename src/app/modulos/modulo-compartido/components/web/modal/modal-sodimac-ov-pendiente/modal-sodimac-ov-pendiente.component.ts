@@ -3,7 +3,7 @@ import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
 import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
-import { IOrdenVentaSodimacConsulta } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
+import { IOrdenVentaSodimacGeneralQuery } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { OrdenVentaSodimacService } from 'src/app/modulos/modulo-ventas/services/web/orden-venta-sodimac.service';
 
@@ -22,7 +22,7 @@ export class ModalSodimacOvPendienteComponent implements OnInit, OnChanges {
   isVisualizar: Boolean = false;
 
   columnas: any[];
-  list: IOrdenVentaSodimacConsulta[] = [];
+  list: IOrdenVentaSodimacGeneralQuery[] = [];
   params: FilterRequestModel = new FilterRequestModel();
 
   @Input() doEntry: number;
@@ -30,8 +30,8 @@ export class ModalSodimacOvPendienteComponent implements OnInit, OnChanges {
   @Input() isHabilitarButton: boolean;
   @Input() isVisibleLimpiar: boolean = false;
 
-  @Output() eventoAceptar = new EventEmitter<IOrdenVentaSodimacConsulta>();
-  @Output() eventoCancelar = new EventEmitter<IOrdenVentaSodimacConsulta>();
+  @Output() eventoAceptar = new EventEmitter<IOrdenVentaSodimacGeneralQuery>();
+  @Output() eventoCancelar = new EventEmitter<IOrdenVentaSodimacGeneralQuery>();
   @Output() eventoLimpiar = new EventEmitter<boolean>();
 
   constructor
@@ -88,7 +88,7 @@ export class ModalSodimacOvPendienteComponent implements OnInit, OnChanges {
     this.list = [];
     this.getParams();
     this.ordenVentaSodimacService.getListOrdenVentaSodimacPendienteLpnByFiltro(this.params)
-    .subscribe({next:(data: IOrdenVentaSodimacConsulta[]) =>{
+    .subscribe({next:(data: IOrdenVentaSodimacGeneralQuery[]) =>{
         this.isDisplay = false;
         this.list = data;
       },error:(e)=>{
@@ -100,7 +100,7 @@ export class ModalSodimacOvPendienteComponent implements OnInit, OnChanges {
     });
   }
 
-  onToRowSelected(value: IOrdenVentaSodimacConsulta) {
+  onToRowSelected(value: IOrdenVentaSodimacGeneralQuery) {
     this.setClearFiltro();
     this.modeloFormVisor.patchValue({
       'docNum': value.docNum

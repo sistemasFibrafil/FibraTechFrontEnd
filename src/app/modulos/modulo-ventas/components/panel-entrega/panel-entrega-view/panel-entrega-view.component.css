@@ -1,3 +1,10 @@
-.ui-inputtext {
-    text-transform: uppercase !important;
+i {
+  cursor: pointer;
 }
+
+
+:host ::ng-deep .input-number input {
+  text-align: right !important;
+}
+
+

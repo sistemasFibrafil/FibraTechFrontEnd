@@ -9,7 +9,7 @@ import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { UserContextService } from 'src/app/services/user-context.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 
-import { IOrdenVentaSodimacConsulta } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
+import { IOrdenVentaSodimacGeneralQuery } from 'src/app/modulos/modulo-ventas/interfaces/web/orden-venta-sodimac.interface';
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { OrdenVentaSodimacService } from 'src/app/modulos/modulo-ventas/services/web/orden-venta-sodimac.service';
 
@@ -33,9 +33,9 @@ export class PanelSodimacPalletListComponent implements OnInit {
   columnas: any[];
   opciones: any = [];
 
-  modeloDelete: IOrdenVentaSodimacConsulta;
-  modeloSelected: IOrdenVentaSodimacConsulta;
-  list: IOrdenVentaSodimacConsulta[] = [];
+  modeloDelete: IOrdenVentaSodimacGeneralQuery;
+  modeloSelected: IOrdenVentaSodimacGeneralQuery;
+  list: IOrdenVentaSodimacGeneralQuery[] = [];
 
   params: FilterRequestModel = new FilterRequestModel();
 
@@ -105,7 +105,7 @@ export class PanelSodimacPalletListComponent implements OnInit {
     this.isDisplay = true;
     this.onSetParametro();
     this.ordenVentaSodimacService.getListOrdenVentaSodimacLpnByFiltro(this.params)
-    .subscribe({next:(data: IOrdenVentaSodimacConsulta[]) =>
+    .subscribe({next:(data: IOrdenVentaSodimacGeneralQuery[]) =>
     {
       this.isDisplay = false;
       this.list = data;
@@ -124,7 +124,7 @@ export class PanelSodimacPalletListComponent implements OnInit {
     this.router.navigate(['/main/modulo-ven/panel-sodimac-pallet-asignacion']);
   }
 
-  onToItemSelected(modelo: IOrdenVentaSodimacConsulta) {
+  onToItemSelected(modelo: IOrdenVentaSodimacGeneralQuery) {
     this.modeloSelected = modelo;
     // if(this.buttonAcces.btnGuiar || modelo.codEstado === '02' || modelo.codEstado === '03'){
     //   this.opciones.find(x => x.label == "Guiar").visible = false;
@@ -188,7 +188,7 @@ export class PanelSodimacPalletListComponent implements OnInit {
   onToDelete() {
     // this.isDeleting = true;
     // const param: any = { idPicking: this.modeloSelected.idPicking, idUsuario: this.userContextService.getIdUsuario() };
-    // this.solicitudTrasladoService.setDelete(param)
+    // this.InventoryTransferRequestService.setDelete(param)
     // .subscribe({ next: (resp:any)=>{
     //     this.onListar();
     //     this.isDeleting = false;

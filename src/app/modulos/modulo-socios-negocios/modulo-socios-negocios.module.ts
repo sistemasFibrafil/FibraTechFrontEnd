@@ -7,12 +7,20 @@ import { SociosNegociosPrimeNgModule } from './modulo-socios-negocios-primeng.mo
 
 import { CompartidoModule } from '../modulo-compartido/modulo-compartido.module';
 
+import { PanelSocioNegociosListComponent } from './components/panel-socio-negocios/panel-socio-negocios-list/panel-socio-negocios-list.component';
+import { PanelVehiculoComponent } from './components/panel-vehiculo/panel-vehiculo.component';
+import { PanelConductorComponent } from './components/panel-conductor/panel-conductor.component';
+
 import { PanelClienteBySectorEstadoComponent } from './components/panel-reportes/panel-cliente-by-sector-estado/panel-cliente-by-sector-estado.component';
 
 
 @NgModule({
     declarations:
     [
+      PanelSocioNegociosListComponent,
+      PanelVehiculoComponent,
+      PanelConductorComponent,
+
       PanelClienteBySectorEstadoComponent,
     ],
     imports:

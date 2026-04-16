@@ -76,7 +76,7 @@
           <td class="custom-td-numero">{{modelo.pesoPromedioKg | number: '.2':'en-EN'}}</td>
           <td class="custom-td-5">{{modelo.fecProduccion | date: 'dd/MM/yyyy'}}
           </td>
-          <td class="custom-td-2">
+          <td class="custom-td-5">
             <button [disabled]="buttonAcces.btnVer" pButton icon="{{globalConstants.icoVizualizar}}" class="{{globalConstants.cStyleButtonPrimary}}" (click)="onToRowSelectView(modelo)"></button>
           </td>
         </tr>

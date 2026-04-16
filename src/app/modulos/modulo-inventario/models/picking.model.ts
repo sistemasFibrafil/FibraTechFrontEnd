@@ -14,7 +14,34 @@ export class PickingCreateModel {
   }
 }
 
-export class PickingUpdateModel {
+export class InventoryTransferRequestPickingCreateModel {
+  u_ItemCode          : string;
+  u_Dscription        : string;
+  u_CodeBar           : string;
+  u_FromWhsCod        : string;
+  u_WhsCode           : string;
+  u_UnitMsr           : string;
+  u_Quantity          : number;
+  u_WeightKg          : number;
+  u_Status            : string;
+  u_UsrCreate         : number;
+
+  constructor(){
+      this.u_ItemCode       = '';
+      this.u_Dscription     = '';
+      this.u_CodeBar        = '';
+      this.u_FromWhsCod     = '';
+      this.u_WhsCode        = '';
+      this.u_UnitMsr        = '';
+      this.u_Quantity       = 0;
+      this.u_WeightKg       = 0;
+      this.u_Status         = '';
+      this.u_UsrCreate      = 0;
+  }
+}
+
+
+export class StockTransferPickingUpdateModel {
   docEntry            : number;
   u_BaseEntry         : number;
   u_BaseLine          : number;
@@ -29,6 +56,23 @@ export class PickingUpdateModel {
     this.u_UsrUpdate      = 0;
   }
 }
+
+export class DeliveryNotesPickingUpdateModel {
+  docEntry            : number;
+  u_BaseEntry         : number;
+  u_BaseLine          : number;
+  u_Status            : string;
+  u_UsrUpdate         : number;
+
+  constructor(){
+    this.docEntry         = 0;
+    this.u_BaseEntry      = 0;
+    this.u_BaseEntry      = 0;
+    this.u_Status         = '';
+    this.u_UsrUpdate      = 0;
+  }
+}
+
 
 export class PickingReleaseModel {
   u_BaseType          : number;
@@ -105,14 +149,12 @@ export class PickingToTransfer1Model {
   u_BaseType          : number;
   u_BaseLine          : number;
   u_FIB_IsPkg         : string;
-  u_IsReturned        : string;
 
   constructor(){
     this.u_BaseEntry      = 0;
     this.u_BaseType       = 0;
     this.u_BaseLine       = 0;
     this.u_FIB_IsPkg      = '';
-    this.u_IsReturned     = '';
   }
 }
 

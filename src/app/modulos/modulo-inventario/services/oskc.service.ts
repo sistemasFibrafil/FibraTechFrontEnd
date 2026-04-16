@@ -17,13 +17,11 @@ export class OSKCService {
   ) { }
 
   setCreate(value: OSKCCreateModel) {
-    debugger
     const param: string = JSON.stringify(value);
     return this.http.post<any[]>(`${environment.url_api_fib}OSKC/SetCreate/`, param);
   }
 
   setUpdate(value: OSKCUpdateModel) {
-    debugger
     const param: string = JSON.stringify(value);
     return this.http.put<any[]>(`${environment.url_api_fib}OSKC/SetUpdate/`, param);
   }

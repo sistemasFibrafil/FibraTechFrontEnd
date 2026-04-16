@@ -19,7 +19,7 @@ describe('PanelEntregaListComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should list', () => {
     expect(component).toBeTruthy();
   });
 });

@@ -10,7 +10,7 @@
                         <textarea id="float-input-corta" formControlName="descripcion" pInputTextarea [autoResize]="true" placeholder="Ingresar descripción"> </textarea>
                         <div *ngIf="maestroForm.controls['descripcion'].errors && maestroForm.controls['descripcion'].dirty">
                             <p-message severity="error" text="Descripcion es requerido" *ngIf="maestroForm.controls['descripcion'].errors['required']"></p-message>
-                            <p-message severity="error" text="La descripcion debe tener un maximo de 100 y un minimo de 4 caractares." *ngIf="maestroForm.controls['descripcion'].errors['maxlength'] || maestroForm.controls['descripcion'].errors['minlength']"></p-message>
+                            <p-message severity="error" text="La descripcion debe tener un maximo de 100 y un minimo de 3 caractares." *ngIf="maestroForm.controls['descripcion'].errors['maxlength'] || maestroForm.controls['descripcion'].errors['minlength']"></p-message>
                         </div>
                     </div>
                     <div class="col-12">
