@@ -9,6 +9,7 @@ export class AddressModel {
     state?: string;
     country?: string;
     glblLocNum?: string;
+    taxCode?: string;
     lineNum?: number;
 
     constructor() {
@@ -22,6 +23,7 @@ export class AddressModel {
         this.state = null;
         this.country = 'PE';
         this.glblLocNum = '';
+        this.taxCode = '';
     }
 }
 
@@ -63,8 +65,17 @@ export class SocioNegocioModel {
     u_BPP_BPAT?: string;
     u_BPP_BPTD?: string;
     u_BPP_BPTP?: string;
+    u_BPP_BPNO?: string; // First Name (Persona Natural)
+    u_BPP_BPAP?: string; // Last Name 1 (Persona Natural)
+    u_BPP_BPAM?: string; // Last Name 2 (Persona Natural)
+    u_FIB_Email2?: string; // Email 2
+    u_FIB_Email3?: string; // Email 3
+    u_FIB_Transp?: string; // Transportista (Y/N)
+    u_FIB_Creed?: string; // Creedor (Y/N)
     u_FIB_Divi?: string;
     u_FIB_Sector?: string;
+    validFor?: string; // Activo/Inactivo (Y/N)
+    priceListNum?: number;
     addresses?: AddressModel[];
     linesPayAddress?: AddressModel[]; // Para facturación (Get)
     linesShipAddress?: AddressModel[]; // Para envío (Get)
@@ -83,8 +94,17 @@ export class SocioNegocioModel {
         this.u_BPP_BPAT = '';
         this.u_BPP_BPTD = '';
         this.u_BPP_BPTP = '';
+        this.u_BPP_BPNO = '';
+        this.u_BPP_BPAP = '';
+        this.u_BPP_BPAM = '';
+        this.u_FIB_Email2 = '';
+        this.u_FIB_Email3 = '';
+        this.u_FIB_Transp = 'N';
+        this.u_FIB_Creed = 'N';
         this.u_FIB_Divi = '';
         this.u_FIB_Sector = '';
+        this.validFor = 'Y';
+        this.priceListNum = null;
         this.addresses = [];
         this.contactEmployees = [];
     }

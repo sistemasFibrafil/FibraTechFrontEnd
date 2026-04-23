@@ -112,4 +112,20 @@ export class BusinessPartnersService {
     params = params.append('businessPartner', value.businessPartner);
     return this.http.get(`${environment.url_api_fib}BusinessPartners/GetClienteBySectorStatusExcel/`,{params: params, responseType: 'arraybuffer'});
   }
+
+  getPriceLists() {
+    return this.http.get<any[]>(`${environment.url_api_fib}PriceLists/GetList`);
+  }
+
+  getTaxGroups() {
+    return this.http.get<any[]>(`${environment.url_api_fib}TaxGroups/GetList`);
+  }
+
+  getDivisions() {
+    return this.http.get<any[]>(`${environment.url_api_fib}Division/GetList`);
+  }
+
+  getSectors() {
+    return this.http.get<any[]>(`${environment.url_api_fib}BusinessPartnerSectors/GetList`);
+  }
 }

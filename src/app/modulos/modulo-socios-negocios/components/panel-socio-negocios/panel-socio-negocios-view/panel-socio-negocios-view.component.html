@@ -6,21 +6,25 @@
       <div class="col-12">
         <form [formGroup]="modeloForm">
           <div class="p-fluid p-formgrid grid">
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-3">
               <label class="label-custom" for="float-input-cardCode">Código SN </label>
               <div class="p-inputgroup">
                 <input id="float-input-cardCode" type="text" class="readonly-control" formControlName="cardCode" pInputText readonly>
               </div>
             </div>
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-3">
               <label class="label-custom" for="float-input-licTradNum">RUC / Documento </label>
               <div class="p-inputgroup">
                 <input id="float-input-licTradNum" type="text" class="readonly-control" formControlName="licTradNum" pInputText readonly>
               </div>
             </div>
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-3">
               <label class="label-custom" for="float-input-cardType">Tipo SN </label>
               <p-dropdown id="float-input-cardType" class="readonly-control" [options]="listTiposSocio" formControlName="cardType" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-currency">Moneda </label>
+              <p-dropdown id="float-input-currency" class="readonly-control" [options]="listMonedas" formControlName="currency" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
             </div>
 
             <div class="col-12 md:col-8">
@@ -33,67 +37,92 @@
               <label class="label-custom" for="float-input-groupCode">Código de Grupo </label>
               <p-dropdown id="float-input-groupCode" class="readonly-control" [options]="listGruposSocio" formControlName="groupCode" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
             </div>
-            
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-phone">Nro Telefono </label>
-              <div class="p-inputgroup">
-                <input id="float-input-phone" type="text" class="readonly-control" formControlName="phone1" pInputText readonly>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-emailAddress">Email </label>
-              <div class="p-inputgroup">
-                <input id="float-input-emailAddress" type="email" class="readonly-control" pInputText formControlName="emailAddress" readonly>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-currency">Moneda </label>
-              <p-dropdown id="float-input-currency" class="readonly-control" [options]="listMonedas" formControlName="currency" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
-            </div>
-            
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-u_BPP_BPTP">Tipo de Persona </label>
-              <p-dropdown id="float-input-u_BPP_BPTP" class="readonly-control" [options]="listTiposPersona" formControlName="u_BPP_BPTP" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-u_BPP_BPTD">Tipo de Documento </label>
-              <p-dropdown id="float-input-u_BPP_BPTD" class="readonly-control" [options]="listTiposDocumento" formControlName="u_BPP_BPTD" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-groupNum">Condición de Pago </label>
-              <p-dropdown id="float-input-groupNum" class="readonly-control" [options]="listCondicionesPago" formControlName="groupNum" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-slpCode">Vendedor </label>
-              <p-dropdown id="float-input-slpCode" class="readonly-control" [options]="listVendedores" formControlName="slpCode" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-creditLine">Límite de Crédito </label>
-              <div class="p-inputgroup">
-                <input id="float-input-creditLine" type="number" class="readonly-control" formControlName="creditLine" pInputText readonly>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-cellular">Nro Celular </label>
-              <div class="p-inputgroup">
-                <input id="float-input-cellular" type="text" class="readonly-control" formControlName="cellular" pInputText readonly>
-              </div>
-            </div>
-            <div class="col-12 md:col-12">
-              <label class="label-custom" for="float-input-notes">Notas </label>
-              <div class="p-inputgroup">
-                <textarea id="float-input-notes" class="readonly-control" pInputTextarea formControlName="notes" [rows]="3" readonly></textarea>
-              </div>
-            </div>
           </div>
         </form>
       </div>
 
       <div class="col-12 mt-3 p-0">
         <p-tabView>
+          <!-- Tab General -->
           <p-tabPanel>
             <ng-template pTemplate="header">
-              <i class="pi pi-circle-fill" style="color: #607D8B;"></i>
+              <i class="pi pi-info-circle" style="color: #607D8B;"></i>
+              <span>&nbsp;General&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloForm">
+              <div class="p-fluid p-formgrid grid">
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-phone">Nro Telefono </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-phone" type="text" class="readonly-control" formControlName="phone1" pInputText readonly>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-cellular">Nro Celular </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-cellular" type="text" class="readonly-control" formControlName="cellular" pInputText readonly>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-emailAddress">Email </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-emailAddress" type="email" class="readonly-control" pInputText formControlName="emailAddress" readonly>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom">Estado (Activo/Inactivo)</label>
+                  <div class="flex align-items-center mt-2">
+                    <p-inputSwitch formControlName="validFor" trueValue="Y" falseValue="N" [disabled]="true"></p-inputSwitch>
+                    <span class="ml-2">{{modeloForm.get('validFor').value === 'Y' ? 'Activo' : 'Inactivo'}}</span>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-slpCode">Vendedor </label>
+                  <p-dropdown id="float-input-slpCode" class="readonly-control" [options]="listVendedores" formControlName="slpCode" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-12">
+                  <label class="label-custom" for="float-input-notes">Notas </label>
+                  <div class="p-inputgroup">
+                    <textarea id="float-input-notes" class="readonly-control" pInputTextarea formControlName="notes" [rows]="3" readonly></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+
+          <!-- Tab Contactos -->
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              <i class="pi pi-users" style="color: #607D8B;"></i>
+              <span>&nbsp;Personas de contacto&nbsp;</span>
+            </ng-template>
+            <p-table [value]="modelo.contactEmployees" responsiveLayout="scroll" [rowHover]="true" styleClass="{{globalConstants.cStyleTableGridLines}}">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>ID Contacto (Name)</th>
+                  <th>Nombres</th>
+                  <th>Apellidos</th>
+                  <th>E-Mail</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-contact>
+                <tr>
+                  <td>{{contact.name}}</td>
+                  <td>{{contact.firstName}}</td>
+                  <td>{{contact.lastName}}</td>
+                  <td>{{contact.e_Mail}}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr><td colspan="4">No se han registrado contactos.</td></tr>
+              </ng-template>
+            </p-table>
+          </p-tabPanel>
+
+          <!-- Tab Direcciones -->
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              <i class="pi pi-map-marker" style="color: #607D8B;"></i>
               <span>&nbsp;Direcciones&nbsp;</span>
             </ng-template>
             <p-table [value]="modelo.addresses" responsiveLayout="scroll" [rowHover]="true" styleClass="{{globalConstants.cStyleTableGridLines}}">
@@ -126,33 +155,98 @@
               </ng-template>
             </p-table>
           </p-tabPanel>
-          
+
+          <!-- Tab Condiciones de Pago -->
           <p-tabPanel>
             <ng-template pTemplate="header">
-              <i class="pi pi-circle-fill" style="color: #607D8B;"></i>
-              <span>&nbsp;Contactos&nbsp;</span>
+              <i class="pi pi-dollar" style="color: #607D8B;"></i>
+              <span>&nbsp;Condiciones de pago&nbsp;</span>
             </ng-template>
-            <p-table [value]="modelo.contactEmployees" responsiveLayout="scroll" [rowHover]="true" styleClass="{{globalConstants.cStyleTableGridLines}}">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>ID Contacto (Name)</th>
-                  <th>Nombres</th>
-                  <th>Apellidos</th>
-                  <th>E-Mail</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-contact>
-                <tr>
-                  <td>{{contact.name}}</td>
-                  <td>{{contact.firstName}}</td>
-                  <td>{{contact.lastName}}</td>
-                  <td>{{contact.e_Mail}}</td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr><td colspan="4">No se han registrado contactos.</td></tr>
-              </ng-template>
-            </p-table>
+            <form [formGroup]="modeloForm">
+              <div class="p-fluid p-formgrid grid">
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-groupNum">Condición de Pago </label>
+                  <p-dropdown id="float-input-groupNum" class="readonly-control" [options]="listCondicionesPago" formControlName="groupNum" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-creditLine">Límite de Crédito </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-creditLine" type="number" class="readonly-control" formControlName="creditLine" pInputText readonly>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+
+          <!-- Tab Otros -->
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              <i class="pi pi-cog" style="color: #607D8B;"></i>
+              <span>&nbsp;Otros&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloForm">
+              <div class="p-fluid p-formgrid grid">
+                <!-- Identificación -->
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_BPP_BPTP">Tipo de Persona </label>
+                  <p-dropdown id="float-input-u_BPP_BPTP" class="readonly-control" [options]="listTiposPersona" formControlName="u_BPP_BPTP" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_BPP_BPTD">Tipo de Documento </label>
+                  <p-dropdown id="float-input-u_BPP_BPTD" class="readonly-control" [options]="listTiposDocumento" formControlName="u_BPP_BPTD" [showClear]="false" [filter]="true" filterBy="label" appendTo="body" [readonly]="true"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_BPP_BPAT">Acreedor transportista </label>
+                  <p-dropdown id="float-input-u_BPP_BPAT" class="readonly-control" [options]="listAcreedorTransportista" formControlName="u_BPP_BPAT" [showClear]="false" appendTo="body" [readonly]="true"></p-dropdown>
+                </div>
+
+                <!-- Organización -->
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Divi">División </label>
+                  <input id="float-input-u_FIB_Divi" type="text" class="readonly-control" formControlName="u_FIB_Divi" pInputText readonly>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Sector">Sector </label>
+                  <input id="float-input-u_FIB_Sector" type="text" class="readonly-control" formControlName="u_FIB_Sector" pInputText readonly>
+                </div>
+
+                <!-- Persona Natural (Condicional) -->
+                <ng-container *ngIf="modeloForm.get('u_BPP_BPTP').value === 'TPN' || modeloForm.get('u_BPP_BPTP').value === 'TPNE'">
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_BPNO">Nombre </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-u_BPP_BPNO" type="text" class="readonly-control" formControlName="u_BPP_BPNO" pInputText readonly>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_BPAP">Apellido Paterno </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-u_BPP_BPAP" type="text" class="readonly-control" formControlName="u_BPP_BPAP" pInputText readonly>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_BPAM">Apellido Materno </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-u_BPP_BPAM" type="text" class="readonly-control" formControlName="u_BPP_BPAM" pInputText readonly>
+                    </div>
+                  </div>
+                </ng-container>
+
+                <!-- Correos Secundarios -->
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Email2">Email 2 </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-u_FIB_Email2" type="email" class="readonly-control" pInputText formControlName="u_FIB_Email2" readonly>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Email3">Email 3 </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-u_FIB_Email3" type="email" class="readonly-control" pInputText formControlName="u_FIB_Email3" readonly>
+                  </div>
+                </div>
+              </div>
+            </form>
           </p-tabPanel>
         </p-tabView>
       </div>

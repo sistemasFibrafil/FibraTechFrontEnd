@@ -6,84 +6,36 @@
       <div class="col-12">
         <form [formGroup]="modeloForm">
           <div class="p-fluid p-formgrid grid">
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-3">
               <label class="label-custom" for="float-input-cardCode">Código SN </label>
               <div class="p-inputgroup">
                 <input id="float-input-cardCode" type="text" class="readonly-control" placeholder="Código" formControlName="cardCode" pInputText readonly>
               </div>
             </div>
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-3">
               <label class="label-custom" for="float-input-licTradNum">RUC / Documento </label>
               <div class="p-inputgroup">
                 <input id="float-input-licTradNum" type="text" class="field-mandatory" placeholder="Nro Documento" maxlength="20" formControlName="licTradNum" required pInputText>
               </div>
             </div>
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-3">
               <label class="label-custom" for="float-input-cardType">Tipo SN </label>
               <p-dropdown id="float-input-cardType" class="field-mandatory" [options]="listTiposSocio" formControlName="cardType" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
+            </div>
+            <div class="col-12 md:col-3">
+              <label class="label-custom" for="float-input-currency">Moneda </label>
+              <p-dropdown id="float-input-currency" class="field-mandatory" [options]="listMonedas" formControlName="currency" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
             </div>
 
             <div class="col-12 md:col-8">
               <label class="label-custom" for="float-input-cardName">Nombre / Razón Social </label>
               <div class="p-inputgroup">
-                <input id="float-input-cardName" type="text" class="field-mandatory" placeholder="Razón Social" maxlength="100" size="100" formControlName="cardName" autocomplete="off" required pInputText>
+                <input id="float-input-cardName" type="text" class="field-mandatory" placeholder="Razón Social" maxlength="100" size="100" formControlName="cardName" autocomplete="off" required pInputText [readonly]="modeloForm.get('u_BPP_BPTP').value === 'TPN' || modeloForm.get('u_BPP_BPTP').value === 'TPNE'">
               </div>
             </div>
             <div class="col-12 md:col-4">
               <label class="label-custom" for="float-input-groupCode">Código de Grupo </label>
               <p-dropdown id="float-input-groupCode" class="field-mandatory" [options]="listGruposSocio" formControlName="groupCode" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
-            </div>
-            
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-phone">Nro Telefono </label>
-              <div class="p-inputgroup">
-                <input id="float-input-phone" type="text" class="field-mandatory" placeholder="Nro Telefono" maxlength="20" formControlName="phone1" pInputText>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-emailAddress">Email </label>
-              <div class="p-inputgroup">
-                <input id="float-input-emailAddress" type="email" class="field-mandatory" placeholder="Email" pInputText formControlName="emailAddress" autocomplete="off">
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-currency">Moneda </label>
-              <p-dropdown id="float-input-currency" class="field-mandatory" [options]="listMonedas" formControlName="currency" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
-            </div>
-            
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-u_BPP_BPTP">Tipo de Persona </label>
-              <p-dropdown id="float-input-u_BPP_BPTP" class="field-mandatory" [options]="listTiposPersona" formControlName="u_BPP_BPTP" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-u_BPP_BPTD">Tipo de Documento </label>
-              <p-dropdown id="float-input-u_BPP_BPTD" class="field-mandatory" [options]="listTiposDocumento" formControlName="u_BPP_BPTD" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-groupNum">Condición de Pago </label>
-              <p-dropdown id="float-input-groupNum" class="field-mandatory" [options]="listCondicionesPago" formControlName="groupNum" placeholder="Seleccione Condición" [showClear]="true" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-slpCode">Vendedor </label>
-              <p-dropdown id="float-input-slpCode" class="field-mandatory" [options]="listVendedores" formControlName="slpCode" placeholder="Seleccione Vendedor" [showClear]="true" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-creditLine">Límite de Crédito </label>
-              <div class="p-inputgroup">
-                <input id="float-input-creditLine" type="number" class="field-mandatory" placeholder="Monto Límite" formControlName="creditLine" pInputText>
-              </div>
-            </div>
-            <div class="col-12 md:col-4">
-              <label class="label-custom" for="float-input-cellular">Nro Celular </label>
-              <div class="p-inputgroup">
-                <input id="float-input-cellular" type="text" class="field-mandatory" placeholder="Celular" maxlength="20" formControlName="cellular" pInputText>
-              </div>
-            </div>
-            <div class="col-12 md:col-12">
-              <label class="label-custom" for="float-input-notes">Notas </label>
-              <div class="p-inputgroup">
-                <textarea id="float-input-notes" class="field-mandatory" pInputTextarea formControlName="notes" placeholder="Notas adicionales" [rows]="3"></textarea>
-              </div>
             </div>
           </div>
         </form>
@@ -91,9 +43,128 @@
 
       <div class="col-12 mt-3 p-0">
         <p-tabView>
+          <!-- Tab General -->
           <p-tabPanel>
             <ng-template pTemplate="header">
-              <i class="pi pi-circle-fill" style="color: #607D8B;"></i>
+              <i class="pi pi-info-circle" style="color: #607D8B;"></i>
+              <span>&nbsp;General&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloForm">
+              <div class="p-fluid p-formgrid grid">
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-phone">Nro Telefono <span class="text-danger">*</span></label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-phone" type="text" class="field-mandatory" placeholder="Nro Telefono" maxlength="20" formControlName="phone1" pInputText>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-cellular">Nro Celular <span class="text-danger">*</span></label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-cellular" type="text" class="field-mandatory" placeholder="Celular" maxlength="20" formControlName="cellular" pInputText>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-emailAddress">Email <span class="text-danger">*</span></label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-emailAddress" type="email" class="field-mandatory" placeholder="Email" pInputText formControlName="emailAddress" autocomplete="off">
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom">Estado (Activo/Inactivo)</label>
+                  <div class="flex align-items-center mt-2">
+                    <p-inputSwitch formControlName="validFor" trueValue="Y" falseValue="N"></p-inputSwitch>
+                    <span class="ml-2">{{modeloForm.get('validFor').value === 'Y' ? 'Activo' : 'Inactivo'}}</span>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-slpCode">Vendedor <span class="text-danger">*</span></label>
+                  <p-dropdown id="float-input-slpCode" class="field-mandatory" [options]="listVendedores" formControlName="slpCode" placeholder="Seleccione Vendedor" [showClear]="true" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-12">
+                  <label class="label-custom" for="float-input-notes">Notas <span class="text-danger">*</span></label>
+                  <div class="p-inputgroup">
+                    <textarea id="float-input-notes" class="field-mandatory" pInputTextarea formControlName="notes" placeholder="Notas adicionales" [rows]="3"></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+
+          <!-- Tab Contactos -->
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              <i class="pi pi-users" style="color: #607D8B;"></i>
+              <span>&nbsp;Personas de contacto&nbsp;</span>
+            </ng-template>
+            <p-table [value]="modelo.contactEmployees" responsiveLayout="scroll" [rowHover]="true" styleClass="{{globalConstants.cStyleTableGridLines}}">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:5rem">
+                    <button pButton type="button" icon="pi pi-plus" (click)="onAddContacto()" class="p-button-text p-button-success" style="font-size: 1.5rem; color: #239d60;"></button>
+                  </th>
+                  <th>ID Contacto (Name)</th>
+                  <th>Nombres</th>
+                  <th>Apellidos</th>
+                  <th>E-Mail</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-contact let-ri="rowIndex">
+                <tr>
+                  <td>
+                    <p-splitButton icon="pi pi-cog" [model]="opcionesContactos" (onDropdownClick)="onSelectContacto(contact)" appendTo="body" styleClass="p-button-text"></p-splitButton>
+                  </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input pInputText type="text" [(ngModel)]="contact.name" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{contact.name}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input pInputText type="text" [(ngModel)]="contact.firstName" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{contact.firstName}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input pInputText type="text" [(ngModel)]="contact.lastName" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{contact.lastName}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <input pInputText type="email" [(ngModel)]="contact.e_Mail" [ngModelOptions]="{standalone: true}" style="width: 100%">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{contact.e_Mail}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr><td colspan="5">No se han registrado contactos.</td></tr>
+              </ng-template>
+            </p-table>
+          </p-tabPanel>
+
+          <!-- Tab Direcciones -->
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              <i class="pi pi-map-marker" style="color: #607D8B;"></i>
               <span>&nbsp;Direcciones&nbsp;</span>
             </ng-template>
             <p-table [value]="modelo.addresses" responsiveLayout="scroll" [rowHover]="true" styleClass="{{globalConstants.cStyleTableGridLines}}">
@@ -108,7 +179,9 @@
                   <th>Departamento</th>
                   <th>Provincia</th>
                   <th>Distrito</th>
+                  <th>Ubigeo</th>
                   <th>Calle</th>
+                  <th>Impuesto</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-addr let-ri="rowIndex">
@@ -179,6 +252,16 @@
                   <td pEditableColumn>
                     <p-cellEditor>
                       <ng-template pTemplate="input">
+                        <input pInputText type="text" [(ngModel)]="addr.glblLocNum" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{addr.glblLocNum}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
                         <input pInputText type="text" [(ngModel)]="addr.street" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
                       </ng-template>
                       <ng-template pTemplate="output">
@@ -186,82 +269,121 @@
                       </ng-template>
                     </p-cellEditor>
                   </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input">
+                        <p-dropdown *ngIf="(addr.adresType || addr.addressType) === 'S'" [options]="listTaxGroups" [(ngModel)]="addr.taxCode" [ngModelOptions]="{standalone: true}" [style]="{'width': '100%'}" appendTo="body" [filter]="true" filterBy="label" optionLabel="label" optionValue="value"></p-dropdown>
+                        <span *ngIf="(addr.adresType || addr.addressType) === 'B'">N/A</span>
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{(addr.adresType || addr.addressType) === 'S' ? addr.taxCode : ''}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
-                <tr><td colspan="8">No se han registrado direcciones.</td></tr>
+                <tr><td colspan="10">No se han registrado direcciones.</td></tr>
               </ng-template>
             </p-table>
           </p-tabPanel>
-          
+
+          <!-- Tab Condiciones de Pago -->
           <p-tabPanel>
             <ng-template pTemplate="header">
-              <i class="pi pi-circle-fill" style="color: #607D8B;"></i>
-              <span>&nbsp;Contactos&nbsp;</span>
+              <i class="pi pi-dollar" style="color: #607D8B;"></i>
+              <span>&nbsp;Condiciones de pago&nbsp;</span>
             </ng-template>
-            <p-table [value]="modelo.contactEmployees" responsiveLayout="scroll" [rowHover]="true" styleClass="{{globalConstants.cStyleTableGridLines}}">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th style="width:5rem">
-                    <button pButton type="button" icon="pi pi-plus" (click)="onAddContacto()" class="p-button-text p-button-success" style="font-size: 1.5rem; color: #239d60;"></button>
-                  </th>
-                  <th>ID Contacto (Name)</th>
-                  <th>Nombres</th>
-                  <th>Apellidos</th>
-                  <th>E-Mail</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-contact let-ri="rowIndex">
-                <tr>
-                  <td>
-                    <p-splitButton icon="pi pi-cog" [model]="opcionesContactos" (onDropdownClick)="onSelectContacto(contact)" appendTo="body" styleClass="p-button-text"></p-splitButton>
-                  </td>
-                  <td pEditableColumn>
-                    <p-cellEditor>
-                      <ng-template pTemplate="input">
-                        <input pInputText type="text" [(ngModel)]="contact.name" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{contact.name}}
-                      </ng-template>
-                    </p-cellEditor>
-                  </td>
-                  <td pEditableColumn>
-                    <p-cellEditor>
-                      <ng-template pTemplate="input">
-                        <input pInputText type="text" [(ngModel)]="contact.firstName" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{contact.firstName}}
-                      </ng-template>
-                    </p-cellEditor>
-                  </td>
-                  <td pEditableColumn>
-                    <p-cellEditor>
-                      <ng-template pTemplate="input">
-                        <input pInputText type="text" [(ngModel)]="contact.lastName" [ngModelOptions]="{standalone: true}" style="width: 100%" required>
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{contact.lastName}}
-                      </ng-template>
-                    </p-cellEditor>
-                  </td>
-                  <td pEditableColumn>
-                    <p-cellEditor>
-                      <ng-template pTemplate="input">
-                        <input pInputText type="email" [(ngModel)]="contact.e_Mail" [ngModelOptions]="{standalone: true}" style="width: 100%">
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{contact.e_Mail}}
-                      </ng-template>
-                    </p-cellEditor>
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr><td colspan="5">No se han registrado contactos.</td></tr>
-              </ng-template>
-            </p-table>
+            <form [formGroup]="modeloForm">
+              <div class="p-fluid p-formgrid grid">
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-groupNum">Condición de Pago </label>
+                  <p-dropdown id="float-input-groupNum" [options]="listCondicionesPago" formControlName="groupNum" placeholder="Seleccione Condición" [showClear]="true" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-creditLine">Límite de Crédito </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-creditLine" type="number" placeholder="Monto Límite" formControlName="creditLine" pInputText>
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-priceListNum">Lista de Precios </label>
+                  <p-dropdown id="float-input-priceListNum" [options]="listPriceLists" formControlName="priceListNum" placeholder="Seleccione Lista" [showClear]="true" [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
+                </div>
+              </div>
+            </form>
+          </p-tabPanel>
+
+          <!-- Tab Otros -->
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              <i class="pi pi-cog" style="color: #607D8B;"></i>
+              <span>&nbsp;Otros&nbsp;</span>
+            </ng-template>
+            <form [formGroup]="modeloForm">
+              <div class="p-fluid p-formgrid grid">
+
+                <!-- Identificación -->
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_BPP_BPTP">Tipo de Persona </label>
+                  <p-dropdown id="float-input-u_BPP_BPTP" class="field-mandatory" [options]="listTiposPersona" formControlName="u_BPP_BPTP" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_BPP_BPTD">Tipo de Documento </label>
+                  <p-dropdown id="float-input-u_BPP_BPTD" class="field-mandatory" [options]="listTiposDocumento" formControlName="u_BPP_BPTD" [showClear]="false" [filter]="true" filterBy="label" appendTo="body"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_BPP_BPAT">Acreedor transportista </label>
+                  <p-dropdown id="float-input-u_BPP_BPAT" [options]="listAcreedorTransportista" formControlName="u_BPP_BPAT" [showClear]="false" appendTo="body"></p-dropdown>
+                </div>
+
+                <!-- Organización -->
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Divi">División </label>
+                  <p-dropdown id="float-input-u_FIB_Divi" [options]="listDivisions" formControlName="u_FIB_Divi" [showClear]="true" [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Sector">Sector </label>
+                  <p-dropdown id="float-input-u_FIB_Sector" [options]="listSectors" formControlName="u_FIB_Sector" [showClear]="true" [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"></p-dropdown>
+                </div>
+
+                <!-- Persona Natural (Condicional) -->
+                <ng-container *ngIf="modeloForm.get('u_BPP_BPTP').value === 'TPN' || modeloForm.get('u_BPP_BPTP').value === 'TPNE'">
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_BPNO">Nombre </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-u_BPP_BPNO" type="text" placeholder="Nombre" formControlName="u_BPP_BPNO" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_BPAP">Apellido Paterno </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-u_BPP_BPAP" type="text" placeholder="Apellido Paterno" formControlName="u_BPP_BPAP" pInputText>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <label class="label-custom" for="float-input-u_BPP_BPAM">Apellido Materno </label>
+                    <div class="p-inputgroup">
+                      <input id="float-input-u_BPP_BPAM" type="text" placeholder="Apellido Materno" formControlName="u_BPP_BPAM" pInputText>
+                    </div>
+                  </div>
+                </ng-container>
+
+                <!-- Correos Secundarios -->
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Email2">Email 2 </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-u_FIB_Email2" type="email" placeholder="Email 2" pInputText formControlName="u_FIB_Email2" autocomplete="off">
+                  </div>
+                </div>
+                <div class="col-12 md:col-4">
+                  <label class="label-custom" for="float-input-u_FIB_Email3">Email 3 </label>
+                  <div class="p-inputgroup">
+                    <input id="float-input-u_FIB_Email3" type="email" placeholder="Email 3" pInputText formControlName="u_FIB_Email3" autocomplete="off">
+                  </div>
+                </div>
+              </div>
+            </form>
           </p-tabPanel>
         </p-tabView>
       </div>
@@ -279,3 +401,5 @@
     </p-footer>
   </p-panel>
 </div>
+
+<app-panel-obtener [isDisplay]="isloading"></app-panel-obtener>

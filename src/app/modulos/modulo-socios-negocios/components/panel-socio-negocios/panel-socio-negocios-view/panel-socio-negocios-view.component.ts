@@ -47,6 +47,11 @@ export class PanelSocioNegociosViewComponent implements OnInit, OnDestroy {
     { label: 'Natural Extranjera', value: 'TPNE' }
   ];
 
+  listAcreedorTransportista: SelectItem[] = [
+    { label: 'No', value: 'N' },
+    { label: 'Si', value: 'Y' }
+  ];
+
   listTiposDocumento: SelectItem[] = [
     { label: '0 - DOC.TRIB.NO.DOM.SIN.RUC', value: '0' },
     { label: '1 - Documento Nacional de Identidad', value: '1' },
@@ -98,13 +103,21 @@ export class PanelSocioNegociosViewComponent implements OnInit, OnDestroy {
       'u_BPP_BPAT': new FormControl({value: 'N', disabled: true}),
       'u_BPP_BPTD': new FormControl({value: '6', disabled: true}),
       'u_BPP_BPTP': new FormControl({value: 'TPJ', disabled: true}),
+      'u_BPP_BPNO': new FormControl({value: '', disabled: true}),
+      'u_BPP_BPAP': new FormControl({value: '', disabled: true}),
+      'u_BPP_BPAM': new FormControl({value: '', disabled: true}),
+      'u_FIB_Email2': new FormControl({value: '', disabled: true}),
+      'u_FIB_Email3': new FormControl({value: '', disabled: true}),
+      'u_FIB_Transp': new FormControl({value: 'N', disabled: true}),
+      'u_FIB_Creed': new FormControl({value: 'N', disabled: true}),
       'u_FIB_Divi': new FormControl({value: '01', disabled: true}),
       'u_FIB_Sector': new FormControl({value: '01', disabled: true}),
       'groupNum': new FormControl({value: null, disabled: true}),
       'creditLine': new FormControl({value: 0, disabled: true}),
       'slpCode': new FormControl({value: null, disabled: true}),
       'cellular': new FormControl({value: '', disabled: true}),
-      'notes': new FormControl({value: '', disabled: true})
+      'notes': new FormControl({value: '', disabled: true}),
+      'validFor': new FormControl({value: 'Y', disabled: true})
     });
   }
 
@@ -134,7 +147,8 @@ export class PanelSocioNegociosViewComponent implements OnInit, OnDestroy {
           creditLine: data.creditLine,
           slpCode: data.slpCode,
           cellular: data.cellular,
-          notes: data.notes
+          notes: data.notes,
+          validFor: data.validFor || 'Y'
         });
 
         if (this.modelo.linesPayAddress || this.modelo.linesShipAddress) {

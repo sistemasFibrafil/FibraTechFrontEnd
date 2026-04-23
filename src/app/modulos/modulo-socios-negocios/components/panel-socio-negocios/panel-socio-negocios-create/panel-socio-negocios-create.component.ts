@@ -22,6 +22,7 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
   globalConstants: GlobalsConstantsForm = new GlobalsConstantsForm();
   modeloForm: FormGroup;
   modelo: SocioNegocioModel = new SocioNegocioModel();
+  isloading: boolean = false;
 
   opcionesDirecciones: MenuItem[];
   opcionesContactos: MenuItem[];
@@ -30,7 +31,7 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
 
   listTiposSocio: SelectItem[] = [
     { label: 'Cliente', value: 'C' },
-    { label: 'Proveedor', value: 'S' },
+    { label: 'Proveedor', value: 'P' },
     { label: 'Lead', value: 'L' }
   ];
 
@@ -55,6 +56,11 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
     { label: 'Natural Extranjera', value: 'TPNE' }
   ];
 
+  listAcreedorTransportista: SelectItem[] = [
+    { label: 'No', value: 'N' },
+    { label: 'Si', value: 'Y' }
+  ];
+
   listTiposDocumento: SelectItem[] = [
     { label: '0 - DOC.TRIB.NO.DOM.SIN.RUC', value: '0' },
     { label: '1 - Documento Nacional de Identidad', value: '1' },
@@ -71,6 +77,10 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
   listGruposSocio: SelectItem[] = [];
   listCondicionesPago: SelectItem[] = [];
   listVendedores: SelectItem[] = [];
+  listPriceLists: SelectItem[] = [];
+  listTaxGroups: SelectItem[] = [];
+  listDivisions: SelectItem[] = [];
+  listSectors: SelectItem[] = [];
   listPaises: SelectItem[] = [];
   mapEstados: { [key: string]: SelectItem[] } = {};
   mapProvincias: { [key: string]: SelectItem[] } = {};
@@ -91,6 +101,22 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
     this.cargarCondicionesPago();
     this.cargarVendedores();
     this.cargarPaises();
+    this.cargarCatalogosExtra();
+  }
+
+  cargarCatalogosExtra() {
+    this.businessPartnersService.getPriceLists().subscribe(res => {
+      this.listPriceLists = res.map(x => ({ label: x.priceListName, value: x.priceListNo }));
+    });
+    this.businessPartnersService.getTaxGroups().subscribe(res => {
+      this.listTaxGroups = res.map(x => ({ label: `${x.code} - ${x.name}`, value: x.code }));
+    });
+    this.businessPartnersService.getDivisions().subscribe(res => {
+      this.listDivisions = [{ label: '--- Seleccione ---', value: null }, ...res.map(x => ({ label: x.nombre, value: x.codigo }))];
+    });
+    this.businessPartnersService.getSectors().subscribe(res => {
+      this.listSectors = [{ label: '--- Seleccione ---', value: null }, ...res.map(x => ({ label: x.nombre, value: x.codigo }))];
+    });
   }
 
   initDefaultLines() {
@@ -116,19 +142,44 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
       'cardType': new FormControl('C', Validators.compose([Validators.required])),
       'groupCode': new FormControl('', Validators.compose([Validators.required])),
       'licTradNum': new FormControl('', Validators.compose([Validators.required, Validators.maxLength(20)])),
-      'phone1': new FormControl(''),
-      'emailAddress': new FormControl('', Validators.compose([Validators.email])),
+      'phone1': new FormControl('', Validators.compose([Validators.required])),
+      'emailAddress': new FormControl('', Validators.compose([Validators.required, Validators.email])),
       'currency': new FormControl('##', Validators.compose([Validators.required])),
       'u_BPP_BPAT': new FormControl('N', Validators.compose([Validators.required])),
       'u_BPP_BPTD': new FormControl('6', Validators.compose([Validators.required])),
       'u_BPP_BPTP': new FormControl('TPJ', Validators.compose([Validators.required])),
+      'u_BPP_BPNO': new FormControl(''),
+      'u_BPP_BPAP': new FormControl(''),
+      'u_BPP_BPAM': new FormControl(''),
+      'u_FIB_Email2': new FormControl('', Validators.compose([Validators.required, Validators.email])),
+      'u_FIB_Email3': new FormControl('', Validators.compose([Validators.required, Validators.email])),
+      'u_FIB_Transp': new FormControl('N'),
+      'u_FIB_Creed': new FormControl('N'),
       'u_FIB_Divi': new FormControl('01', Validators.compose([Validators.required])),
       'u_FIB_Sector': new FormControl('01', Validators.compose([Validators.required])),
-      'groupNum': new FormControl(null),
-      'creditLine': new FormControl(0),
-      'slpCode': new FormControl(null),
-      'cellular': new FormControl(''),
-      'notes': new FormControl('')
+      'groupNum': new FormControl(null, Validators.compose([Validators.required])),
+      'creditLine': new FormControl(0, Validators.compose([Validators.required])),
+      'slpCode': new FormControl(null, Validators.compose([Validators.required])),
+      'cellular': new FormControl('', Validators.compose([Validators.required])),
+      'notes': new FormControl('', Validators.compose([Validators.required])),
+      'validFor': new FormControl('Y', Validators.compose([Validators.required])),
+      'priceListNum': new FormControl(null, Validators.compose([Validators.required]))
+    });
+
+    // Sincronización de campos de Persona Natural con cardName
+    ['u_BPP_BPNO', 'u_BPP_BPAP', 'u_BPP_BPAM'].forEach(field => {
+      this.modeloForm.get(field).valueChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          const tp = this.modeloForm.get('u_BPP_BPTP').value;
+          if (tp === 'TPN' || tp === 'TPNE') {
+            const nombre = this.modeloForm.get('u_BPP_BPNO').value || '';
+            const apPaterno = this.modeloForm.get('u_BPP_BPAP').value || '';
+            const apMaterno = this.modeloForm.get('u_BPP_BPAM').value || '';
+            const fullName = `${apPaterno} ${apMaterno} ${nombre}`.trim();
+            this.modeloForm.get('cardName').setValue(fullName, { emitEvent: false });
+          }
+        });
     });
 
     this.modeloForm.get('cardType').valueChanges
@@ -343,6 +394,13 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
     this.modelo.u_BPP_BPAT = rawForm.u_BPP_BPAT;
     this.modelo.u_BPP_BPTD = rawForm.u_BPP_BPTD;
     this.modelo.u_BPP_BPTP = rawForm.u_BPP_BPTP;
+    this.modelo.u_BPP_BPNO = this.utilService.convertirMayuscula(rawForm.u_BPP_BPNO);
+    this.modelo.u_BPP_BPAP = this.utilService.convertirMayuscula(rawForm.u_BPP_BPAP);
+    this.modelo.u_BPP_BPAM = this.utilService.convertirMayuscula(rawForm.u_BPP_BPAM);
+    this.modelo.u_FIB_Email2 = rawForm.u_FIB_Email2;
+    this.modelo.u_FIB_Email3 = rawForm.u_FIB_Email3;
+    this.modelo.validFor = rawForm.validFor;
+    this.modelo.priceListNum = (rawForm.priceListNum !== null && rawForm.priceListNum !== undefined) ? Number(rawForm.priceListNum) : null;
     this.modelo.u_FIB_Divi = rawForm.u_FIB_Divi;
     this.modelo.u_FIB_Sector = rawForm.u_FIB_Sector;
 
@@ -353,19 +411,29 @@ export class PanelSocioNegociosCreateComponent implements OnInit, OnDestroy {
     this.modelo.cellular = rawForm.cellular;
     this.modelo.notes = rawForm.notes;
 
+    // El impuesto solo para tipo guía (S). Para factura (B) no se envía el campo.
+    this.modelo.addresses.forEach(addr => {
+      if ((addr.adresType || addr.addressType) === 'B') {
+        delete addr.taxCode;
+      }
+    });
+
     if (this.modelo.contactEmployees && this.modelo.contactEmployees.length > 0) {
       const mainContact = this.modelo.contactEmployees[0];
       this.modelo.cntctPrsn = mainContact.name || mainContact.firstName;
     }
 
+    this.isloading = true;
     this.businessPartnersService.setCreateBusinessPartner(this.modelo)
     .pipe(takeUntil(this.destroy$))
     .subscribe(
       () =>  {
+        this.isloading = false;
         this.swaCustomService.swaMsgExito(null);
         this.back(); 
       },
       (error) => {
+        this.isloading = false;
         this.swaCustomService.swaMsgError(error?.error?.resultadoDescripcion || error?.message);
     });
   }
