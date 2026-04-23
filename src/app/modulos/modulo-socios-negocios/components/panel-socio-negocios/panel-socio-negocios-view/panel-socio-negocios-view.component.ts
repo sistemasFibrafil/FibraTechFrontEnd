@@ -171,6 +171,12 @@ export class PanelSocioNegociosViewComponent implements OnInit, OnDestroy {
           });
         }
 
+        if (this.modelo.contactEmployees) {
+          this.modelo.contactEmployees.forEach(contact => {
+            if (contact.e_MailL && !contact.e_Mail) contact.e_Mail = contact.e_MailL;
+          });
+        }
+
         this.cargarGruposSocio(data.cardType);
       }
     },

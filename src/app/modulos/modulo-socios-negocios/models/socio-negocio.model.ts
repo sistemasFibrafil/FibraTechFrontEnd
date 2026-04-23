@@ -8,7 +8,7 @@ export class AddressModel {
     county?: string;
     state?: string;
     country?: string;
-    glbLocNum?: string;
+    glblLocNum?: string;
     lineNum?: number;
 
     constructor() {
@@ -21,7 +21,7 @@ export class AddressModel {
         this.county = '';
         this.state = null;
         this.country = 'PE';
-        this.glbLocNum = '';
+        this.glblLocNum = '';
     }
 }
 

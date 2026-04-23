@@ -227,6 +227,12 @@ export class PanelSocioNegociosEditComponent implements OnInit, OnDestroy {
           });
         }
 
+        if (this.modelo.contactEmployees) {
+          this.modelo.contactEmployees.forEach(contact => {
+            if (contact.e_MailL && !contact.e_Mail) contact.e_Mail = contact.e_MailL;
+          });
+        }
+
         this.cargarGruposSocio(data.cardType);
       }
     },
@@ -311,7 +317,7 @@ export class PanelSocioNegociosEditComponent implements OnInit, OnDestroy {
     addr.state = null;
     addr.county = null;
     addr.city = null;
-    addr.glbLocNum = '';
+    addr.glblLocNum = '';
     if (addr.country) {
       this.cargarEstados(addr.country);
     }
@@ -320,7 +326,7 @@ export class PanelSocioNegociosEditComponent implements OnInit, OnDestroy {
   onStateChange(addr: any) {
     addr.county = null;
     addr.city = null;
-    addr.glbLocNum = '';
+    addr.glblLocNum = '';
     if (addr.state && addr.country) {
       const estados = this.mapEstados[addr.country];
       const item = estados.find(x => x.value === addr.state);
@@ -351,7 +357,7 @@ export class PanelSocioNegociosEditComponent implements OnInit, OnDestroy {
 
   onProvinciaChange(addr: any) {
     addr.city = null;
-    addr.glbLocNum = '';
+    addr.glblLocNum = '';
     if (addr.state && addr.county && addr.country) {
       const estados = this.mapEstados[addr.country];
       const item = estados.find(x => x.value === addr.state);
@@ -388,7 +394,7 @@ export class PanelSocioNegociosEditComponent implements OnInit, OnDestroy {
       if (distritos) {
         const item = distritos.find(x => x.label === addr.city);
         if (item) {
-          addr.glbLocNum = item.value;
+          addr.glblLocNum = item.value;
         }
       }
     }
