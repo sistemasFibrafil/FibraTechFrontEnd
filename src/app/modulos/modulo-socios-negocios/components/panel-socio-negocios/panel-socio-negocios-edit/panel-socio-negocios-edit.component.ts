@@ -500,6 +500,22 @@ export class PanelSocioNegociosEditComponent implements OnInit, OnDestroy {
     this.modelo.cellular = rawForm.cellular;
     this.modelo.notes = rawForm.notes;
 
+    // Validar nombres de direcciones duplicados o vacíos
+    if (this.modelo.addresses && this.modelo.addresses.length > 0) {
+      const addressNames = this.modelo.addresses.map(x => (x.addressName || '').toUpperCase().trim());
+      
+      if (addressNames.some(name => name === '')) {
+        this.swaCustomService.swaMsgInfo('Todas las direcciones deben tener un nombre.');
+        return;
+      }
+
+      const hasDuplicate = addressNames.some((item, index) => addressNames.indexOf(item) !== index);
+      if (hasDuplicate) {
+        this.swaCustomService.swaMsgInfo('Existen nombres de direcciones duplicados. Por favor verifique.');
+        return;
+      }
+    }
+
     // El impuesto solo para tipo guía (S). Para factura (B) no se envía el campo.
     this.modelo.addresses.forEach(addr => {
       if ((addr.adresType || addr.addressType) === 'B') {
