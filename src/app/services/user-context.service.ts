@@ -104,7 +104,7 @@ export class UserContextService {
     return this.sessionService.getItemDecrypt('dfltWhs');
   }
 
-  public getCarptaAnexos() {
+  public getFileAttachments() {
     return this.sessionService.getItemDecrypt('srcCarpetaAnexos');
   }
 

@@ -42,7 +42,7 @@ const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
-        path: 'modulo-bor',
+        path: 'modulo-dra',
         data: { breadcrumb: 'Documentos Borrador' },
         loadChildren: () => import('./modulos/modulo-documentos-borrador/modulo-documentos-borrador.module').then(m => m.DocumentosBorradorModule),
         canActivate: [AuthGuard]

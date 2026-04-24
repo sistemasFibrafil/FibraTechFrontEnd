@@ -17,8 +17,8 @@ export class ApprovalRequestsService {
     private datePipe: DatePipe
   ) { }
 
-  getApprovalStatusReport(value: ApprovalStatusReportFilterModel) {
+  getListApprovalStatusReport(value: ApprovalStatusReportFilterModel) {
     const param: string = JSON.stringify(value);
-    return this.http.post<IApprovalStatusReportQuery[]>(`${environment.url_api_fib}ApprovalRequests/GetApprovalStatusReport/`, param);
+    return this.http.post<IApprovalStatusReportQuery[]>(`${environment.url_api_fib}ApprovalRequests/GetListApprovalStatusReport/`, param);
   }
 }

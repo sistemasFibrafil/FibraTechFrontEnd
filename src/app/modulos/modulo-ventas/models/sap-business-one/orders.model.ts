@@ -1,4 +1,4 @@
-import { Attachments2CreateModel } from './attachments2.model';
+import { Attachments2CreateModel, Attachments2UpdateModel } from './attachments2.model';
 
 export class OrdersCreateModel {
   docDate             : Date;
@@ -208,6 +208,8 @@ export class OrdersUpdateModel {
 
   u_UsrUpdate         : number;
 
+  attachments2        : Attachments2UpdateModel;
+
   lines               : Orders1UpdateModel[];
 
   constructor(){
@@ -257,6 +259,8 @@ export class OrdersUpdateModel {
     this.docTotal            = 0;
 
     this.u_UsrUpdate         = 0;
+
+    this.attachments2        = null;
 
     this.lines               = [];
   }

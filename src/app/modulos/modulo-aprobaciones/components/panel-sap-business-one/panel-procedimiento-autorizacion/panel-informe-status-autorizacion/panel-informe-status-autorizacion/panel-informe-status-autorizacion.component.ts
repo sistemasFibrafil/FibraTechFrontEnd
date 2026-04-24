@@ -30,6 +30,7 @@ export class PanelInformeStatusAutorizacionComponent implements OnInit, OnDestro
 
   // Configuration
   readonly titulo                               = 'Informe status de autorización';
+  readonly subTitulo                            = 'Status de autorización';
   buttonAcces                                   : ButtonAcces = new ButtonAcces();
   globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
@@ -108,7 +109,7 @@ export class PanelInformeStatusAutorizacionComponent implements OnInit, OnDestro
     this.isDisplay = true;
 
     this.approvalRequestsService
-    .getApprovalStatusReport(params)
+    .getListApprovalStatusReport(params)
     .pipe(
       takeUntil(this.destroy$),
       finalize(() => {

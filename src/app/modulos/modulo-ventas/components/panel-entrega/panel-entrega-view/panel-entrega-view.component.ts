@@ -408,7 +408,7 @@ export class PanelEntregaViewComponent implements OnInit, OnDestroy {
     // Mostrar spinner mientras cargan los combos
     this.isDisplay = true;
 
-    const docTypes = this.localDataService.getListDocTypes();
+    const docTypes = this.localDataService.docTypes;
     this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
 
     const defaultDocType = this.docTypesList.find(x => x.value === 'I');

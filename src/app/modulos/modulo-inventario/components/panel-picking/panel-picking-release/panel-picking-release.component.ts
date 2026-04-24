@@ -85,7 +85,7 @@ export class PanelPickingReleaseComponent implements OnInit, OnDestroy {
 
 
   private loadTypeDocuments(): void {
-    const statuses = this.localDataService.getListTypeDocumentPicking();
+    const statuses = this.localDataService.typePicking;
     this.objTypeList = statuses.map(s => ({ label: s.name, value: s.code }));
   }
 

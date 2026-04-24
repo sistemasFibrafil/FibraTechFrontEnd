@@ -3,8 +3,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
-import { DraftsCloseModel, DraftsCreateModel, DraftsFilterModel, DraftsUpdateModel } from '../models/drafts.model';
-import { IDraftsQuery, IDraftsStatusQuery } from '../interfaces/drafts.interface';
+import { DraftsFilterModel } from '../models/drafts.model';
+
+import { IDraftsDocumentReportQuery, IDraftsQuery } from '../interfaces/drafts.interface';
 
 
 @Injectable({providedIn: 'root'})
@@ -23,6 +24,11 @@ export class DraftsService {
     return this.http.get<IDraftsQuery[]>(`${environment.url_api_fib}Drafts/GetListByFilter/`,{params: params});
   }
 
+  getListDraftsDocumentReport(value: any) {
+    const param: string = JSON.stringify(value);
+    return this.http.post<IDraftsDocumentReportQuery[]>(`${environment.url_api_fib}Drafts/GetListDraftsDocumentReport/`, param);
+  }
+
   getByDocEntry(docEntry: number) {
     return this.http.get<any>(`${environment.url_api_fib}Drafts/GetByDocEntry/${docEntry}`);
   }
@@ -31,23 +37,32 @@ export class DraftsService {
     return this.http.get<any>(`${environment.url_api_fib}Drafts/GetStatusByDocEntry/${docEntry}`);
   }
 
-  setCreate(value: any) {
-    const param: string = JSON.stringify(value);
-    return this.http.post<any[]>(`${environment.url_api_fib}Drafts/SetCreate/`, param);
+  setCreate(value: any, files: any[]) {
+    let formData: FormData = new FormData();
+
+    formData.append('value', JSON.stringify(value));
+
+    files.forEach((element: any) => {
+      formData.append('files', element);
+    });
+
+    return this.http.post(`${environment.url_api_fib}Drafts/SetCreate/`, formData,{ reportProgress: true, observe: 'events'});
   }
 
-  setResend(value: DraftsCreateModel) {
+  setSaveDraftToDocument(value: any) {
     const param: string = JSON.stringify(value);
-    return this.http.post<any[]>(`${environment.url_api_fib}Drafts/SetResend/`, param);
+    return this.http.post<any[]>(`${environment.url_api_fib}Drafts/SetSaveDraftToDocument/`, param);
   }
 
-  setUpdate(value: DraftsUpdateModel) {
-    const param: string = JSON.stringify(value);
-    return this.http.put(`${environment.url_api_fib}Drafts/SetUpdate/`, param);
-  }
+  setUpdate(value: any, files: any[]) {
+    let formData: FormData = new FormData();
 
-  setClose(value: DraftsCloseModel) {
-    const param: string = JSON.stringify(value);
-    return this.http.put(`${environment.url_api_fib}Drafts/SetClose/`, param);
+    formData.append('value', JSON.stringify(value));
+
+    files.forEach((element: any) => {
+      formData.append('files', element);
+    });
+
+    return this.http.put(`${environment.url_api_fib}Drafts/SetUpdate/`, formData,{ reportProgress: true, observe: 'events'});
   }
 }

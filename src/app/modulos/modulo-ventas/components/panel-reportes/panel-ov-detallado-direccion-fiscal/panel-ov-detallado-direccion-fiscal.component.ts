@@ -245,7 +245,7 @@ export class PanelOrdenVentaDetalladoDirecionFiscalComponent implements OnInit {
         }, { emitEvent: false });
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadFilters', this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
       }
     });
   }

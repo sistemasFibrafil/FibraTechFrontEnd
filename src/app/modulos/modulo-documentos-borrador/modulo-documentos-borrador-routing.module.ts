@@ -1,17 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-
-import { PanelDocumentoBorradorListComponent } from './components/panel-documento-borrador/panel-documento-borrador-list/panel-documento-borrador-list.component';
-import { PanelDocumentoBorradorCreateComponent } from './components/panel-documento-borrador/panel-documento-borrador-create/panel-documento-borrador-create.component';
-import { PanelDocumentoBorradorEditComponent } from './components/panel-documento-borrador/panel-documento-borrador-edit/panel-documento-borrador-edit.component';
-import { PanelDocumentoBorradorViewComponent } from './components/panel-documento-borrador/panel-documento-borrador-view/panel-documento-borrador-view.component';
+import { PanelDocumentoPreliinarOptionsComponent } from './components/panel-informes/panel-documento-preliminar-options/panel-documento-preliminar-options.component';
+import { PanelDocumentoPreliminarComponent } from './components/panel-informes/panel-documento-preliminar/panel-documento-preliminar.component';
 
 const ROUTES: Routes =
 [
-  { path: 'panel-documento-borrador-list',                 data: { breadcrumb: 'Documento Borrador' }, component: PanelDocumentoBorradorListComponent },
-  { path: 'panel-documento-borrador-create/:id',           data: { breadcrumb: 'Documento Borrador' }, component: PanelDocumentoBorradorCreateComponent },
-  { path: 'panel-documento-borrador-edit/:id',             data: { breadcrumb: 'Documento Borrador' }, component: PanelDocumentoBorradorEditComponent },
-  { path: 'panel-documento-borrador-view',                 data: { breadcrumb: 'Documento Borrador' }, component: PanelDocumentoBorradorViewComponent },
+  { path: 'panel-documento-preliminar-options',                                   data: { breadcrumb: 'Informe documento preliminar' }, component: PanelDocumentoPreliinarOptionsComponent },
+  { path: 'panel-documento-preliminar',                                           data: { breadcrumb: 'Informe documento preliminar' }, component: PanelDocumentoPreliminarComponent },
 ];
 
 @NgModule({

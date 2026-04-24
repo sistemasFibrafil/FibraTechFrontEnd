@@ -1,3 +1,7 @@
+export interface IAttachments2Query {
+  absEntry?           : number;
+  lines               : IAttachments2LinesQuery[];
+}
 
 export interface IAttachments2LinesQuery {
   absEntry?           : number;
@@ -6,6 +10,5 @@ export interface IAttachments2LinesQuery {
   fileExt             : string;
   date?               : Date;
   file                : any,
-
-  record?             : 1,
+  record?             : number,
 }

@@ -1,0 +1,103 @@
+<div class="card card-w-title">
+    <h1><strong>{{titulo}}</strong></h1>
+
+    <p-panel header="{{subTitulo}}" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+
+      <!-- Grilla de pedidos -->
+      <div class="col-12 md:col-12">
+        <p-table
+          [value]="modelo"
+          [columns]="columnas"
+          [rows]="10"
+          dataKey="order"
+          [rowHover]="true"
+          [paginator]="true"
+          [autoLayout]="true"
+          selectionMode="single"
+          groupRowsBy="order"
+          rowGroupMode="subheader"
+          [resizableColumns]="true"
+          responsiveLayout="scroll"
+          [showCurrentPageReport]="true"
+          styleClass="{{globalConstants.cStyleTableGridLines}}"
+          currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+          <!-- Header -->
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              <th pSortableColumn="{{col.field}}" *ngFor = "let col of columns" class = "custom-header">
+                <p-sortIcon field="{{col.field}}"></p-sortIcon>
+                {{col.header}}
+              </th>
+            </tr>
+          </ng-template>
+          <!-- Group Header -->
+          <ng-template pTemplate = "body" let-modelo let-ri = "rowIndex">
+            <tr>
+              <td class="custom-td-10">
+                <div class="td-flex">
+                  <button
+                    type="button"
+                    pButton
+                    pRipple
+                    class="p-button-text p-button-rounded p-button-plain mr-2"
+                    [icon]="'pi pi-arrow-right'"
+                    (click)="onClickGoTo(modelo)">
+                  </button>
+                  {{modelo.docNum}}
+                </div>
+              </td>
+              <td class="custom-td-20">
+                <span class="label" [ngClass]="getEstado(modelo?.docStatus)?.class">
+                  {{ getEstado(modelo?.docStatus)?.text }}
+                </span>
+              </td>
+              <td class="custom-td-15">
+                {{modelo.createDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="custom-td-15">
+                {{modelo.docDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="custom-td-15">
+                {{modelo.taxDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="custom-td-15">
+                {{modelo.updateDate | date: 'dd/MM/yyyy'}}
+              </td>
+              <td class="p-fluid">
+                {{modelo.cardCode}}
+              </td>
+              <td class="p-fluid">
+                {{modelo.cardName}}
+              </td>
+              <td class="custom-td-numero">
+                {{modelo.docTotal | number: '.2':'en-EN'}}
+              </td>
+              <td class="custom-td-numero">
+                {{modelo.docTotalSy | number: '.2':'en-EN'}}
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage" let-columns>
+            <tr>
+              <td [attr.colspan]="columns.length">{{globalConstants.currentTableEmptyMessage}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+
+      <p-footer>
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-2">
+            <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>
+          </div>
+          <div class="col-12 md:col-2">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+        </div>
+      </p-footer>
+    </p-panel>
+</div>
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>

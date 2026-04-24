@@ -12,7 +12,7 @@
             <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
           </div>
           <div class="col-12 md:col-2">
-            <p-dropdown id="float-input-objType" [options]="objTypeList" class="p dropdown-item-text" placeholder="Seleccionar el tipo de documento" formControlName="objType" [required] optionLabel="label" [showClear]="false"></p-dropdown>
+            <p-dropdown id="float-input-objType" [options]="objTypeList" placeholder="Seleccionar el tipo de documento" formControlName="objType" [required] optionLabel="label" [showClear]="false"></p-dropdown>
           </div>
           <div class="col-12 md:col-2">
             <p-multiSelect [options]="docStatusList" formControlName="docStatus" defaultLabel="Seleccione el estado" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>

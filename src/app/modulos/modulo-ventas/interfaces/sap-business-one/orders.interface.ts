@@ -1,6 +1,7 @@
 import { IMoneda } from "src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/moneda.interface";
 import { IPicking } from "src/app/modulos/modulo-inventario/interfaces/picking.inteface";
 import { IAddresses } from "src/app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
+import { IAttachments2Query } from './attachments2.interface';
 
 export interface IOrdenVenta {
   docEntry            : number;
@@ -302,6 +303,7 @@ export interface IOrdersQuery {
   vatSum              : number;
   docTotal            : number;
 
+  attachments2        : IAttachments2Query;
   lines               : IOrdenVenta1Query[];
   pickingLines        : IPicking[];
 }

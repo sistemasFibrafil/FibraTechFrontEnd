@@ -1,5 +1,6 @@
 <div class="card card-w-title">
-  <p-panel header="Crear {{titulo}}">
+  <p-contextMenu #cm [model]="items" (onShow)="onContextMenuShow()" ></p-contextMenu>
+  <p-panel header="Crear {{titulo}}" (contextmenu)="cm.show($event)">
     <div class="grid p-fluid">
       <div class="col-12 md:col-6">
         <div class="card no-margin">
@@ -384,8 +385,8 @@
               </ng-template>
 
               <p-table
-                [value]="modeloLinesAnexo"
-                [columns]="columnasAnexo"
+                [value]="modeloLinesAttachments"
+                [columns]="columnasAttachments"
                 editMode="row"
                 [rowHover]="true"
                 [autoLayout]="true"
@@ -408,7 +409,7 @@
                 <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
                   <tr>
                     <td class="custom-td-8">
-                      <p-splitButton icon="pi pi-cog" [model] = "opcionesAnexo" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                      <p-splitButton icon="pi pi-cog" [model] = "opcionesAttachments" (onDropdownClick) = "onSelectedItemAttachments(modelo)" appendTo = "body">
                       </p-splitButton>
                     </td>
                     <td class="p-fluid">
@@ -511,7 +512,7 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="!modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormOtr.valid || !modeloFormSal.valid || !hasValidLines || isEarring" label="{{globalConstants.cCrear}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          <p-splitButton [disabled]="!modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormOtr.valid || !modeloFormSal.valid || !hasValidLines || isEarring" label="{{globalConstants.cGrabar}}" icon="{{globalConstants.icoGrabar}}" [model]="menuOptions" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
         </div>
         <div class="col-12 md:col-2">
           <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>

@@ -14,13 +14,42 @@ export class Attachments2LinesCreateModel {
   fileName                    : string;
   fileExt                     : string;
   date                        : Date;
-  file                        : any
 
   constructor(){
     this.trgtPath             = '';
     this.fileName             = '';
     this.fileExt              = '';
     this.date                 = null;
-    this.file                 = ''
+  }
+}
+
+
+
+export class Attachments2UpdateModel {
+  absEntry                    : number;
+  lines                       : Attachments2LinesUpdateModel[]
+
+  constructor(){
+    this.absEntry             = 0;
+    this.lines                = [];
+  }
+}
+
+
+export class Attachments2LinesUpdateModel {
+  absEntry                    : number;
+  trgtPath                    : string;
+  fileName                    : string;
+  fileExt                     : string;
+  date                        : Date;
+  record?                     : number;
+
+  constructor(){
+    this.absEntry             = 0;
+    this.trgtPath             = '';
+    this.fileName             = '';
+    this.fileExt              = '';
+    this.date                 = null;
+    this.record               = 0;
   }
 }

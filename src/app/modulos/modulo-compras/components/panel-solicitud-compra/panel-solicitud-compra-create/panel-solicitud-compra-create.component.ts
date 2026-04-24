@@ -274,10 +274,10 @@ export class PanelSolicitudCompraCreateComponent implements OnInit, OnDestroy, A
     this.isDisplay = true;
 
     // Cargar datos síncronos (LocalDataService)
-    const reqTypes = this.localDataService.getListReqTypes();
+    const reqTypes = this.localDataService.reqTypes;
     this.reqTypesList = reqTypes.map(s => ({ label: s.name, value: s.code }));
 
-    const docTypes = this.localDataService.getListDocTypes();
+    const docTypes = this.localDataService.docTypes;
     this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
 
     // Establecer valores por defecto para datos síncronos

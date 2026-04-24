@@ -179,7 +179,7 @@ export class PanelSolicitudTrasladoListComponent implements OnInit, OnDestroy {
   // ===========================
 
   private getListStatus(): void {
-    const statuses = this.localDataService.getListStatusDocuments();
+    const statuses = this.localDataService.statusDocuments;
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('docStatus')?.setValue(statuses);
   }

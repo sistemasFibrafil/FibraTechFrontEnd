@@ -153,7 +153,7 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
           this.modeloForm.get('sector')?.setValue(defaultSelectedCodes);
 
           // Cargar status después de los sectores
-          const statuses = this.localDataService.getListStatusBusinessPartners();
+          const statuses = this.localDataService.statusBusinessPartners;
           this.statusList = statuses.map(s => ({ label: s.name, value: s }));
           this.modeloForm.get('status')?.setValue(statuses);
 

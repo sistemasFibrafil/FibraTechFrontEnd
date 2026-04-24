@@ -1,0 +1,76 @@
+<div class="flex justify-content-center">
+  <div class="grid p-fluid col-12 md:col-10 lg:col-8 xl:col-6">
+    <div class="card card-w-title">
+      <h1><strong>{{titulo}}</strong></h1>
+
+      <p-panel header="Criterios de selección" [style] = "{'margin-bottom':'20px'}" [toggleable]="true">
+        <div class="grid p-fluid">
+          <div class="col-12 md:col-12">
+              <form [formGroup]="modeloForm">
+                <div class="col-12 md:col-12">
+                  <div class="card no-margin">
+                    <div class="p-fluid p-formgrid grid">
+                      <div class="col-12 md:col-6">
+                        <label class="label-custom" for="float-input-user">Usuario </label>
+                        <p-multiSelect [options]="userList" formControlName="user" defaultLabel="Seleccione el usuario" [required] selectedItemsLabel="{0} registros seleccionadas"></p-multiSelect>
+                      </div>
+                      <div class="col-12 md:col-6">
+                        <label class="label-custom" for="float-input-pending">Sólo pendientes </label>
+                        <div class="p-inputgroup">
+                          <p-checkbox id="float-input-pending" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="pending"></p-checkbox>
+                        </div>
+                      </div>
+
+                      <div class="col-12 md:col-4">
+                        <label class="label-custom" for="float-input-draftDate">Fecha </label>
+                        <p-dropdown id="float-input-draftDate" [options]="draftDateList" placeholder="Seleccione la fecha" formControlName="draftDate" [required] optionLabel="label" optionValue="value"></p-dropdown>
+                      </div>
+                      <div class="col-12 md:col-4">
+                        <label class="label-custom" for="float-input-numAtCard">Desde </label>
+                        <div class="p-inputgroup">
+                          <p-calendar formControlName="startDate" placeholder="Fecha inicio" [showButtonBar]="true" dateFormat="dd/mm/yy" [required] [showIcon]="true"></p-calendar>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-4">
+                        <label class="label-custom" for="float-input-numAtCard">Hasta </label>
+                        <div class="p-inputgroup">
+                          <p-calendar formControlName="endDate" placeholder="Fecha fin" [showButtonBar]="true" dateFormat="dd/mm/yy" [required] [showIcon]="true"></p-calendar>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="col-12 md:col-12">
+                  <div class="card no-margin">
+                    <div class="p-fluid p-formgrid grid">
+                      <div class="col-12 md:col-12">
+                        <p-checkbox id="float-input-orders" [ngStyle]="{'padding-top': '5px'}" [binary]="true" formControlName="orders" [required] label="Pedido de cliente"></p-checkbox>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+          </div>
+        </div>
+
+        <p-footer>
+          <div class="grid p-fluid">
+            <div class="col-12 md:col-3">
+              <button [disabled]="buttonAcces.btnBuscar || !modeloForm.valid || isDisabledBuscar" pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
+          </div>
+          <div class="col-12 md:col-3">
+            <app-btn-salir [isMargenTop]="false"></app-btn-salir>
+          </div>
+          </div>
+        </p-footer>
+      </p-panel>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: Proceso -->
+<app-panel-obtener [isDisplay] = "isDisplay"></app-panel-obtener>

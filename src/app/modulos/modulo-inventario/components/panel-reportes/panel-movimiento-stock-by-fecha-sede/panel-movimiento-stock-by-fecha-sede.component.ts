@@ -67,12 +67,12 @@ export class PanelMovimientoStockByFechaSedeComponent implements OnInit, OnDestr
   (
     private readonly fb: FormBuilder,
     private readonly datePipe: DatePipe,
+    private readonly itemsService: ItemsService,
+    private readonly locationService: LocationService,
     private readonly swaCustomService: SwaCustomService,
+    private readonly localDataService: LocalDataService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
     private readonly utilService: UtilService,
-    private readonly locationService: LocationService,
-    private readonly localDataService: LocalDataService,
-    private readonly itemsService: ItemsService,
   ) {}
 
   ngOnInit() {
@@ -136,7 +136,7 @@ export class PanelMovimientoStockByFechaSedeComponent implements OnInit, OnDestr
   }
 
   private getListTipoMovimiento(): void {
-    const typeMovimiento = this.localDataService.getListTypeMovimiento();
+    const typeMovimiento = this.localDataService.typeMovimiento;
     this.typeMovementList = typeMovimiento.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('mstypeMovement')?.setValue(typeMovimiento);
   }

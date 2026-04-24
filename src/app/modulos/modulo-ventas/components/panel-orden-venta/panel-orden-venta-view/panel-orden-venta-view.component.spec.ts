@@ -18,7 +18,7 @@ describe('PanelOrdenVentaViewComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should view', () => {
+  it('should create', () => {
     expect(component).toBeTruthy();
   });
 });

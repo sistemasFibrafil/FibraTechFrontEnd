@@ -24,6 +24,8 @@ export class FacturacionElectronicaSapService {
     params = params.append('text1', value.text1);
     params = params.append('text2', value.text2);
 
+    console.log("Value::", value);
+
     return this.http.get<IEntregaLocalElectronica[]>(`${environment.url_api_fib}ElectronicBilling/GetListGuiaElectronicaByFiltro/`, {params: params});
   }
 

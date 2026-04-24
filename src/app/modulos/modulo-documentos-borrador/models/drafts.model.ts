@@ -1,7 +1,6 @@
-
 export class DraftsCreateModel {
   docEntry            : number;
-  
+
   constructor(){
     this.docEntry            = 0;
 
@@ -171,19 +170,6 @@ export class Drafts1UpdateModel {
 }
 
 
-export class DraftsCloseModel {
-  id                          : number;
-  docEntry                    : number;
-  idUsuarioClose              : number;
-
-  constructor(){
-    this.id                   = 0;
-    this.docEntry             = 0;
-    this.idUsuarioClose       = 0;
-  }
-}
-
-
 
 export class DraftsFilterModel {
   startDate                   : Date;
@@ -200,24 +186,20 @@ export class DraftsFilterModel {
 }
 
 
-export class DraftsSeguimientoFindModel {
-  startDate             : Date;
-  endDate               : Date;
-  businessPartnerGroup  : string;
-  salesEmployee         : string;
-  documentType          : string;
-  status                : string;
-  customer              : string;
-  item                  : string;
+export class DraftsDocumentReportFilterModel {
+  user                        : string;
+  pending                     : boolean;
+  draftDate                   : string;
+  startDate                   : Date;
+  endDate                     : Date;
+  orders                      : boolean;
 
   constructor(){
-      this.startDate                =  null;
-      this.endDate                  = null;
-      this.businessPartnerGroup     = '';
-      this.salesEmployee            = '';
-      this.documentType             = '';
-      this.status                   = '';
-      this.customer                 = '';
-      this.item                     = '';
+    this.user                 = '';
+    this.pending              = false;
+    this.draftDate            = '';
+    this.startDate            = null;
+    this.endDate              = null;
+    this.orders               = false;
   }
 }

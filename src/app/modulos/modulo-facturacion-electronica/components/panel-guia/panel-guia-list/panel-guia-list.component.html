@@ -41,16 +41,17 @@
   <!-- Grilla de Datos     -->
   <p-panel header="Lista de {{titulo}}" [toggleable]="true">
     <p-table
-      [value]="listGuia"
+      [value]="modelo"
       [columns]="columnas"
-      dataKey="docEntry"
-      editMode="row"
+      [rows]="rows"
       [rowHover]="true"
       [paginator]="true"
       [autoLayout]="true"
-      [responsive]="true"
+      selectionMode="single"
+      [resizableColumns]="true"
+      responsiveLayout="scroll"
       [showCurrentPageReport]="true"
-      [rows]="globalConstants.sizePage"
+      [rowsPerPageOptions]="rowsPerPageOptions"
       styleClass="{{globalConstants.cStyleTableGridLines}}"
       currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
       <!-- Header -->
@@ -66,19 +67,19 @@
       <!-- body -->
       <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
         <tr class="ui-selectable-row">
-          <td class="custom-td-6">
+          <td class="p-fluid">
             <span class="p-column-title">Número SAP</span> {{modelo.docNum}}
           </td>
-          <td class="custom-td-5">
+          <td class="p-fluid">
             <span class="p-column-title">Número</span> {{modelo.numeroDocumento}}
           </td>
-          <td class="custom-td-6">
+          <td class="p-fluid">
             <span class="p-column-title">Fecha Emisión</span> {{modelo.fechaEmision | date: 'dd/MM/yyyy'}}
           </td>
-          <td class="custom-td-6">
+          <td class="p-fluid">
             <span class="p-column-title">Fecha Entrega</span> {{modelo.fechaEntrega | date: 'dd/MM/yyyy'}}
           </td>
-          <td class="custom-td-3">
+          <td class="p-fluid">
             <span class="p-column-title">RUC</span> {{modelo.clienteNumeroDocumento}}
           </td>
           <td class="p-fluid">
@@ -87,7 +88,7 @@
           <td class="p-fluid">
             <span class="p-column-title">Nombre Internacional</span> {{modelo.clienteNombreInter}}
           </td>
-          <td class="custom-td-5">
+          <td class="custom-td-20">
             <span [ngSwitch] = "modelo.codStatusSunat">
               <span class="label" style="background:Blue"      *ngSwitchCase = "0">{{modelo.nomStatusSunat}}</span>
               <span class="label" style="background:SkyBlue"   *ngSwitchCase = "1">{{modelo.nomStatusSunat}}</span>

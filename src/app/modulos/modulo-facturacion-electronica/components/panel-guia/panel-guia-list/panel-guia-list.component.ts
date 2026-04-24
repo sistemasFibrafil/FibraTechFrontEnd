@@ -47,10 +47,13 @@ export class PanelGuiaListComponent implements OnInit {
 
   listObjType: SelectItem[];
   listStatusSunat: SelectItem[];
-  listGuia: IEntregaLocalElectronica[];
+  modelo: IEntregaLocalElectronica[];
   params: FilterRequestModel = new FilterRequestModel();
 
   columnas: any[];
+
+  rows                                          = 20;
+  rowsPerPageOptions                            = [20, 40, 60, 80, 100];
 
   constructor(
     private fb: FormBuilder,
@@ -149,12 +152,12 @@ export class PanelGuiaListComponent implements OnInit {
 
   onListar() {
     this.isDisplay = true;
-    this.listGuia = [];
+    this.modelo = [];
     this.onSetParametro();
     this.facturacionElectronicaSapService.getListGuiaElectronicaByFiltro(this.params)
     .subscribe({ next:(data: IEntregaLocalElectronica[]) => {
         this.isDisplay = false;
-        this.listGuia = data;
+        this.modelo = data;
       },error:(e)=>{
         this.isDisplay = false;
         this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);

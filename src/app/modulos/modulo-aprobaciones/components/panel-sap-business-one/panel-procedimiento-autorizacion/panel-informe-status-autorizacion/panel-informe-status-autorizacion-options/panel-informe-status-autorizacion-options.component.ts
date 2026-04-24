@@ -81,7 +81,7 @@ export class PanelInformeStatusAutorizacionOptionsComponent implements OnInit, O
 
   private buildForms(): void {
     this.modeloForm = this.fb.group({
-      pending                           : [false],
+      pending                           : [true],
       authorized                        : [false],
       rejected                          : [false],
       createdBy                         : [false],
@@ -98,7 +98,7 @@ export class PanelInformeStatusAutorizacionOptionsComponent implements OnInit, O
       endCardCode                       : [''],
 
       quotations                        : [false],
-      orders                            : [false],
+      orders                            : [true],
     });
   }
 

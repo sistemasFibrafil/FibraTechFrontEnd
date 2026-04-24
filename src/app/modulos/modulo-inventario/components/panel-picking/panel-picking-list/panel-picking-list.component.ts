@@ -202,7 +202,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   }
 
   private loadTypeDocuments(): void {
-    const statuses = this.localDataService.getListTypeDocumentPicking();
+    const statuses = this.localDataService.typePicking;
     this.objTypeList = statuses.map(s => ({ label: s.name, value: s.code }));
 
     const defaultStatusCode = '1250000001';
@@ -215,7 +215,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   }
 
   private loadStatusList(): void {
-    const statuses = this.localDataService.getListStatusDocuments();
+    const statuses = this.localDataService.statusDocuments;
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
     this.modeloForm.get('docStatus').setValue(statuses);
   }
@@ -636,7 +636,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   onClickCloseAddItemNotPincking(): void {
     this.isAddItemNotPicking = false;
   }
-  
+
   onClickToCopyOrder(): void {
     this.copyToDespacho();
   }

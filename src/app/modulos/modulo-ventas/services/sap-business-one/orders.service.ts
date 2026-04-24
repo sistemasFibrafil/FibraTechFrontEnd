@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { OrdersCloseModel, OrdersFilterModel, OrdersSeguimientoFindModel, OrdersUpdateModel } from '../../models/sap-business-one/orders.model';
+import { OrdersCloseModel, OrdersFilterModel, OrdersSeguimientoFindModel } from '../../models/sap-business-one/orders.model';
 
 import { IPickingVentaItem } from '../../interfaces/picking-venta.interface';
 import { IOrdersPendiente, IOrdersQuery, IOrdersSodimacPendiente, IOrdersSeguimiento, IOrdersSeguimientoDetallado, IOrdersOpenQuery } from '../../interfaces/sap-business-one/orders.interface';
@@ -23,11 +23,13 @@ export class OrdersService {
   }
 
   getListByFilter(value: OrdersFilterModel) {
+    console.log("VALUE FILTER: ", value);
     let params = new HttpParams();
     params = params.append('startDate', this.datePipe.transform(value.startDate, 'yyyy-MM-dd'));
     params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
     params = params.append('docStatus', value.docStatus);
     params = params.append('searchText', value.searchText);
+
     return this.http.get<IOrdersQuery[]>(`${environment.url_api_fib}Orders/GetListByFilter/`,{params: params});
   }
 
@@ -213,8 +215,6 @@ export class OrdersService {
   setCreate(value: any, files: any[]) {
     let formData: FormData = new FormData();
 
-    console.log("VALUE: ", JSON.stringify(value));
-
     formData.append('value', JSON.stringify(value));
 
     files.forEach((element: any) => {
@@ -224,9 +224,16 @@ export class OrdersService {
     return this.http.post(`${environment.url_api_fib}Orders/SetCreate/`, formData,{ reportProgress: true, observe: 'events'});
   }
 
-  setUpdate(value: OrdersUpdateModel) {
-    const param: string = JSON.stringify(value);
-    return this.http.put<any>(`${environment.url_api_fib}Orders/SetUpdate/`, param);
+  setUpdate(value: any, files: any[]) {
+    let formData: FormData = new FormData();
+
+    formData.append('value', JSON.stringify(value));
+
+    files.forEach((element: any) => {
+      formData.append('files', element);
+    });
+
+    return this.http.put(`${environment.url_api_fib}Orders/SetUpdate/`, formData,{ reportProgress: true, observe: 'events'});
   }
 
   setClose(value: OrdersCloseModel) {

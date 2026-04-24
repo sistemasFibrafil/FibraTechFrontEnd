@@ -18,7 +18,7 @@ describe('PanelOrdenVentaEditComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should edit', () => {
+  it('should create', () => {
     expect(component).toBeTruthy();
   });
 });

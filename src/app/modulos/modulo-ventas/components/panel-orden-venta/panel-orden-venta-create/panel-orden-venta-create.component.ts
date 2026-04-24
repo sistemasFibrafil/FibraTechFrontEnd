@@ -4,13 +4,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { catchError, switchMap, map, finalize, tap, filter, take } from 'rxjs/operators';
-import { Subject, forkJoin, of, takeUntil, Subscription, Observable, from, EMPTY } from 'rxjs';
+import { Subject, forkJoin, of, takeUntil, Subscription, Observable, from, EMPTY, merge } from 'rxjs';
 
 import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
 import { ButtonAcces } from '@app/models/acceso-button.model';
 import { ItemsFindByListCodeModel } from '@app/modulos/modulo-inventario/models/items.model';
 import { Orders1CreateModel } from '@app/modulos/modulo-ventas/models/sap-business-one/orders.model';
+import { Attachments2CreateModel, Attachments2LinesCreateModel } from '@app/modulos/modulo-ventas/models/sap-business-one/attachments2.model';
 
 import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
 import { IArticulo } from '@app/modulos/modulo-inventario/interfaces/items.interface';
@@ -102,22 +103,26 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
   // ===========================
   // 🔹 5. TABLE CONFIG
   // ===========================
+  items                                         : MenuItem[];
   opciones                                      : MenuItem[];
-  opcionesAnexo                                 : MenuItem[];
+  menuOptions                                   : MenuItem[];
+  opcionesAttachments                           : MenuItem[];
 
   columnas                                      : TableColumn[];
-  columnasAnexo                                 : TableColumn[];
+  columnasAttachments                           : TableColumn[];
 
 
   // ===========================
   // 🔹 6. DATA (CORE)
   // ===========================
   modeloLinesSelected                           : IOrdenVenta1Query;
-  modeloLinesSelectedAnexo                      : IAttachments2LinesQuery;
+  modeloLinesAttachmentsSelected                : IAttachments2LinesQuery;
 
   modeloLines                                   : IOrdenVenta1Query[] = [];
-  modeloLinesAnexo                              : IAttachments2LinesQuery[] = [];
+  modeloLinesAttachments                        : IAttachments2LinesQuery[] = [];
   modeloLinesOriginal                           : IOrdenVenta1Query[] = [];
+
+  uploadedFiles                                 : any[] = [];
 
 
   // ===========================
@@ -168,8 +173,6 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
   mainCurncy                                    : string = '';
   u_BPP_MDCT                                    : string = '';
   inactiveAlmacenItem                           : string = 'N';
-
-  uploadedFiles                                 : any[] = [];
 
 
   constructor(
@@ -228,13 +231,15 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
     // 4️⃣ Inicializar UI
     this.onBuildColumn();
-    this.onBuildColumnAnexo();
+    this.onBuildColumnAttachments();
+    this.buildBulkMenuOptions();
     this.opcionesTabla();
-    this.opcionesTablaAnexo();
+    this.opcionesTablaAttachments();
+    this.buildContextMenu();
 
     // 5️⃣ Inicializar líneas
     this.addLine(0);
-    this.addLineAnexo(0);
+    this.addLineAttachments(0);
   }
 
   private buildForms() {
@@ -334,7 +339,7 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
     // Mostrar spinner mientras cargan los combos
     this.isDisplay = true;
 
-    const docTypes = this.localDataService.getListDocTypes();
+    const docTypes: any = this.localDataService.docTypes;
     this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
 
     const defaultDocType = this.docTypesList.find(x => x.value === 'I');
@@ -419,8 +424,8 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
     }
   }
 
-  private onBuildColumnAnexo() {
-    this.columnasAnexo = [
+  private onBuildColumnAttachments() {
+    this.columnasAttachments = [
       { field: 'trgtPath',        header: 'Vía de acceso destino' },
       { field: 'fileName',        header: 'Nombre de archivo' },
       { field: 'date',            header: 'Fecha del anexo' },
@@ -429,15 +434,32 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
   private opcionesTabla() {
     this.opciones = [
-      { value: '1', label: 'Añadir línea',    icon: 'pi pi-plus',                   command: () => this.onClickAddLine() },
-      { value: '2', label: 'Borrar línea',    icon: 'pi pi-trash',                  command: () => this.onClickDelete()  },
+      { value: '1', label: 'Insertar arriba',     icon: 'pi pi-plus',                   command: () => this.onClickAddLineAbove() },
+      { value: '2', label: 'Insertar abajo',      icon: 'pi pi-plus',                   command: () => this.onClickAddLineBelow() },
+      { value: '3', label: 'Borrar línea',        icon: 'pi pi-trash',                  command: () => this.onClickDelete()  }
     ];
   }
 
-  private opcionesTablaAnexo() {
-    this.opcionesAnexo = [
-      { value: '1', label: 'Añadir línea',    icon: 'pi pi-plus',                   command: () => this.onClickAddLineAnexo() },
-      { value: '2', label: 'Borrar línea',    icon: 'pi pi-trash',                  command: () => this.onClickDeleteAnexo()  },
+  private buildBulkMenuOptions(): void {
+    this.menuOptions = [
+      { value: '1',  label: 'Orden de venta',     icon: 'pi pi-check',                     command: () =>  { this.onClickSaveOrder() } },
+      { value: '2',  label: 'Preliminar',         icon: 'pi pi-check',                     command: () =>  { this.onClickSaveDraft() } }
+    ];
+  }
+
+  private opcionesTablaAttachments() {
+    this.opcionesAttachments = [
+      { value: '1', label: 'Insertar línea',      icon: 'pi pi-plus',                   command: () => this.onClickAddLineAttachments() },
+      { value: '2', label: 'Borrar línea',        icon: 'pi pi-trash',                  command: () => this.onClickDeleteAttachments()  },
+    ];
+  }
+
+  private buildContextMenu(): void {
+    this.items = [
+      { value: '1', label: 'Ganancia bruta',                      icon: 'pi pi-building',               command: () => {} },
+      { value: '2', label: 'Cáculos de comisión y peso',          icon: 'pi pi-chart-bar',              command: () => {} },
+      { value: '3', label: 'Comentarios iniciales y final',       icon: 'pi pi-check',                  command: () => {} },
+      { value: '4', label: 'Grabar como preliminar',              icon: 'pi pi-eye',                    command: () => { this.onClickSaveDraft() } },
     ];
   }
 
@@ -465,17 +487,29 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
   //#region <<< 4. TABLE / CONTEXT MENU >>>
 
+  onContextMenuShow(): void {
+    this.updateMenuContextVisibility();
+
+  }
+
   /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
   onSelectedItem(modelo: IOrdenVenta1Query) {
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility();
   }
 
-  onClickAddLine(): void {
+  onClickAddLineAbove(): void {
     /** Agrega una nueva línea vacía después de la fila seleccionada */
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    const insertIndex = index + 1;
-    this.addLine(insertIndex);
+    //const insertIndex = index + 1;
+    this.addLineAbove(index);
+  }
+
+  onClickAddLineBelow(): void {
+    /** Agrega una nueva línea vacía después de la fila seleccionada */
+    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
+    //const insertIndex = index + 1;
+    this.addLineBelow(index);
   }
 
   onClickDelete(): void {
@@ -508,33 +542,77 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
     const hasEmptyLines = this.hasEmptyLine();
     const hasLines      = this.modeloLines.length > 0;
 
-    const addLineOption    = this.opciones.find(x => x.value === '1');
-    const deleteLineOption = this.opciones.find(x => x.value === '2');
+    const addLineOption1    = this.opciones.find(x => x.value === '1');
+    const addLineOption2    = this.opciones.find(x => x.value === '2');
+    const deleteLineOption  = this.opciones.find(x => x.value === '3');
 
-    if (addLineOption) addLineOption.visible = !hasEmptyLines;
+    if (addLineOption1) addLineOption1.visible = !hasEmptyLines;
+    if (addLineOption2) addLineOption2.visible = !hasEmptyLines;
     if (deleteLineOption) deleteLineOption.visible = hasLines;
   }
 
-  onClickAddLineAnexo(): void {
-    /** Agrega una nueva línea vacía después de la fila seleccionada */
-    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    const insertIndex = index + 1;
-    this.addLine(insertIndex);
-  }
 
-  onClickDeleteAnexo(): void {
-    /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
-    const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    if (index > -1) {
-      this.modeloLines.splice(index, 1);
+  onSelectedItemAttachments(modelo: IAttachments2LinesQuery) {
+      this.modeloLinesAttachmentsSelected = modelo;
+      this.updateMenuAttachmentsVisibility();
     }
 
-    if (this.modeloLines.length === 0) {
-      this.addLine(0);
+    onClickAddLineAttachments(): void {
+      /** Agrega una nueva línea vacía después de la fila seleccionada */
+      const index = this.modeloLinesAttachments.indexOf(this.modeloLinesAttachmentsSelected);
+      const insertIndex = index + 1;
+      this.addLineAttachments(insertIndex);
     }
 
-    this.updateHasValidLines();
-  }
+    onClickDeleteAttachments(): void {
+      /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
+
+      // No existe ne la base de datos
+      if (this.modeloLinesAttachmentsSelected.record === 1) {
+        const fileName = this.modeloLinesAttachmentsSelected.fileName;
+        const fileExt  = this.modeloLinesAttachmentsSelected.fileExt;
+
+        const fullName = `${fileName}.${fileExt}`;
+
+        this.uploadedFiles = this.uploadedFiles.filter(file => {
+          const incomingName = file?.name || '';
+          return incomingName !== fullName;
+        });
+      }
+
+      /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
+      const index = this.modeloLinesAttachments.indexOf(this.modeloLinesAttachmentsSelected);
+      if (index > -1) {
+        this.modeloLinesAttachments.splice(index, 1);
+      }
+
+      if (this.modeloLinesAttachments.length === 0) {
+        this.addLineAttachments(0);
+      }
+
+      //this.updateHasValidLinesAttachments();
+    }
+
+    private hasDataAttachments(line: any): boolean {
+      const p = (v: any) => this.utilService.normalizePrimitive(v);
+
+      return !!p(line.trgtPath)
+    }
+
+    private hasEmptyLineAttachments(): boolean {
+      return this.modeloLinesAttachments.some(line => !this.hasDataAttachments(line));
+    }
+
+    private updateMenuAttachmentsVisibility(): void {
+      const hasEmptyLines = this.hasEmptyLineAttachments();
+      const hasLines      = this.modeloLinesAttachments.length > 0;
+
+      const addLineOption1    = this.opcionesAttachments.find(x => x.value === '1');
+      const deleteLineOption  = this.opcionesAttachments.find(x => x.value === '2');
+
+      if (addLineOption1) addLineOption1.visible = !hasEmptyLines;
+      if (deleteLineOption) deleteLineOption.visible = hasLines;
+    }
 
   //#endregion
 
@@ -542,65 +620,76 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
   //#region <<< 5. LINES (CORE) >>>
 
-  private addLine(index: number): void {
-    const newLine: IOrdenVenta1Query = {
-      docEntry          : 0,
-      lineNum           : 0,
-      lineStatus        : 'O',
-      itemCode          : '',
-      dscription        : '',
-      acctCode          : '',
-      formatCode        : '',
-      acctName          : '',
-      whsCode           : '',
+  private insertLine(index: number): void {
+    const newLine: IOrdenVenta1Query = this.createEmptyLine();
 
-      unitMsr           : '',
-      onHand            : 0,
-      quantity          : 0,
-
-      openQty           : 0,
-      currency          : '',
-      priceBefDi        : 0,
-      discPrcnt         : 0,
-      price             : 0,
-
-      taxCode           : '',
-      vatPrcnt          : 0,
-      vatSum            : 0,
-      lineTotal         : 0,
-
-      u_FIB_LinStPkg    : 'O',
-      u_FIB_OpQtyPkg    : 0,
-      u_tipoOpT12       : '',
-      u_tipoOpT12Nam    : '',
-
-      record            : 1,
-    };
-
-    // 🔥 Crear nueva referencia
     this.modeloLines = [
       ...this.modeloLines.slice(0, index),
       newLine,
       ...this.modeloLines.slice(index)
     ];
 
+    this.reindexLines();
     this.updateHasValidLines();
   }
 
-  private updateHasValidLines(): void {
-    const docTypeValue = this.modeloFormCon.getRawValue().docType?.value;
-    const isItemDoc = docTypeValue === 'I';
-
-    this.hasValidLines =
-    this.modeloLines.length > 0 &&
-    this.modeloLines.every(line =>
-      isItemDoc
-        ? !!line.itemCode?.trim()
-        : !!line.dscription?.trim()
-    );
+  addLineAbove(index: number): void {
+    this.insertLine(index); // 👆 encima
   }
 
-  private addLineAnexo(index: number): void {
+  addLineBelow(index: number): void {
+    this.insertLine(index + 1); // 👇 debajo
+  }
+
+  private addLine(index: number): void {
+    this.insertLine(index); // mismo comportamiento que antes
+  }
+
+  private reindexLines(): void {
+    this.modeloLines = this.modeloLines.map((line, i) => ({
+      ...line,
+      lineNum: i
+    }));
+  }
+
+  private createEmptyLine(): IOrdenVenta1Query {
+    return {
+      docEntry: 0,
+      lineNum: 0,
+      lineStatus: 'O',
+      itemCode: '',
+      dscription: '',
+      acctCode: '',
+      formatCode: '',
+      acctName: '',
+      whsCode: '',
+      unitMsr: '',
+      onHand: 0,
+      quantity: 0,
+      openQty: 0,
+      currency: '',
+      priceBefDi: 0,
+      discPrcnt: 0,
+      price: 0,
+      taxCode: '',
+      vatPrcnt: 0,
+      vatSum: 0,
+      lineTotal: 0,
+      u_FIB_LinStPkg: 'O',
+      u_FIB_OpQtyPkg: 0,
+      u_tipoOpT12: '',
+      u_tipoOpT12Nam: '',
+      record: 1,
+    };
+  }
+
+  private updateHasValidLines(): void {
+      this.hasValidLines =
+        this.modeloLines.length > 0 &&
+        !this.hasEmptyLine();
+    }
+
+  private addLineAttachments(index: number): void {
     const newLine: IAttachments2LinesQuery = {
       absEntry          : 0,
       trgtPath          : '',
@@ -608,18 +697,31 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
       fileExt           : '',
       date              : null,
       file              : '',
-
       record            : 1,
     };
 
     // 🔥 Crear nueva referencia
-    this.modeloLinesAnexo = [
-      ...this.modeloLinesAnexo.slice(0, index),
+    this.modeloLinesAttachments = [
+      ...this.modeloLinesAttachments.slice(0, index),
       newLine,
-      ...this.modeloLinesAnexo.slice(index)
+      ...this.modeloLinesAttachments.slice(index)
     ];
+  }
 
-    this.updateHasValidLines();
+  private updateMenuContextVisibility(): void {
+    const canSaveDraft =
+      this.modeloFormSoc.valid &&
+      this.modeloFormDoc.valid &&
+      this.modeloFormFin.valid &&
+      this.modeloFormOtr.valid &&
+      this.modeloFormSal.valid &&
+      this.hasValidLines;
+
+    const item = this.items.find(x => x.value === '4');
+
+    if (item) {
+      item.visible = canSaveDraft;
+    }
   }
 
   //#endregion
@@ -1678,8 +1780,8 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
 
   //#region  <<< 16. IMPORT FILES >>>
-  
-  private mapToOrderLineAnexo(file: any): any {
+
+  private mapToOrderLineAttachments(file: any): any {
     const p = (v: any) => this.utilService.normalizePrimitive(v);
 
     const fullName = file.name;
@@ -1688,20 +1790,20 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
     const fileName = fullName.substring(0, index);
     const fileExt = fullName.substring(index + 1).toLowerCase();
 
-    const carpetaAnexas = this.userContextService.getCarptaAnexos();
+    const fileAttachments = this.userContextService.getFileAttachments();
 
     return {
-      trgtPath: p(carpetaAnexas),
+      trgtPath: p(fileAttachments),
       fileName: p(fileName),
       fileExt: fileExt,
       date: new Date()
     };
   }
 
-  private setItemAnexo(file: any, index: number): void {
-    const mapped = this.mapToOrderLineAnexo(file);
+  private setItemAttachments(file: any, index: number): void {
+    const mapped = this.mapToOrderLineAttachments(file);
 
-    this.modeloLinesAnexo = this.modeloLinesAnexo.map((line, i) =>
+    this.modeloLinesAttachments = this.modeloLinesAttachments.map((line, i) =>
       i === index
         ? {
             ...line,
@@ -1719,16 +1821,36 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
   onClickUpload(file: any): void {
 
-  this.isDisplayUpload = false;
+      this.isDisplayUpload = false;
 
-  const realFile =
-    file instanceof File
+      const realFile =
+      file instanceof File
       ? file
       : file?.files?.[0] || file;
 
-  this.setItemAnexo(realFile, this.indexFileUpload);
-  this.uploadedFiles.push(realFile);
-}
+
+      if (!realFile) return;
+
+      // 🔥 Obtener nombre y extensión
+      const fullName = realFile.name;
+      const index = fullName.lastIndexOf('.');
+
+      const fileName = fullName.substring(0, index);
+      const fileExt = fullName.substring(index + 1).toLowerCase();
+
+      // 🔥 Validar duplicado en modeloLinesAttachments
+      const exists = this.modeloLinesAttachments.some(line =>
+        line.fileName === fileName && line.fileExt === fileExt
+      );
+
+      if (exists) {
+        this.swaCustomService.swaMsgInfo('El archivo ya ha sido agregado.');
+        return;
+      }
+
+      this.setItemAttachments(realFile, this.indexFileUpload);
+      this.uploadedFiles.push(realFile);
+    }
 
   //#endregion
 
@@ -1884,6 +2006,8 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
   private loadData(): void {
     const state = history.state;
 
+    console.log("State:", state);
+
     const id = state?.docEntry;
     const mode = state?.mode;
 
@@ -1940,9 +2064,10 @@ private getHelpers() {
 
 private setHeaderState(value: IOrdersQuery, h: any) {
   const statusMap = {
-    Y: '[Autorizado]',
-    N: '[Rechazado]',
-    W: '[Pendiente]'
+    Y   : '[Autorizado]',
+    N   : '[Rechazado]',
+    W   : '[Pendiente]',
+    '-' : '[Borrador]',
   };
 
   this.wddStatus = h.n(value.wddStatus);
@@ -2115,7 +2240,7 @@ private setLines(value: IOrdersQuery) {
 
   //#region <<< 18. SAVE >>>
 
-  onClickSave() {
+  onClickSaveOrder() {
     this.swaCustomService.swaConfirmation(
       this.globalConstants.titleGrabar,
       this.globalConstants.subTitleGrabar,
@@ -2127,13 +2252,33 @@ private setLines(value: IOrdersQuery) {
         this.isSaving = true;
 
         this.wddStatus === 'Y'
-          ? this.onToDraftSave()
-          : this.onToOrderSave();
+          ? this.onToDraftToDocumentCreate()
+          : this.onToOrderCreate();
       }
     });
   }
 
-  private onToOrderSave() {
+  onClickSaveDraft() {
+    this.swaCustomService.swaConfirmation(
+      this.globalConstants.titleGrabar,
+      this.globalConstants.subTitleGrabar,
+      this.globalConstants.icoSwalQuestion
+    ).then((result) => {
+      if (result.isConfirmed) {
+        if (!this.validatedSave()) return;
+
+        this.isSaving = true;
+
+        console.log("DocEntry:::", this.docEntry);
+
+        this.docEntry == 0
+          ? this.onToDraftCreate()
+          : this.onToDraftUpdate();
+      }
+    });
+  }
+
+  private onToOrderCreate() {
     this.uploadProgress = 0;
 
     const modeloToSave = this.buildModelToSave();
@@ -2172,10 +2317,88 @@ private setLines(value: IOrdersQuery) {
     });
   }
 
-  private onToDraftSave() {
+  private onToDraftCreate() {
+    this.uploadProgress = 0;
+
     const modeloToSave = this.buildModelToSave();
 
-    this.draftsService.setCreate(modeloToSave)
+    this.draftsService.setCreate(modeloToSave, this.uploadedFiles)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isSaving = false;
+        this.uploadProgress = 0; // reset opcional
+      })
+    )
+    .subscribe({
+      next: (event: HttpEvent<any>) => {
+
+        switch (event.type) {
+
+          // 🔄 progreso de subida
+          case HttpEventType.UploadProgress:
+            if (event.total) {
+              this.uploadProgress = Math.round((event.loaded / event.total) * 100);
+            }
+            break;
+
+          // ✅ respuesta final
+          case HttpEventType.Response:
+            this.swaCustomService.swaMsgExito(null);
+            this.onClickBack();
+            break;
+        }
+      },
+      error: (e) => {
+        console.error('Error:', e);
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
+      }
+    });
+  }
+
+  private onToDraftUpdate() {
+    this.uploadProgress = 0;
+
+    const modeloToSave = this.buildModelToSave();
+
+    this.draftsService.setUpdate(modeloToSave, this.uploadedFiles)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isSaving = false;
+        this.uploadProgress = 0; // reset opcional
+      })
+    )
+    .subscribe({
+      next: (event: HttpEvent<any>) => {
+
+        switch (event.type) {
+
+          // 🔄 progreso de subida
+          case HttpEventType.UploadProgress:
+            if (event.total) {
+              this.uploadProgress = Math.round((event.loaded / event.total) * 100);
+            }
+            break;
+
+          // ✅ respuesta final
+          case HttpEventType.Response:
+            this.swaCustomService.swaMsgExito(null);
+            this.onClickBack();
+            break;
+        }
+      },
+      error: (e) => {
+        console.error('Error:', e);
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
+      }
+    });
+  }
+
+  private onToDraftToDocumentCreate() {
+    const modeloToSave = this.buildModelToSave();
+
+    this.draftsService.setSaveDraftToDocument(modeloToSave)
     .pipe(
       takeUntil(this.destroy$),
       finalize(() => { this.isSaving = false; })
@@ -2300,12 +2523,12 @@ private setLines(value: IOrdersQuery) {
     }));
   }
 
-  private mapAttachments2Lines(): any[] {
+  private mapAttachments2Lines(): Attachments2LinesCreateModel[] {
     const u = this.utilService;
     const p = (v:any)=>u.normalizePrimitive(v);
     const d = (v:any)=>u.normalizeDateOrToday(v);
 
-    return this.modeloLinesAnexo
+    return this.modeloLinesAttachments
     .filter(line => p(line.trgtPath) !== '')
     .map<any>(line => ({
       trgtPath : p(line.trgtPath),
@@ -2315,7 +2538,7 @@ private setLines(value: IOrdersQuery) {
     }));
   }
 
-  private buildModelAttachments2(): any {
+  private buildModelAttachments2(): Attachments2CreateModel {
     return {
       absEntry        : 0,
       lines: this.mapAttachments2Lines().map(l => ({
@@ -2350,11 +2573,12 @@ private setLines(value: IOrdersQuery) {
     const lines             = this.mapLines();
 
     /** 🔥 condición para incluir docEntry --> Solo cuando es Autorizado */
-    const includeDocEntry   = p(this.wddStatus) === 'Y';
+    //const includeDocEntry   = p(this.wddStatus) === 'Y';
 
     return {
-      ...(includeDocEntry && { docEntry: this.docEntry }),
+      // ...(includeDocEntry && { docEntry: this.docEntry }),
 
+      docEntry        : this.docEntry,
       docDate         : d(f.docDate),
       docDueDate      : d(f.docDueDate),
       taxDate         : d(f.taxDate),

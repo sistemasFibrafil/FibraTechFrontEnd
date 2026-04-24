@@ -95,19 +95,6 @@ export interface IDraftsLine {
   record              : number;
 }
 
-
-export interface IDraftsItem {
-  docEntry      : number;
-  docNum        : number;
-  objType       : number;
-  lineNum       : number;
-  itemCode      : string;
-  itemName      : string;
-  unidadMedida  : string;
-  quantity      : number;
-  peso          : number;
-}
-
 export interface IDraftsQuery {
   docEntry            : number;
   docNum              : number;
@@ -220,4 +207,25 @@ export interface IDraftsLineQuery {
 export interface IDraftsStatusQuery {
   docStatus           : string;
   wddStatus           : string;
+}
+
+
+export interface IDraftsDocumentReportQuery {
+  docEntry           : number;
+  docNum             : number;
+  docType            : string;
+  docStatus          : string;
+  createDate         : Date;
+  docDate            : Date;
+  docDueDate?        : Date;
+  taxDate?           : Date;
+  updateDate?        : Date;
+  cardCode           : string;
+  cardName?          : string;
+  groupCode          : number;
+  groupName          : string;
+  docCur             : string;
+  slpName            : string;
+  docTotal           : number;
+  docTotalSy         : number;
 }
