@@ -1,0 +1,9 @@
+.label-custom {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+:host ::ng-deep .tabview-custom {
+    margin-top: 10px;
+}

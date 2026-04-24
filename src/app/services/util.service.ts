@@ -646,4 +646,10 @@ export class UtilService {
 
     form.patchValue(data, { emitEvent: false });
   }
+
+  eliminarTildes(cadena: string): string {
+    if (!cadena) return '';
+    const acentos = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U' };
+    return cadena.split('').map(letra => acentos[letra] || letra).join('').toString().toUpperCase();
+  }
 }
