@@ -1,25 +1,25 @@
 import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { catchError, finalize, map, Observable, of, Subject, take, takeUntil } from 'rxjs';
 
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { InvoiceFilterModel } from '../../../models/sap-business-one/invoice.model';
+import { ButtonAcces } from '@app/models/acceso-button.model';
+import { InvoiceFilterModel } from '@app/modulos/modulo-ventas/models/sap-business-one/invoice.model';
 
-import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
-import { InvoicesService } from '../../../services/sap-business-one/invoices.service';
-import { IInvoiceQuery } from '../../../interfaces/sap-business-one/invoice.interface';
-import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
+import { IInvoiceQuery } from '@app/modulos/modulo-ventas/interfaces/sap-business-one/invoice.interface';
+import { IExchangeRates } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
 
-import { UtilService } from 'src/app/services/util.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
+import { UtilService } from '@app/services/util.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { AccesoOpcionesService } from '@app/services/acceso-opciones.service';
+import { InvoicesService } from '@app/modulos/modulo-ventas/services/sap-business-one/invoices.service';
+import { ExchangeRatesService } from '@app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
 
 
 
@@ -28,43 +28,76 @@ import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sa
   templateUrl: './panel-factura-reserva-list.component.html',
   styleUrls: ['./panel-factura-reserva-list.component.css']
 })
-export class PanelFacturaReservaListComponent implements OnInit {
-  // Lifecycle management
+export class PanelFacturaReservaListComponent implements OnInit, OnDestroy {
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                     = new Subject<void>();
 
-  // Forms
-  modeloForm                                    : FormGroup;
 
-  // Configuration
-  readonly titulo                               : string = 'Factura de Reserva';
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
   buttonAcces                                   : ButtonAcces = new ButtonAcces();
   globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  codGrpCustNat                                 : number = 0;
-  codGrpCustFor                                 : number = 0;
 
-  // UI State
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
+  modeloForm                                    : FormGroup;
+
+
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
   isCancel                                      : boolean = false;
   isDisplay                                     : boolean = false;
   isDisplayVisor                                : boolean = false;
   isDisplayGenerandoVisor                       : boolean = false;
 
-  // Table configuration
+
+  // ===========================
+  // 🔹 5. UI DATA
+  // ===========================
+  isDataBlob                                    : Blob | null = null;
+
+
+  // ===========================
+  // 🔹 6. TABLE CONFIG
+  // ===========================
   opciones                                      : MenuItem[] = [];
   columnas                                      : TableColumn[] = [];
-  private opcionesMap                           : Map<string, MenuItem>;
-
-  docStatusList                                 : SelectItem[] = [];
-
-  // Paginación de la tabla
-  rows                                          = 20;
+  opcionesMap                                   : Map<string, MenuItem>;
   rowsPerPageOptions                            = [20, 40, 60, 80, 100];
 
-  // Data
-  modelo                                        : IInvoiceQuery[] = [];
-  modeloSelected                                : IInvoiceQuery;
 
-  isDataBlob                                    : Blob;
+  // ===========================
+  // 🔹 7. DATA (CORE)
+  // ===========================
+  modelo                                        : IInvoiceQuery[] = [];
+  modeloSelected                                : IInvoiceQuery | null = null;
+
+
+  // ===========================
+  // 🔹 8. COMBOS / LISTS
+  // ===========================
+  docStatusList                                 : SelectItem[] = [];
+
+
+  // ===========================
+  // 🔹 9. INDEXES (UI CONTROL)
+  // ===========================
+  rows                                          = 20;
+  codGrpCustNat                                 : number = 0;
+  codGrpCustFor                                 : number = 0;
+
+
+  // ===========================
+  // 🔹 10. TEXT / AUX / FILTERS
+  // ===========================
+  titulo                                        : string = 'Factura de Reserva';
+
 
   constructor(
     private readonly router: Router,
@@ -79,13 +112,24 @@ export class PanelFacturaReservaListComponent implements OnInit {
   ) {}
 
 
+
+  //#region <<< 1. LIFECYCLE >>>
+
   ngOnInit() {
     this.initializeComponent();
   }
 
-  // ===========================
-  // Initialization
-  // ===========================
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  //#endregion
+
+
+
+
+  //#region <<< 2. INITIALIZATION >>>
 
   private initializeComponent(): void {
     this.onBuildForm();
@@ -93,17 +137,12 @@ export class PanelFacturaReservaListComponent implements OnInit {
     this.opcionesTabla();
     this.loadStatusList();
 
-    this.codGrpCustNat = this.userContextService.getCodGrpCustNat();
-    this.codGrpCustFor = this.userContextService.getCodGrpCustFor();
+    this.codGrpCustNat = Number(this.userContextService.getCodGrpCustNat());
+    this.codGrpCustFor = Number(this.userContextService.getCodGrpCustFor());
 
     if (!this.buttonAcces.btnBuscar) {
       this.loadData();
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private onBuildForm(): void {
@@ -117,25 +156,23 @@ export class PanelFacturaReservaListComponent implements OnInit {
     this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-ven-panel-factura-reserva-list');
   }
 
-  onBuildColumn() {
+  private onBuildColumn() {
     this.columnas = [
       { field: 'docNum',        header: 'Número' },
       { field: 'docStatus',     header: 'Estado' },
       { field: 'u_BPP_MDCD',    header: 'Factura' },
       { field: 'docDate',       header: 'Fecha de contabilización' },
       { field: 'docDueDate',    header: 'Fecha de vencimiento' },
-      { field: 'taxDate',       header: 'Fecha de documento' },
       { field: 'groupCode',     header: 'Tipo venta' },
       { field: 'cardCode',      header: 'Código de cliente' },
       { field: 'cardName',      header: 'Nombre de cliente' },
       { field: 'slpName',       header: 'Vendedor' },
-      { field: 'docCur',        header: 'Moneda' },
       { field: 'docTotal',      header: 'Total MN' },
       { field: 'docTotalSy',    header: 'Total ME' }
     ];
   }
 
-  opcionesTabla() {
+  private opcionesTabla() {
     this.opciones = [
       { value: '1', label: 'Ver',         icon: 'pi pi-eye',      command: () => { this.onClickVer(); } },
       { value: '2', label: 'Editar',      icon: 'pi pi-pencil',   command: () => { this.onClickEditar(); } },
@@ -146,9 +183,23 @@ export class PanelFacturaReservaListComponent implements OnInit {
     this.opcionesMap = new Map(this.opciones.map(op => [op.label, op]));
   }
 
-  // ===========================
-  // Helper Methods
-  // ===========================
+  private loadStatusList(): void {
+    const statuses = this.localDataService.statusDocuments;
+    this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
+    this.modeloForm.get('docStatus')?.setValue(statuses);
+  }
+
+  //#endregion
+
+
+
+
+  //#region <<< 3. TABLE / MENU >>>
+
+  onToItemSelected(modelo: IInvoiceQuery): void {
+    this.modeloSelected = modelo;
+    this.updateMenuVisibility(modelo);
+  }
 
   private validateSelection(): boolean {
     if (!this.modeloSelected) {
@@ -169,45 +220,15 @@ export class PanelFacturaReservaListComponent implements OnInit {
     this.opcionesMap.get('Cancelar')!.visible = isCancel;
   }
 
-  // ===========================
-  // Table Events
-  // ===========================
+  //#endregion
 
-  onToItemSelected(modelo: IInvoiceQuery): void {
-    this.modeloSelected = modelo;
-    this.updateMenuVisibility(modelo);
-  }
 
-  // ===========================
-  // Data Operations
-  // ===========================
 
-  private loadStatusList(): void {
-    const statuses = this.localDataService.statusDocuments;
-    this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
-    this.modeloForm.get('docStatus').setValue(statuses);
-  }
 
-  // ===========================
-  // Data Operations
-  // ===========================
+  //#region <<< 4. LOAD DATA / FILTERS >>>
 
-  private buildFilterParams(): InvoiceFilterModel {
-    const {
-      startDate,
-      endDate,
-      docStatus,
-      searchText
-    } = this.modeloForm.getRawValue();
-
-    return {
-      startDate,
-      endDate,
-      docStatus: (docStatus || []).map(x => x.code).join(','),
-      docSubType: '--',
-      isIns: 'Y',
-      searchText
-    };
+  onClickBuscar(): void {
+    this.loadData();
   }
 
   private loadData(): void {
@@ -231,51 +252,61 @@ export class PanelFacturaReservaListComponent implements OnInit {
     });
   }
 
-  // ===========================
-  // UI Actions
-  // ===========================
+  private buildFilterParams(): InvoiceFilterModel {
+    const {
+      startDate,
+      endDate,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
 
-  onClickBuscar(): void {
-    this.loadData();
+    return {
+      startDate,
+      endDate,
+      docStatus: (docStatus || []).map(x => x.code).join(','),
+      docSubType: '--',
+      isIns: 'Y',
+      searchText
+    };
   }
 
-  getEstado(modelo: any) {
-    const reglas = [
-      {
-        cond: () => modelo.canceled === 'Y',
-        value: { text: 'Cancelado', class: 'estado-cancelado' }
-      },
-      {
-        cond: () => modelo.docStatus === 'O' && modelo.invntSttus === 'O',
-        value: { text: 'Abierto', class: 'estado-abierto' }
-      },
-      {
-        cond: () => modelo.docStatus === 'C' && modelo.invntSttus === 'O',
-        value: { text: 'Pagado', class: 'estado-pagado' }
-      },
-      {
-        cond: () => modelo.docStatus === 'C' && modelo.invntSttus === 'C',
-        value: { text: 'Cerrado', class: 'estado-cerrado' }
-      }
-    ];
+  //#endregion
 
-    return reglas.find(r => r.cond())?.value ?? { text: '', class: '' };
+
+
+
+  //#region <<< 5. UI HELPERS >>>
+
+  getEstado(modelo: IInvoiceQuery) {
+    if (modelo.canceled === 'Y') {
+      return { text: 'Cancelado', class: 'estado-cancelado' };
+    }
+
+    if (modelo.docStatus === 'O') {
+      return { text: 'Abierto', class: 'estado-abierto' };
+    }
+
+    if (modelo.docStatus === 'C') {
+      return { text: 'Cerrado', class: 'estado-cerrado' };
+    }
+
+    return { text: '', class: '' };
   }
 
-  getGroupType(modelo: any) {
-    const reglas = [
-      {
-        cond: () => modelo?.groupCode != this.codGrpCustFor,
-        value: { text: 'Nacional', class: 'type-nacional' }
-      },
-      {
-        cond: () => modelo?.groupCode == this.codGrpCustFor,
-        value: { text: 'Exportación', class: 'type-exportacion' }
-      }
-    ];
+  getGroupType(modelo: IInvoiceQuery) {
+    const groupCode = Number(modelo?.groupCode);
 
-    return reglas.find(r => r.cond())?.value ?? { text: '', class: '' };
+    return groupCode === this.codGrpCustFor
+      ? { text: 'Exportación', class: 'type-exportacion' }
+      : { text: 'Nacional', class: 'type-nacional' };
   }
+
+  //#endregion
+
+
+
+
+  //#region <<< 6. TIPO CAMBIO >>>
 
   private fetchTipoCambioRate(): Observable<IExchangeRates | null> {
     const docDate: Date = new Date();
@@ -314,6 +345,13 @@ export class PanelFacturaReservaListComponent implements OnInit {
     });
   }
 
+  //#endregion
+
+
+
+
+  //#region <<< 7. ACTIONS >>>
+
   onClickCreate() {
     this.validarTipoCambioYContinuar(() => {
       this.router.navigate(['/main/modulo-ven/panel-factura-reserva-create'], { state: { mode: 'create' } });
@@ -322,14 +360,17 @@ export class PanelFacturaReservaListComponent implements OnInit {
 
   onClickVer(){
     if (!this.validateSelection()) return;
-    this.router.navigate(['/main/modulo-ven/panel-factura-reserva-view', this.modeloSelected.docEntry]);
+
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-ven/panel-factura-reserva-view', this.modeloSelected!.docEntry]);
+    });
   }
 
   onClickEditar() {
     if (!this.validateSelection()) return;
 
     this.validarTipoCambioYContinuar(() => {
-      this.router.navigate(['/main/modulo-ven/panel-factura-reserva-edit', this.modeloSelected.docEntry]);
+      this.router.navigate(['/main/modulo-ven/panel-factura-reserva-edit', this.modeloSelected!.docEntry]);
     });
   }
 
@@ -376,4 +417,6 @@ export class PanelFacturaReservaListComponent implements OnInit {
       });
     });
   }
+
+  //#endregion
 }

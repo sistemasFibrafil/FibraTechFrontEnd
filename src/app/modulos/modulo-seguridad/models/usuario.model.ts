@@ -1,7 +1,8 @@
 export class UsuarioModel {
     idUsuario?                  : number;
     idPerfil?                   : number;
-    idUserSap?                   : number;
+    idUserSap?                  : number;
+    slpCode?                    : number;
     nombre                      : string;
     apellidoPaterno?            : string;
     apellidoMaterno?            : string;
@@ -24,6 +25,7 @@ export class UsuarioModel {
     constructor(){
       this.idUsuario            = 0;
       this.idPerfil             = 0;
+      this.slpCode              = 0;
       this.nombre               = '';
       this.apellidoPaterno      = '';
       this.apellidoMaterno      = '';

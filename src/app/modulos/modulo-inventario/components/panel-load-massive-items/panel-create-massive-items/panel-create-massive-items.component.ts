@@ -1,33 +1,36 @@
-import { finalize, Subject, takeUntil } from 'rxjs';
 import * as XLSX from 'xlsx';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-
-import { UtilService } from 'src/app/services/util.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { IArticulo } from '../../interfaces/items.interface';
-import { ArticuloModel } from '../../models/items.model';
-import { ItemsService } from '../../services/items.service';
+import { finalize, Subject, takeUntil } from 'rxjs';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
+
+import { ButtonAcces } from '@app/models/acceso-button.model';
+import { ArticuloModel } from '@app/modulos/modulo-inventario/models/items.model';
+
+import { IArticulo } from '@app/modulos/modulo-inventario/interfaces/items.interface';
+
+import { UtilService } from '@app/services/util.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { AccesoOpcionesService } from '@app/services/acceso-opciones.service';
+import { ItemsService } from '@app/modulos/modulo-inventario/services/items.service';
 
 
 @Component({
-  selector: 'app-inv-panel-carga-masiva-articulo',
-  templateUrl: './panel-carga-masiva-articulo.component.html',
-  styleUrls: ['./panel-carga-masiva-articulo.component.css']
+  selector: 'app-inv-panel-create-massive-items',
+  templateUrl: './panel-create-massive-items.component.html',
+  styleUrls: ['./panel-create-massive-items.component.css']
 })
-export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
+export class PanelCreateMassiveItemsComponent implements OnInit, OnDestroy {
   // Lifecycle management
   private readonly destroy$                     = new Subject<void>();
 
   // Forms
-  modeloForm                                  : FormGroup;
+  modeloForm                                    : FormGroup;
 
   // Configuration
-  readonly titulo                               = 'Carga masiva de artículos';
+  readonly titulo                               = 'Creación masiva de artículos';
   buttonAcces                                   : ButtonAcces = new ButtonAcces();
   globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
@@ -46,10 +49,10 @@ export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly itemsService: ItemsService,
     private readonly swaCustomService: SwaCustomService,
     private readonly userContextService: UserContextService,
-    private readonly itemsService: ItemsService,
+    private readonly accesoOpcionesService: AccesoOpcionesService,
     public  readonly utilService: UtilService
   ) {}
 
@@ -80,7 +83,7 @@ export class PanelCargaMasivaArticuloComponent implements OnInit, OnDestroy {
       isEntrada                 : [false],
       isSalida                  : [false],
     });
-    this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-inv-panel-carga-masiva-articulo');
+    this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-inv-panel-create-massive-items');
   }
 
   private buildColumns(): void {

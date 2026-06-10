@@ -74,8 +74,14 @@
                 {{modelo.docNum}}
               </td>
               <td class="custom-td-20">
-                <span class="label badge-articulos" *ngIf="modelo?.docType === 'I'">Artículos</span>
-                <span class="label badge-servicios" *ngIf="modelo?.docType === 'S'">Servicios</span>
+                <span class="label" [ngClass]="getEstado(modelo).class">
+                  {{ getEstado(modelo).text }}
+                </span>
+              </td>
+              <td class="custom-td-20">
+                <span class="label" [ngClass]="getDocType(modelo).class">
+                  {{ getDocType(modelo).text }}
+                </span>
               </td>
               <td class="p-fluid">
                 {{modelo.docDate | date: 'dd/MM/yyyy'}}

@@ -23,4 +23,10 @@ export class ChartOfAccountsService {
     params = params.append('acctCode', id);
     return this.http.get<IChartOfAccounts>(`${environment.url_api_fib}ChartOfAccounts/GetById/`,{params: params});
   }
+
+  getByFormatCode(formatCode: string) {
+    var params = new HttpParams();
+    params = params.append('formatCode', formatCode);
+    return this.http.get<IChartOfAccounts>(`${environment.url_api_fib}ChartOfAccounts/GetByFormatCode/`, { params: params });
+  }
 }

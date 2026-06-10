@@ -190,8 +190,8 @@ export class DraftsDocumentReportFilterModel {
   user                        : string;
   pending                     : boolean;
   draftDate                   : string;
-  startDate                   : Date;
-  endDate                     : Date;
+  startDate                   : Date | string;
+  endDate                     : Date | string;
   orders                      : boolean;
 
   constructor(){

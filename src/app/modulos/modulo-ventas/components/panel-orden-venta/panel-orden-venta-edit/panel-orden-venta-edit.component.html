@@ -1,5 +1,9 @@
 <div class="card card-w-title">
-  <p-panel header="Editar {{titulo}}">
+  <p-contextMenu
+    #cm
+    [model]="contextMenuItems">
+  </p-contextMenu>
+  <p-panel header="Editar {{titulo}}" (contextmenu)="onPanelContextMenu($event, cm)">
     <div class="grid p-fluid">
       <div class="col-12 md:col-6">
         <div class="card no-margin">
@@ -26,16 +30,16 @@
                 </div>
               </div>
               <div [ngClass]="currencyColClass">
-                <label class="label-custom" for="float-input-currency">Moneda </label>
-                <p-dropdown id="float-input-currency" [class.field-mandatory]="!(isLocked || isAuthorized)" [class.readonly-control]="isLocked || isAuthorized" [readonly]="isLocked || isAuthorized" [attr.tabindex]="(isLocked || isAuthorized) ? -1 : 0" [options]="currencyList" placeholder="Seleccione moneda" formControlName="currency" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormSoc.controls['currency'].errors && modeloFormSoc.controls['currency'].dirty">
-                  <p-message severity="error" text="Moneda es requerida." *ngIf="modeloFormSoc.controls['currency'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-currencies">Moneda </label>
+                <p-dropdown id="float-input-currencies" [class.field-mandatory]="!(isLocked || isAuthorized)" [class.readonly-control]="isLocked || isAuthorized" [readonly]="isLocked || isAuthorized" [attr.tabindex]="(isLocked || isAuthorized) ? -1 : 0" [options]="currencyList" placeholder="Seleccione moneda" formControlName="currencies" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormSoc.controls['currencies'].errors && modeloFormSoc.controls['currencies'].dirty">
+                  <p-message severity="error" text="Moneda es requerida." *ngIf="modeloFormSoc.controls['currencies'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-6" *ngIf="!isMainCurrency">
                 <label class="label-custom" for="float-input-tipo-cambio">Tipo cambio </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docRate" class="field-numero" [class.field-mandatory]="!(isLocked || isAuthorized)" [class.readonly-control]="isLocked || isAuthorized" [readonly]="isLocked || isAuthorized" [attr.tabindex]="(isLocked || isAuthorized) ? -1 : 0" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSoc, 'docRate', 3, true)">
+                  <input id="float-input-docRate" class="field-numero" [class.field-mandatory]="!(isLocked || isAuthorized)" [class.readonly-control]="isLocked || isAuthorized" [readonly]="isLocked || isAuthorized" [attr.tabindex]="(isLocked || isAuthorized) ? -1 : 0" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormSoc, 'docRate', 3, true)">
                 </div>
               </div>
             </div>
@@ -101,10 +105,10 @@
               <form [formGroup]="modeloFormCon">
                 <div class="p-formgrid grid">
                   <div class="col-12 md:col-12">
-                    <label class="label-custom" for="float-input-docType">Clase de artículo/servicio </label>
-                    <p-dropdown id="float-input-docType" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="docTypesList" placeholder="Seleccione la clase de artículo/servicio" formControlName="docType" [required] optionLabel="label"></p-dropdown>
-                    <div *ngIf="modeloFormCon.controls['docType'].errors && modeloFormCon.controls['docType'].dirty">
-                      <p-message severity="error" text="Clase de artículo/servicio es requerido." *ngIf="modeloFormCon.controls['docType'].errors['required']"></p-message>
+                    <label class="label-custom" for="float-input-docTypes">Clase de artículo/servicio </label>
+                    <p-dropdown id="float-input-docTypes" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="docTypesList" placeholder="Seleccione la clase de artículo/servicio" formControlName="docTypes" [required] optionLabel="label"></p-dropdown>
+                    <div *ngIf="modeloFormCon.controls['docTypes'].errors && modeloFormCon.controls['docTypes'].dirty">
+                      <p-message severity="error" text="Clase de artículo/servicio es requerido." *ngIf="modeloFormCon.controls['docTypes'].errors['required']"></p-message>
                     </div>
                   </div>
                   <div class="col-12 md:col-10"></div>
@@ -133,62 +137,184 @@
                 </ng-template>
                 <!-- body -->
                 <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
-                  <tr [ngClass]="{'row-cerrado': modelo?.lineStatus === 'C'}">
+                  <tr [ngClass]="{'row-cerrado': modelo?.lineStatus==='C'}">
                     <td class="custom-td-8">
-                      <p-splitButton [disabled]="modelo?.isClosed" icon="pi pi-cog" [model] = "opciones" (onDropdownClick) = "onSelectedItem(modelo)" appendTo = "body">
+                      <p-splitButton
+                        [disabled]="modelo?.isClosed"
+                        icon="pi pi-cog"
+                        [model]="splitButtonItems"
+                        (onDropdownClick)="onSelectedItem(modelo)"
+                        appendTo="body">
                       </p-splitButton>
                     </td>
-                    <td class="p-fluid" *ngIf="isItem">
-                      <i *ngIf="onOpenArticulo()" class="pi pi-search" (click)="onClickOpenArticulo(ri)"></i>
-                      {{modelo.itemCode}}
+
+                    <td class="p-fluid" *ngIf="isItem" [pEditableColumn]="isItem && modelo.isOpen">
+                      <ng-container *ngIf="isItem && modelo.isOpen; else viewItemCode">
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <div class="input-search">
+                              <i
+                                class="pi pi-search search-icon"
+                                (click)="onClickOpenArticulo(ri)">
+                              </i>
+
+                              <input
+                                [id]="'itemCode-' + ri"
+                                pInputText
+                                type="text"
+                                autocomplete="off"
+                                maxlength="50"
+                                [(ngModel)]="modelo.itemCode"
+                                (ngModelChange)="onItemCodeChange(modelo)"
+                                (paste)="onPasteItemCodes($event, ri)"
+                                (blur)="onBlurItemCode(modelo, ri)"
+                                (keydown.enter)="onEnterItemCode($event, modelo, ri)">
+                            </div>
+                          </ng-template>
+
+                          <ng-template pTemplate="output">
+                            {{ modelo.itemCode }}
+                          </ng-template>
+                        </p-cellEditor>
+                      </ng-container>
+
+                      <ng-template #viewItemCode>
+                        {{ modelo.itemCode }}
+                      </ng-template>
                     </td>
-                    <td class="p-fluid" *ngIf="isItem">
-                      {{modelo.dscription}}
+
+                    <td class="p-fluid" *ngIf="isItem || isService" [pEditableColumn]="isService && modelo.isOpen">
+                      <!-- EDITABLE SOLO SI ES SERVICIO Y ESTÁ ABIERTO -->
+                      <ng-container *ngIf="isService && modelo.isOpen; else viewDesc">
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <input
+                              [id]="'dscription-' + ri"
+                              pInputText
+                              type="text"
+                              autocomplete="off"
+                              maxlength="100"
+                              [(ngModel)]="modelo.dscription"
+                              (ngModelChange)="onChangeDescriptions(modelo)"
+                              (paste)="onPasteDescriptions($event, ri)">
+                          </ng-template>
+
+                          <ng-template pTemplate="output">
+                            {{ modelo.dscription }}
+                          </ng-template>
+                        </p-cellEditor>
+                      </ng-container>
+
+                      <!-- SOLO LECTURA -->
+                      <ng-template #viewDesc>
+                        {{ modelo.dscription }}
+                      </ng-template>
                     </td>
-                    <td class="p-fluid" pEditableColumn *ngIf="isService">
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="dscription" pInputText type="text" autocomplete="off" [(ngModel)]="modelo.dscription" maxlength="100" (ngModelChange)="onDescChange(modelo)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.dscription}}
-                        </ng-template>
-                      </p-cellEditor>
+
+                    <td class="p-fluid" *ngIf="isService" [pEditableColumn]="isService && modelo.isOpen">
+                      <!-- EDITABLE SOLO SI ES SERVICIO Y ESTÁ ABIERTO -->
+                      <ng-container *ngIf="isService && modelo.isOpen; else viewDesc">
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <div class="input-search">
+                            <i
+                              class="pi pi-search search-icon"
+                              (click)="onClickOpenCuentaContable(ri)">
+                            </i>
+
+                            <input
+                              [id]="'formatCode-' + ri"
+                              pInputText
+                              type="text"
+                              autocomplete="off"
+                              maxlength="100"
+                              [(ngModel)]="modelo.formatCode"
+                              (ngModelChange)="onFormatCodeChange(modelo)"
+                              (paste)="onPasteFormatCodes($event, ri)"
+                              (blur)="onBlurFormatCode(modelo, ri)"
+                              (keydown.enter)="onEnterFormatCode($event, modelo, ri)">
+                          </div>
+                          </ng-template>
+
+                          <ng-template pTemplate="output">
+                            {{ modelo.formatCode }}
+                          </ng-template>
+                        </p-cellEditor>
+                      </ng-container>
+
+                      <!-- SOLO LECTURA -->
+                      <ng-template #viewDesc>
+                        {{ modelo.formatCode }}
+                      </ng-template>
                     </td>
-                    <td class="p-fluid" *ngIf="isService">
-                      <i *ngIf="utilService.showIcon(modelo, isItem, isService)" class="pi pi-search" (click)="onOpenCuentaContable(ri)"></i>
-                      {{modelo.formatCode}}
-                    </td>
+
                     <td class="p-fluid" *ngIf="isService">
                       {{modelo.acctName}}
                     </td>
-                    <td class="p-fluid" *ngIf="isItem">
-                      <i *ngIf="utilService.showIcon(modelo, isItem, isService)" class="pi pi-search" (click)="onClickOpenAlmacen(ri)"></i>
-                      {{modelo.whsCode}}
+
+                    <td class="custom-td-10" *ngIf="isItem" [pEditableColumn]="isItem && modelo.isOpen">
+                      <!-- MODO EDICIÓN -->
+                      <ng-container *ngIf="isItem && modelo.isOpen; else viewWhs">
+                        <p-cellEditor>
+                          <ng-template pTemplate="input">
+                            <div class="input-search">
+                              <i
+                                class="pi pi-search search-icon"
+                                (click)="onClickOpenAlmacen(ri)">
+                              </i>
+
+                              <input
+                                [id]="'whsCode-' + ri"
+                                pInputText
+                                type="text"
+                                autocomplete="off"
+                                maxlength="8"
+                                [(ngModel)]="modelo.whsCode"
+                                (ngModelChange)="onWhsCodeChange(modelo)"
+                                (paste)="onPasteWhsCodes($event, ri)"
+                                (blur)="onBlurWhsCode(modelo, ri)"
+                                (keydown.enter)="onEnterWhsCode($event, modelo, ri)">
+                            </div>
+                          </ng-template>
+
+                          <ng-template pTemplate="output">
+                            {{modelo.whsCode}}
+                          </ng-template>
+                        </p-cellEditor>
+                      </ng-container>
+
+                      <!-- MODO SOLO LECTURA -->
+                      <ng-template #viewWhs>
+                        {{modelo.whsCode}}
+                      </ng-template>
                     </td>
+
                     <td class="custom-td-8" *ngIf="isItem">
                       {{modelo.unitMsr}}
                     </td>
                     <td class="custom-td-numero" *ngIf="isItem">
                       {{modelo.onHand | number: '.3':'en-EN'}}
                     </td>
-                    <!-- <td class="custom-td-numero" pEditableColumn *ngIf="isItem">
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="quantity" type="text" autocomplete="off" [(ngModel)]="modelo.quantity" maxlength="23" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.quantity)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.quantity | number: '.3':'en-EN'}}
-                        </ng-template>
-                      </p-cellEditor>
-                    </td> -->
 
-                    <td class="custom-td-numero" *ngIf="isItem" [pEditableColumn]="modelo.isOpen">
+                    <td class="custom-td-numero" *ngIf="isItem" [pEditableColumn]="isItem && modelo.isOpen">
                       <!-- MODO EDICIÓN -->
-                      <ng-container *ngIf="modelo.isOpen; else viewQty">
+                      <ng-container *ngIf="isItem && modelo.isOpen; else viewQty">
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <input id="quantity" type="text" autocomplete="off" [(ngModel)]="modelo.quantity" maxlength="23" (ngModelChange)="onChangeQuantity(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.quantity)">
+                            <div class="input-search">
+                              <input
+                                [id]="'quantity-' + ri"
+                                pInputText
+                                type="text"
+                                autocomplete="off"
+                                maxlength="23"
+                                [(ngModel)]="modelo.quantity"
+                                (ngModelChange)="onChangeQuantity(modelo,ri)"
+                                (paste)="onPasteQuantities($event, ri)"
+                                (blur)="onBlurQuantity(modelo, ri)"
+                                (keydown.enter)="onEnterQuantity($event, modelo, ri)"
+                                (keypress)="utilService.aceptaSoloNumeros($event, modelo.quantity)">
+                            </div>
                           </ng-template>
 
                           <ng-template pTemplate="output">
@@ -202,22 +328,25 @@
                         {{modelo.quantity | number: '.3':'en-EN'}}
                       </ng-template>
                     </td>
-                    <!-- <td class="custom-td-numero" pEditableColumn>
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="priceBefDi" type="text" autocomplete="off" [(ngModel)]="modelo.priceBefDi" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.priceBefDi)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.priceBefDi | number: '.3':'en-EN'}}
-                        </ng-template>
-                      </p-cellEditor>
-                    </td> -->
+
                     <td class="custom-td-numero" [pEditableColumn]="modelo.isOpen">
                       <!-- MODO EDICIÓN -->
                       <ng-container *ngIf="modelo.isOpen; else viewPriceBefDi">
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <input id="priceBefDi" type="text" autocomplete="off" [(ngModel)]="modelo.priceBefDi" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.priceBefDi)">
+                            <div class="input-search">
+                              <input
+                                [id]="'priceBefDi-' + ri"
+                                pInputText
+                                type="text"
+                                autocomplete="off"
+                                maxlength="23"
+                                [(ngModel)]="modelo.priceBefDi"
+                                (keydown.enter)="onEnterPrice($event, modelo, ri)"
+                                (paste)="onPastePrices($event, ri)"
+                                (blur)="onBlurPrice(modelo, ri)"
+                                (keypress)="utilService.aceptaSoloNumeros($event, modelo.priceBefDi)">
+                            </div>
                           </ng-template>
 
                           <ng-template pTemplate="output">
@@ -231,78 +360,84 @@
                         {{modelo.priceBefDi | number: '.3':'en-EN'}}
                       </ng-template>
                     </td>
-                    <!-- <td class="custom-td-numero" pEditableColumn>
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="discPrcnt" type="text" autocomplete="off" [(ngModel)]="modelo.discPrcnt" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.discPrcnt)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.discPrcnt | number: '.2':'en-EN'}}
-                        </ng-template>
-                      </p-cellEditor>
-                    </td> -->
-                    <td class="custom-td-numero" [pEditableColumn]="modelo.isOpen">
+
+                    <td class="custom-td-10" [pEditableColumn]="modelo.isOpen">
                       <!-- MODO EDICIÓN -->
-                      <ng-container *ngIf="modelo.isOpen; else viewPrcnt">
+                      <ng-container *ngIf="modelo.isOpen; else viewTax">
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <input id="discPrcnt" type="text" autocomplete="off" [(ngModel)]="modelo.discPrcnt" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.discPrcnt)">
+                            <div class="input-search">
+                              <i
+                                class="pi pi-search search-icon"
+                                (click)="onClickOpenImpuesto(ri)">
+                              </i>
+
+                              <input
+                                [id]="'taxCode-' + ri"
+                                pInputText
+                                type="text"
+                                autocomplete="off"
+                                maxlength="8"
+                                [(ngModel)]="modelo.taxCode"
+                                (ngModelChange)="onTaxCodeChange(modelo)"
+                                (paste)="onPasteTaxCodes($event, ri)"
+                                (blur)="onBlurTaxCode(modelo, ri)"
+                                (keydown.enter)="onEnterTaxCode($event, modelo, ri)">
+                            </div>
                           </ng-template>
 
                           <ng-template pTemplate="output">
-                            {{modelo.discPrcnt | number: '.2':'en-EN'}}
+                            {{modelo.taxCode}}
                           </ng-template>
                         </p-cellEditor>
                       </ng-container>
 
                       <!-- MODO SOLO LECTURA -->
-                      <ng-template #viewPrcnt>
-                        {{modelo.discPrcnt | number: '.2':'en-EN'}}
+                      <ng-template #viewTax>
+                        {{modelo.taxCode}}
                       </ng-template>
                     </td>
-                    <!-- <td class="custom-td-numero" pEditableColumn>
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="price" type="text" autocomplete="off" [(ngModel)]="modelo.price" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.price)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.price | number: '.3':'en-EN'}}
-                        </ng-template>
-                      </p-cellEditor>
-                    </td> -->
-                    <td class="custom-td-numero" [pEditableColumn]="modelo.isOpen">
+
+                    <td class="custom-td-15" [pEditableColumn]="modelo.isOpen">
                       <!-- MODO EDICIÓN -->
-                      <ng-container *ngIf="modelo.isOpen; else viewPrice">
+                      <ng-container *ngIf="modelo.isOpen; else viewOperationsTypes">
                         <p-cellEditor>
                           <ng-template pTemplate="input">
-                            <input id="price" type="text" autocomplete="off" [(ngModel)]="modelo.price" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="utilService.aceptaSoloNumeros($event,modelo.price)">
+                            <div class="input-search">
+                              <i
+                                class="pi pi-search search-icon"
+                                (click)="onClickOpenTipoOperacion(ri)">
+                              </i>
+
+                              <input
+                                [id]="'u_tipoOpT12Nam-' + ri"
+                                pInputText
+                                type="text"
+                                autocomplete="off"
+                                maxlength="100"
+                                [(ngModel)]="modelo.u_tipoOpT12Nam"
+                                (ngModelChange)="onOperationTypeChange(modelo)"
+                                (paste)="onPasteOperationTypes($event, ri)"
+                                (blur)="onBlurOperationType(modelo, ri)"
+                                (keydown.enter)="onEnterOperationType($event, modelo, ri)">
+                            </div>
                           </ng-template>
 
                           <ng-template pTemplate="output">
-                            {{modelo.price | number: '.3':'en-EN'}}
+                            {{modelo.u_tipoOpT12Nam}}
                           </ng-template>
                         </p-cellEditor>
                       </ng-container>
 
                       <!-- MODO SOLO LECTURA -->
-                      <ng-template #viewPrice>
-                        {{modelo.price | number: '.3':'en-EN'}}
+                      <ng-template #viewOperationsTypes>
+                        {{modelo.u_tipoOpT12Nam}}
                       </ng-template>
                     </td>
-                    <td class="p-fluid">
-                      <i *ngIf="utilService.showIcon(modelo, isItem, isService)" (click)="onClickOpenImpuesto(ri)"></i>
-                      {{modelo.taxCode}}
-                    </td>
-                    <td class="p-fluid">
-                      <i *ngIf="utilService.showIcon(modelo, isItem, isService)" class="pi pi-search" (click)="onOpenTipoOperacion(ri)"></i>
-                      {{modelo.u_tipoOpT12Nam}}
-                    </td>
+
                     <td class="custom-td-numero">
                       {{modelo.lineTotal | number: '.2':'en-EN'}}
                     </td>
-                    <!-- <td class="custom-td-numero">
-                      {{modelo.vatSum | number: '.2':'en-EN'}}
-                    </td> -->
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage" let-columns>
@@ -418,19 +553,19 @@
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-u_ValorFlete">Valor flete </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_ValorFlete" class="field-numero" type="text" placeholder="Valor de flete" maxlength="20" size="50" formControlName="u_ValorFlete" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_ValorFlete', 0, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_ValorFlete', 0, true)">
+                      <input id="float-input-u_ValorFlete" class="field-numero" type="text" placeholder="Valor de flete" maxlength="20" size="50" formControlName="u_ValorFlete" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_ValorFlete', 0, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_ValorFlete', 0, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-u_FIB_TFLETE">Total flete </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_FIB_TFLETE" class="field-numero" type="text" placeholder="Total de flete" maxlength="20" size="50" formControlName="u_FIB_TFLETE" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_FIB_TFLETE', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_FIB_TFLETE', 2, true)">
+                      <input id="float-input-u_FIB_TFLETE" class="field-numero" type="text" placeholder="Total de flete" maxlength="20" size="50" formControlName="u_FIB_TFLETE" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_FIB_TFLETE', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_FIB_TFLETE', 2, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-importe-seguro">Importe seguro </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_FIB_IMPSEG" class="field-numero" type="text" placeholder="Importe de seguro" maxlength="20" size="50" formControlName="u_FIB_IMPSEG" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_FIB_IMPSEG', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_FIB_IMPSEG', 2, true)">
+                      <input id="float-input-u_FIB_IMPSEG" class="field-numero" type="text" placeholder="Importe de seguro" maxlength="20" size="50" formControlName="u_FIB_IMPSEG" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_FIB_IMPSEG', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_FIB_IMPSEG', 2, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
@@ -439,20 +574,22 @@
                       <input id="float-input-u_FIB_PUERTO" type="text" placeholder="Puerto" maxlength="25" size="50" formControlName="u_FIB_PUERTO" autocomplete="off" pInputText>
                     </div>
                   </div>
-                </div>
-              </form>
-            </p-tabPanel>
 
-            <p-tabPanel>
-              <ng-template pTemplate = "header">
-                <i class="pi pi-circle-fill"></i>
-                <span>&nbsp;Otros&nbsp;</span>
-              </ng-template>
-              <form [formGroup]="modeloFormOtr">
-                <div class="p-fluid p-formgrid grid">
-                  <div class="col-12 md:col-12">
-                    <label class="label-custom" for="float-input-salesType">Tipo de venta </label>
-                    <p-dropdown id="float-input-salesType" class="field-mandatory" [options]="salesTypeList" placeholder="Seleccione tipo de venta" formControlName="salesType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                  <div class="col-12">
+                    <p-fieldset legend="Embarcado a">
+                      <div class="col-12 md:col-12">
+                        <label class="label-custom" for="float-input-u_FIB_NEMBA">Nombre </label>
+                        <div class="p-inputgroup">
+                          <input id="float-input-u_FIB_NEMBA" type="text" placeholder="Nombre" maxlength="100" size="50" formControlName="u_FIB_NEMBA" autocomplete="off" pInputText>
+                        </div>
+                      </div>
+                      <div class="col-12 md:col-12">
+                        <label class="label-custom" for="float-input-u_FIB_DEMBA">Dirección </label>
+                        <div class="p-inputgroup">
+                          <input id="float-input-u_FIB_DEMBA" type="text" placeholder="Dirección" maxlength="100" size="50" formControlName="u_FIB_DEMBA" autocomplete="off" pInputText>
+                        </div>
+                      </div>
+                    </p-fieldset>
                   </div>
                 </div>
               </form>
@@ -489,13 +626,22 @@
                 <ng-template pTemplate="body" let-modelo let-editing="editing" let-ri="rowIndex">
                   <tr>
                     <td class="custom-td-8">
-                      <p-splitButton icon="pi pi-cog" [model] = "opcionesAttachments" (onDropdownClick) = "onSelectedItemAttachments(modelo)" appendTo = "body">
+                      <p-splitButton icon="pi pi-cog" [model] = "splitButtonAttachmentItems" (onDropdownClick) = "onSelectedItemAttachments(modelo)" appendTo = "body">
                       </p-splitButton>
                     </td>
                     <td class="p-fluid">
-                      <i *ngIf="onOpenArticulo()" class="pi pi-search" (click)="onClickSelectedFile(ri)"></i>
-                      {{modelo.trgtPath}}
+                      <div class="custom-td-flex">
+                        <button
+                          pButton
+                          type="button"
+                          [icon]="'pi pi-search'"
+                          class="p-button-text p-button-rounded mr-2"
+                          (click)="onClickSelectedFile(ri)">
+                        </button>
+                        {{modelo.trgtPath}}
+                      </div>
                     </td>
+
                     <td class="p-fluid">
                       {{modelo.fileName}}
                     </td>
@@ -520,16 +666,16 @@
           <form [formGroup]="modeloFormSal">
             <div class="p-fluid p-formgrid grid">
               <div class="col-12 md:col-12">
-                <label class="label-custom" for="float-input-empleado-venta">Empleado de ventas </label>
-                <p-dropdown id="float-input-salesEmployees" [class.field-mandatory]="!(isLocked || isAuthorized)" [class.readonly-control]="isLocked || isAuthorized" [readonly]="isLocked || isAuthorized" [attr.tabindex]="(isLocked || isAuthorized) ? -1 : 0" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormSal.controls['salesEmployees'].errors && modeloFormSal.controls['salesEmployees'].dirty">
-                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesEmployees'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                <p-dropdown id="float-input-salesPersons" [class.field-mandatory]="!(isLocked || isAuthorized)" [class.readonly-control]="isLocked || isAuthorized" [readonly]="isLocked || isAuthorized" [attr.tabindex]="(isLocked || isAuthorized) ? -1 : 0" [options]="salesPersonsList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesPersons" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormSal.controls['salesPersons'].errors && modeloFormSal.controls['salesPersons'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesPersons'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-6">
                 <label class="label-custom" for="float-input-u_NroOrden">N° OV </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_NroOrden" type="text" placeholder="Número de orden de venta" maxlength="20" size="50" formControlName="u_NroOrden" autocomplete="off" pInputText>
+                  <input id="float-input-u_NroOrden" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Número de orden de venta" maxlength="20" size="50" formControlName="u_NroOrden" autocomplete="off" pInputText>
                 </div>
               </div>
               <div class="col-12 md:col-6">
@@ -562,13 +708,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-discPrcnt">% Dto. </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discPrcnt', 2, true)">
+                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discPrcnt', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-discSum">Descuento </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discSum', 2, true)">
+                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discSum', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-12">
@@ -592,18 +738,49 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormOtr.valid || !modeloFormSal.valid || !hasValidLines || !hasValidLinesAttachments" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormSal.valid || !hasValidLines || !hasValidLinesAttachments" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
         <div class="col-12 md:col-2">
           <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>
         </div>
         <div class="col-12 md:col-2 md:col-offset-6">
-          <p-splitButton [disabled]='isLocked || isInvoice' label="Copiar a" icon="pi pi-copy" [model]="menuOptions" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
+          <p-splitButton [disabled]='isLocked || isInvoice' label="Copiar a" icon="pi pi-copy" [model]="splitButtonItemsCopyTo" styleClass="{{globalConstants.cStyleButtonPrimary}}"></p-splitButton>
         </div>
       </div>
     </p-footer>
   </p-panel>
 </div>
+
+
+<p-dialog header="Modelo de impresión" [(visible)]="isVisualizarPrintModal" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <p-panel header="Seleccione el modelo de impresión" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
+    <form [formGroup]="modeloFormMod">
+      <div class="grid p-fluid">
+        <div class="col-12 md:col-12">
+          <label class="label-custom" for="float-input-printModelTypes">Modelo </label>
+          <p-dropdown
+            id="float-input-printModelTypes"
+            [options]="printModelTypesList"
+            placeholder="Seleccione el modelo"
+            formControlName="printModelTypes"
+            appendTo="body"
+            [baseZIndex]="10000"
+            [autoZIndex]="true"
+            [required]
+            optionLabel="label">
+          </p-dropdown>
+          <div *ngIf="modeloFormMod.controls['printModelTypes'].errors && modeloFormMod.controls['printModelTypes'].dirty">
+            <p-message severity="error" text="El modelo es requerido." *ngIf="modeloFormMod.controls['printModelTypes'].errors['required']"></p-message>
+          </div>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+  <ng-template pTemplate="footer">
+    <p-button [disabled]="!modeloFormMod.valid" label="{{globalConstants.cImprimir}}" icon="{{globalConstants.icoImpExcel}}" styleClass="p-button-success" (onClick)="onClickPrint()"></p-button>
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickModelPrintClose()"></p-button>
+  </ng-template>
+</p-dialog>
 
 
 <p-dialog *ngIf="isVisualizarArticulo" header="Artículo" [(visible)]="isVisualizarArticulo" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
@@ -614,14 +791,14 @@
 </p-dialog>
 
 <p-dialog *ngIf="isVisualizarCuentaContable" header="Cuentas" [(visible)]="isVisualizarCuentaContable" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
-  <app-busqueda-cuenta-contable (eventoAceptar)="onSelectedCuentaContable($event)"></app-busqueda-cuenta-contable>
+  <app-busqueda-cuenta-contable (eventoAceptar)="onClickSelectedCuentaContable($event)"></app-busqueda-cuenta-contable>
   <ng-template pTemplate="footer">
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseCuentaContable()"></p-button>
   </ng-template>
 </p-dialog>
 
 <p-dialog *ngIf="isVisualizarAlmacen" header="Almacén" [(visible)]="isVisualizarAlmacen" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
-  <app-busqueda-almacen-by-articulo [itemCode]="itemCode" [inactive]="inactiveAlmacenItem" (eventoAceptar)="onToAlmacenSelected($event)"></app-busqueda-almacen-by-articulo>
+  <app-busqueda-almacen-by-articulo [itemCode]="itemCode" [inactive]="inactiveAlmacenItem" (eventoAceptar)="onClickSelectedAlmacen($event)"></app-busqueda-almacen-by-articulo>
   <ng-template pTemplate="footer">
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseAlmacen()"></p-button>
   </ng-template>
@@ -634,13 +811,6 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog *ngIf="isVisualizarTipoOperacion" header="Tipo de operación" [(visible)]="isVisualizarTipoOperacion" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
-  <app-busqueda-tipo-operacion [title]="'Tipo de Operación'" [placeholder]="'Tipo de operación'" [nomTabla]="'OWTR'" [nomCampo]="'U_tipoOpT12'" (eventoAceptar)="onSelectedTipoOperacion($event)"></app-busqueda-tipo-operacion>
-  <ng-template pTemplate="footer">
-    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoOperacion()"></p-button>
-  </ng-template>
-</p-dialog>
-
 <p-dialog header="Seleccionar el archivo" *ngIf="isDisplayUpload" [(visible)]="isDisplayUpload" [modal]="true" [closable]="true" [autoZIndex] [style]="{width: '35vw'}">
   <div>
     <app-modal-subir-archivo [fileType]="''" (eventoAceptar)="onClickUpload($event)"></app-modal-subir-archivo>
@@ -650,7 +820,16 @@
   </div>
 </p-dialog>
 
+<p-dialog *ngIf="isDisplayVisor" header="ORDEN DE VENTA" [(visible)]="isDisplayVisor" [modal]="true" [style]="{width: '80vw'}" [autoZIndex] [maximizable]="true">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <app-modal-visor-pdf [isFile]="isDataBlob"></app-modal-visor-pdf>
+    </div>
+  </div>
+</p-dialog>
+
 
 <!-- MODAL: Proceso -->
 <app-panel-obtener [isDisplay]="isDisplay"></app-panel-obtener>
 <app-panel-guardar [isDisplay]="isSaving"></app-panel-guardar>
+<app-panel-generando-visor-pdf [isDisplay] = "isDisplayGenerandoVisor"></app-panel-generando-visor-pdf>

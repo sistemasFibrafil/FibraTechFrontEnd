@@ -35,7 +35,7 @@
               <div class="col-12 md:col-6" *ngIf="!isMainCurrency">
                 <label class="label-custom" for="float-input-tipo-cambio">Tipo cambio </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docRate" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSoc, 'docRate', 3, true)">
+                  <input id="float-input-docRate" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormSoc, 'docRate', 3, true)">
                 </div>
               </div>
             </div>
@@ -190,24 +190,15 @@
                     <td class="custom-td-numero" *ngIf="isItem">
                       {{modelo.priceBefDi | number: '.3':'en-EN'}}
                     </td>
-                    <td class="custom-td-numero" *ngIf="isItem">
-                      {{modelo.discPrcnt | number: '.2':'en-EN'}}
-                    </td>
-                    <td class="custom-td-numero" *ngIf="isItem">
-                      {{modelo.price | number: '.3':'en-EN'}}
-                    </td>
                     <td class="p-fluid">
                       {{modelo.taxCode}}
                     </td>
                     <td class="p-fluid">
-                      {{modelo.u_tipoOpT12Nam}}
+                      {{ utilService.getSelectItemLabel(operationsTypesList, modelo.u_tipoOpT12) }}
                     </td>
                     <td class="custom-td-numero">
                       {{modelo.lineTotal | number: '.2':'en-EN'}}
                     </td>
-                    <!-- <td class="custom-td-numero">
-                      {{modelo.vatSum | number: '.2':'en-EN'}}
-                    </td> -->
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage" let-columns>
@@ -458,15 +449,11 @@
               </ng-template>
               <form [formGroup]="modeloFormOtr">
                 <div class="p-fluid p-formgrid grid">
-                  <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-salesType">Tipo de venta </label>
-                    <p-dropdown id="float-input-salesType" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="salesTypeList" placeholder="Seleccione tipo de venta" formControlName="salesType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                  </div>
-                  <div class="col-12 md:col-4">
+                  <div class="col-12 md:col-6">
                     <label class="label-custom" for="float-input-reasonTransfer">Motivo de traslado </label>
                     <p-dropdown id="float-input-reasonTransfer" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="reasonTransferList" placeholder="Seleccione motivo de traslado" formControlName="reasonTransfer" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                   </div>
-                  <div class="col-12 md:col-4">
+                  <div class="col-12 md:col-6">
                     <label class="label-custom" for="float-input-u_u_BPP_MDOM">Otro motivo de traslado </label>
                     <div class="p-inputgroup">
                       <input id="float-input-u_BPP_MDOM" type="text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Otro motivo de traslado" maxlength="50" size="50" formControlName="u_BPP_MDOM" autocomplete="off" pInputText>
@@ -484,22 +471,22 @@
           <form [formGroup]="modeloFormSal">
             <div class="p-fluid p-formgrid grid">
               <div class="col-12 md:col-6">
-                <label class="label-custom" for="float-input-empleado-venta">Empleado de ventas </label>
-                <p-dropdown id="float-input-salesEmployees" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormSal.controls['salesEmployees'].errors && modeloFormSal.controls['salesEmployees'].dirty">
-                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesEmployees'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                <p-dropdown id="float-input-salesPersons" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="salesPersonsList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesPersons" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormSal.controls['salesPersons'].errors && modeloFormSal.controls['salesPersons'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesPersons'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_NBULTOS">N° bultos </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_FIB_NBULTOS" type="text" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="% Descuento" maxlength="20" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormSal, 'u_FIB_NBULTOS', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSal, 'u_FIB_NBULTOS', 2, true)">
+                  <input id="float-input-u_FIB_NBULTOS" type="text" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="% Descuento" maxlength="20" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormSal, 'u_FIB_NBULTOS', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormSal, 'u_FIB_NBULTOS', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_KG">Total kilos </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_FIB_KG" type="text" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Descuento" maxlength="20" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormSal, 'u_FIB_KG', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSal, 'u_FIB_KG', 2, true)">
+                  <input id="float-input-u_FIB_KG" type="text" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" placeholder="Descuento" maxlength="20" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormSal, 'u_FIB_KG', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormSal, 'u_FIB_KG', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-6">
@@ -538,13 +525,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-discPrcnt">% Dto. </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discPrcnt', 2, true)">
+                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discPrcnt', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-discSum">Descuento </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discSum', 2, true)">
+                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discSum', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-12">

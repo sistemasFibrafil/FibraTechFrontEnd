@@ -1,20 +1,20 @@
 <p-panel id="modal" header="Opciones de búsqueda" [toggleable]="true" [style]="{'margin-bottom':'20px'}">
-  <form [formGroup]="modeloFormBusqueda">
+  <form [formGroup]="modeloForm">
     <div class="grid p-fluid">
       <div class="col-12 md:col-6">
         <div class="p-inputgroup">
-          <input id="float-input-item" type="text" placeholder="Buscar por código o descripción" maxlength="100" size="50" formControlName="item" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+          <input id="float-input-searchText" type="text" placeholder="Buscar por código o descripción" maxlength="100" size="50" formControlName="searchText" autocomplete="off" pInputText (input)="onFiltroTexto()">
         </div>
       </div>
       <div class="col-12 md:col-6">
-        <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+        <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
       </div>
     </div>
   </form>
 </p-panel>
 <p-panel header="Lista de artículos" [toggleable]="true">
   <p-table
-  [value]="list"
+  [value]="modelo"
   [columns]="columnas"
   [rowHover]="true"
   [paginator]="true"
@@ -40,20 +40,17 @@
     <ng-template pTemplate="body" let-modelo let-editing="editing">
       <tr class="p-selectable-row" [pSelectableRow]="modelo">
         <td class="p-fluid">
-          <span class="p-column-title">Código: </span> {{modelo.itemCode}}
+          {{modelo.itemCode}}
         </td>
         <td class="p-fluid">
-          <span class="p-column-title">Nombre: </span> {{modelo.itemName}}
+          {{modelo.itemName}}
         </td>
         <td class="custom-td-numero">
-          <span class="p-column-title">Stock: </span> {{modelo.onHand | number: '.3':'en-EN'}}
+          {{modelo.onHand | number: '.3':'en-EN'}}
         </td>
-        <td class="custom-td-4">
-          <span class="p-column-title">Activo</span>
-          <span [ngSwitch] = "modelo.frozenFor">
-            <span class="label" style="background:#17a2b8" *ngSwitchCase = "'N'">Sí</span>
-            <span class="label" style="background:#dc3545" *ngSwitchCase = "'Y'">No</span>
-            <span class="label" *ngSwitchDefault></span>
+        <td class="custom-td-20">
+          <span class="label" [ngClass]="getActive(modelo).class">
+            {{ getActive(modelo).text }}
           </span>
         </td>
         <td class="custom-td-5">

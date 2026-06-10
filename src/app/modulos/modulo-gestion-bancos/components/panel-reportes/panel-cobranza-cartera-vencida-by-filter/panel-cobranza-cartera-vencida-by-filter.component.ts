@@ -13,8 +13,9 @@ import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service'
 import { ICobranzaCarteraVencidaByFilter } from 'src/app/modulos/modulo-gestion-bancos/interfaces/pago-recibido.interface';
 import { PagoRecibidoService } from 'src/app/modulos/modulo-gestion-bancos/services/pagoRecibido.service';
 import { PagoRecibidoByFilterFindModel } from '../../../models/pago-recibido.model';
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
+import { IBusinessPartnerGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/business-partner-groups.interface';
+import { BusinessPartnerGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/business-partner-groups.service';
+
 
 
 @Component({
@@ -36,7 +37,7 @@ export class PanelCobranzaCarteraVencidaByFilterComponent implements OnInit {
   isDisplay                     : boolean = false;
   columnas                      : any[];
   businessPartnerGroupSapList   : SelectItem[];
-  businessPartnerGroupSelected  : IGrupoSocioNegocioSap[];
+  businessPartnerGroupSelected  : IBusinessPartnerGroups[];
   reporteList                   : ICobranzaCarteraVencidaByFilter[];
   params                        : PagoRecibidoByFilterFindModel = new PagoRecibidoByFilterFindModel();
 
@@ -53,12 +54,12 @@ export class PanelCobranzaCarteraVencidaByFilterComponent implements OnInit {
 
   constructor
   (
-    private fb                              : FormBuilder,
-    private datePipe                        : DatePipe,
-    private readonly swaCustomService       : SwaCustomService,
-    private readonly accesoOpcionesService  : AccesoOpcionesService,
-    private grupoSocionegocioSapService     : GrupoSocionegocioSapService,
-    private PagoRecibidoService          : PagoRecibidoService
+    private fb: FormBuilder,
+    private datePipe: DatePipe,
+    private readonly swaCustomService: SwaCustomService,
+    private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly pagoRecibidoService: PagoRecibidoService,
+    private readonly businessPartnerGroupsService: BusinessPartnerGroupsService
   ) {}
 
   ngOnInit() {
@@ -103,8 +104,8 @@ export class PanelCobranzaCarteraVencidaByFilterComponent implements OnInit {
 
   getListbusinessPartnerGroupAll() {
     const param: any = { groupType: 'C' };
-    this.grupoSocionegocioSapService.getListByGroupType(param)
-    .subscribe({next:(data: IGrupoSocioNegocioSap[]) =>{
+    this.businessPartnerGroupsService.getListByGroupType(param)
+    .subscribe({next:(data: IBusinessPartnerGroups[]) =>{
         this.businessPartnerGroupSapList = [];
         this.businessPartnerGroupSelected = [];
 
@@ -142,7 +143,7 @@ export class PanelCobranzaCarteraVencidaByFilterComponent implements OnInit {
     this.mas_60_Dias    = 0;
 
     this.onSetParametro();
-    this.PagoRecibidoService.getListCobranzaCarteraVencidaByFilter(this.params)
+    this.pagoRecibidoService.getListCobranzaCarteraVencidaByFilter(this.params)
     .subscribe({next:(data: ICobranzaCarteraVencidaByFilter[]) =>{
       if(data)
       {
@@ -172,7 +173,7 @@ export class PanelCobranzaCarteraVencidaByFilterComponent implements OnInit {
   onToExcel() {
     this.isDisplay = true;
     this.onSetParametro();
-    this.PagoRecibidoService.getCobranzaCarteraVencidaByFilterExcel(this.params)
+    this.pagoRecibidoService.getCobranzaCarteraVencidaByFilterExcel(this.params)
     .subscribe({next:(response: any) => {
       saveAs(
         new Blob([response],

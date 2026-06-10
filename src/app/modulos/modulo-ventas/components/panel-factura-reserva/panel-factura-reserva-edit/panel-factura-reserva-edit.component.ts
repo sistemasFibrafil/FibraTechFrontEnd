@@ -5,38 +5,40 @@ import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms'
 import { Subject, forkJoin, of, takeUntil, Subscription, Observable, merge, EMPTY, from } from 'rxjs';
 import { catchError, switchMap, map, finalize, tap, take, filter, distinctUntilChanged } from 'rxjs/operators';
 
-import { GlobalsConstantsForm } from '../../../../../constants/globals-constants-form';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
 import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { InvoiceUpdateModel } from '../../../models/sap-business-one/invoice.model';
-import { ItemsFindByListCodeModel } from '../../../../modulo-inventario/models/items.model';
+import { ItemsFindByListCodeModel } from '@app/modulos/modulo-inventario/models/items.model';
+import { InvoiceUpdateModel } from '@app/modulos/modulo-ventas/models/sap-business-one/invoice.model';
 
 import { TableColumn } from 'src/app/interface/common-ui.interface';
 import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
 import { IAddresses } from 'src/app/modulos/modulo-socios-negocios/interfaces/addresses.interface';
-import { IInvoice1Query, IInvoiceQuery } from '../../../interfaces/sap-business-one/invoice.interface';
 import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
 import { IBusinessPartnersQuery } from 'src/app/modulos/modulo-socios-negocios/interfaces/business-partners.interface';
-import { ITaxGroups } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/impuesto-sap.iterface';
+import { IInvoice1Query, IInvoiceQuery } from '@app/modulos/modulo-ventas/interfaces/sap-business-one/invoice.interface';
+import { ITaxGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/tax-groups.iterface';
 import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
 import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
 import { IUserDefinedFields } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
-import { IPaymentTermsTypes } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/condicion-pago-sap.interface';
+import { IPaymentTermsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/payment-terms-types.interface';
 
 import { UtilService } from 'src/app/services/util.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
 import { UserContextService } from 'src/app/services/user-context.service';
-import { SwaCustomService } from '../../../../../services/swa-custom.service';
-import { InvoicesService } from '../../../services/sap-business-one/invoices.service';
 import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
 import { AddressesService } from 'src/app/modulos/modulo-socios-negocios/services/addresses.service';
+import { InvoicesService } from '@app/modulos/modulo-ventas/services/sap-business-one/invoices.service';
 import { BusinessPartnersService } from 'src/app/modulos/modulo-socios-negocios/services/business-partners.service';
 import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
-import { TaxGroupsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/impuesto-sap.service';
+import { TaxGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/tax-groups.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 import { DocumentTypeSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-type-sunat.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
-import { PaymentTermsTypesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/paymentTerms-types.service';
+import { PaymentTermsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/payment-terms-types.service';
 
 
 
@@ -51,7 +53,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
   // Lifecycle management
   private readonly destroy$                     = new Subject<void>();
   private taxGroupSubscription                  : Subscription | null = null;
-  private shipAddressSubscription               : Subscription | null = null;
+  private agenciaLoadSubscription               : Subscription | null = null;
 
   // Titulo del componente
   titulo                                        = 'Factura de Reserva';
@@ -66,7 +68,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
   modeloFormFin                                 : FormGroup;
   modeloFormAge                                 : FormGroup;
   modeloFormExp                                 : FormGroup;
-  modeloFormOtr                                 : FormGroup;
   modeloFormSal                                 : FormGroup;
   modeloFormTot                                 : FormGroup;
 
@@ -92,12 +93,12 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
 
   currencyList                                  : SelectItem[] = [];
   docTypesList                                  : SelectItem[] = [];
-  salesTypeList                                 : SelectItem[] = [];
   payAddressList                                : SelectItem[] = [];
   shipAddressList                               : SelectItem[] = [];
-  freightTypeList                               : SelectItem[] = [];
+  freightTypesList                              : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
   agencyAddressList                             : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
   documentTypeSunatList                         : SelectItem[] = [];
   paymentsTermsTypesList                        : SelectItem[] = [];
 
@@ -142,12 +143,16 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
     private readonly exchangeRatesService: ExchangeRatesService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly businessPartnersService: BusinessPartnersService,
     private readonly paymentTermsTypesService: PaymentTermsTypesService,
     private readonly documentTypeSunatService: DocumentTypeSunatService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     public  readonly utilService: UtilService,
   ) {}
+
+
+  //#region <<< 1. LIFECYCLE >>>
 
   ngOnInit() {
     this.initializeComponent();
@@ -158,9 +163,12 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ===========================
-  // 2. Initialization
-  // ===========================
+  //#endregion
+
+
+
+  //#region <<< 2. INITIALIZATION >>>
+
   private initializeComponent(): void {
     // 1️⃣ Inicializa UI
     this.buildForms();
@@ -170,19 +178,18 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
 
     // 3️⃣ Registrar listeners reactivos
     this.wireTipoControl();
+    this.wireCurrencyControl();
     this.wireNumAtCardBuilder();
     this.wireDiscountControls();
     this.wirePayAddressControl();
+    this.wireShipAddressControl();
     this.wireAgencyAddressControl();
 
     // 4️⃣ Inicializar UI
-    this.onBuildColumn();
-
-    // 5️⃣ Inicializar líneas
-    this.addLine(0);
+    this.buildColumns();
   }
 
-  buildForms() {
+  private buildForms() {
     // CABECERA - Datos del cliente y moneda
     this.modeloFormSoc = this.fb.group({
       cardCode            : new FormControl({ value: '', disabled: false }, Validators.required),
@@ -205,7 +212,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     });
     // FINANZAS
     this.modeloFormCon = this.fb.group({
-      docType             : new FormControl('', Validators.required),
+      docTypes            : new FormControl('', Validators.required),
     });
     // LOGÍSTICA - Direcciones
     this.modeloFormLog = this.fb.group({
@@ -234,13 +241,9 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       u_FIB_IMPSEG        : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
       u_FIB_PUERTO        : new FormControl(''),
     });
-    // OTROS
-    this.modeloFormOtr = this.fb.group({
-      salesType           : new FormControl('', Validators.required),
-    });
     // PIE - Información adicional y totales
     this.modeloFormSal = this.fb.group({
-      salesEmployees      : new FormControl('', Validators.required),
+      salesPersons        : new FormControl('', Validators.required),
       u_NroOrden          : new FormControl(''),
       u_OrdenCompra       : new FormControl(''),
       comments            : new FormControl(''),
@@ -257,64 +260,8 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     this.mainCurncy = this.userContextService.getMainCurncy();
   }
 
-  onBuildColumn() {
-    // Usar docTypeSelected si está disponible, sino leer del formulario
-    const docTypeValue = this.modeloFormCon.get('docType')?.value?.value;
-    const isItemDoc         = docTypeValue === 'I';
-
-    if(isItemDoc){
-      this.columnas = [
-        { field: 'itemCode',        header: 'Código' },
-        { field: 'dscription',      header: 'Descripción' },
-        { field: 'whsCode',         header: 'Almacén' },
-        { field: 'unitMsr',         header: 'UM' },
-        { field: 'onHand',          header: 'Stock' },
-        { field: 'quantity',        header: 'Cantidad' },
-        { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
-        { field: 'taxCode',         header: 'Impuesto' },
-        { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
-        { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
-      ];
-    }
-    else{
-      this.columnas = [
-        { field: 'dscription',      header: 'Descripción' },
-        { field: 'formatCode',      header: 'Cuenta mayor' },
-        { field: 'acctName',        header: 'Nombre de la cuenta de mayor' },
-        { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
-        { field: 'taxCode',         header: 'Impuesto' },
-        { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
-        { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
-      ];
-    }
-  }
-
-  // ===========================
-  // Helper Methods
-  // ===========================
-
-  private updateHasValidLines(): void {
-    const docTypeValue = this.modeloFormCon.getRawValue().docType?.value;
-    const isItemDoc = docTypeValue === 'I';
-
-    this.hasValidLines =
-    this.modeloLines.length > 0 &&
-    this.modeloLines.every(line =>
-      isItemDoc
-        ? !!line.itemCode?.trim()
-        : !!line.dscription?.trim()
-    );
-  }
-
   private loadAllCombos(): void {
     this.idUsuario                          = this.userContextService.getIdUsuario();
-    const paramSalesType                    : any = { tableID: 'ORDR', aliasID: 'STR_TVENTA' };
     const paramFreightType                  : any = { tableID: 'OINV', aliasID: 'TipoFlete' };
     const paramdocumentTypeSunat            : any = { u_FIB_ENTR: '', u_FIB_FAVE: 'Y', u_FIB_TRAN: '' };
 
@@ -327,14 +274,14 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     const defaultDocType = this.docTypesList.find(x => x.value === 'I');
     if (defaultDocType) {
       this.docTypeSelected   = defaultDocType;
-      this.modeloFormCon.get('docType').setValue(defaultDocType, { emitEvent: false });
-      this.onBuildColumn();
+      this.modeloFormCon.get('docTypes').setValue(defaultDocType, { emitEvent: false });
+      this.buildColumns();
     }
 
     forkJoin({
-      salesType                     : this.camposDefinidoUsuarioService.getList(paramSalesType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      freightType                   : this.camposDefinidoUsuarioService.getList(paramFreightType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      salesEmployees                : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      freightType                   : this.userDefinedFieldsService.getList(paramFreightType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      salesPersons                  : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      operationsTypes               : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
       documentTypeSunat             : this.documentTypeSunatService.getListByType(paramdocumentTypeSunat),
       paymentsTermsTypes            : this.paymentTermsTypesService.getList().pipe(catchError(() => of([] as IPaymentTermsTypes[]))),
     })
@@ -344,11 +291,11 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          this.salesTypeList                    = (res.salesType || []).map(item => ({ label: item.descr, value: item.fldValue }));
-          this.freightTypeList                  = (res.freightType || []).map(item => ({ label: item.descr, value: item.fldValue }));
-          this.salesEmployeesList               = (res.salesEmployees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
-          this.documentTypeSunatList            = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
-          this.paymentsTermsTypesList           = (res.paymentsTermsTypes || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
+          this.freightTypesList         = (res.freightType || []).map(item => ({ label: item.descr, value: item.fldValue }));
+          this.salesPersonsList         = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+          this.operationsTypesList      = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
+          this.documentTypeSunatList    = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
+          this.paymentsTermsTypesList   = (res.paymentsTermsTypes || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
 
           this.loadData();
         },
@@ -357,6 +304,650 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
         }
       });
   }
+
+  private buildColumns() {
+    if(this.isItem){
+      this.columnas = [
+        { field: 'itemCode',        header: 'Código' },
+        { field: 'dscription',      header: 'Descripción' },
+        { field: 'whsCode',         header: 'Almacén' },
+        { field: 'unitMsr',         header: 'UM' },
+        { field: 'onHand',          header: 'Stock' },
+        { field: 'quantity',        header: 'Cantidad' },
+        { field: 'priceBefDi',      header: 'Precio' },
+        { field: 'taxCode',         header: 'Impuesto' },
+        { field: 'u_tipoOpT12',     header: 'Tipo de operación' },
+        { field: 'lineTotal',       header: 'Total' },
+      ];
+    }
+    else{
+      this.columnas = [
+        { field: 'dscription',      header: 'Descripción' },
+        { field: 'formatCode',      header: 'Cuenta mayor' },
+        { field: 'acctName',        header: 'Nombre de la cuenta de mayor' },
+        { field: 'priceBefDi',      header: 'Precio' },
+        { field: 'taxCode',         header: 'Impuesto' },
+        { field: 'u_tipoOpT12',     header: 'Tipo de operación' },
+        { field: 'lineTotal',       header: 'Total' },
+      ];
+    }
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 3. GETTERS >>>
+
+  private get docTypes(): string {
+    return this.modeloFormCon.get('docTypes')?.value?.value;
+  }
+
+  get isItem(): boolean {
+    return this.docTypes === 'I';
+  }
+
+  get isService(): boolean {
+    return this.docTypes === 'S';
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 4. LINES (CORE) >>>
+
+  private updateHasValidLines(): void {
+    this.hasValidLines =
+      this.modeloLines.length > 0 &&
+      !this.hasEmptyLine();
+  }
+
+  private hasEmptyLine(): boolean {
+    return this.modeloLines.some(line => !this.hasData(line));
+  }
+
+  private hasData(line: any): boolean {
+    const p = (v: any) => this.utilService.normalizePrimitive(v);
+
+    return this.isItem
+      ? !!p(line.itemCode)
+      : !!p(line.dscription);
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 5. DOCUMENTO >>>
+
+  private wireTipoControl(): void {
+    const tipoCtrl = this.modeloFormDoc.get('u_BPP_MDTD');
+
+    tipoCtrl?.valueChanges
+    .pipe(
+      takeUntil(this.destroy$),
+      // 🔥 evitar repetir mismo valor
+      distinctUntilChanged((a, b) => (a?.value ?? a) === (b?.value ?? b))
+    )
+    .subscribe((selected) => {
+
+      const tipoVal = selected?.value ?? '';
+
+      // 🔥 actualizar variables internas
+      this.u_BPP_NDTD = tipoVal;
+      this.u_BPP_NDSD = '';
+
+      // 🔥 limpiar sin disparar eventos globales
+      this.modeloFormDoc.patchValue({
+        u_BPP_MDSD: '',
+        u_BPP_MDCD: ''
+      }, { emitEvent: false });
+
+      // 🔥 control manual (más eficiente)
+      this.buildNumAtCard();
+      this.detectRealChanges();
+    });
+  }
+
+  onClickSelectedSerieDocumento(value: any): void {
+    this.modeloFormDoc.patchValue({
+      u_BPP_MDSD: value.u_BPP_NDSD,
+      u_BPP_MDCD: value.u_BPP_NDCD
+    }, { emitEvent: true });
+  }
+
+  private wireNumAtCardBuilder(): void {
+    this.modeloFormDoc.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() => this.buildNumAtCard());
+  }
+
+  private buildNumAtCard(): void {
+    const tipoCtrl   = this.modeloFormDoc.get('u_BPP_MDTD');
+    const serieCtrl  = this.modeloFormDoc.get('u_BPP_MDSD');
+    const numeroCtrl = this.modeloFormDoc.get('u_BPP_MDCD');
+
+    if (!tipoCtrl || !serieCtrl || !numeroCtrl) return;
+
+    const tipoRaw   = tipoCtrl.value;
+    const serieRaw  = serieCtrl.value;
+    const numeroRaw = numeroCtrl.value;
+
+    const tipoVal =
+      typeof tipoRaw === 'object'
+        ? (tipoRaw?.value ?? '')
+        : (tipoRaw ?? '');
+
+    const serieVal  = serieRaw ?? '';
+    const numeroVal = numeroRaw ?? '';
+
+    // 🔥 evitar basura
+    if (!tipoVal && !serieVal && !numeroVal) {
+      this.modeloFormSoc.patchValue({ numAtCard: '' }, { emitEvent: false });
+      return;
+    }
+
+    const numAtCard = [tipoVal, serieVal, numeroVal]
+      .filter(v => v)
+      .join('-');
+
+    // 🔥 evitar patch innecesario
+    const current = this.modeloFormSoc.get('numAtCard')?.value;
+    if (current === numAtCard) return;
+
+    this.modeloFormSoc.patchValue(
+      { numAtCard },
+      { emitEvent: false }
+    );
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 6. CURRENCY / TIPO CAMBIO >>>
+
+  private fetchTipoCambioRate(currCode: any): Observable<IExchangeRates | null> {
+    const docDate: Date = this.modeloFormDoc?.controls['docDate']?.value;
+    const currency      = String(currCode || '').trim().toUpperCase();
+    const sysCurrncy    = this.userContextService.getSysCurrncy();
+
+    const params: any = { rateDate: this.utilService.normalizeDateOrToday(docDate), currency: currency, sysCurrncy: sysCurrncy };
+    return this.exchangeRatesService.getByDocDateAndCurrency(params)
+      .pipe(
+        map((data: IExchangeRates) => data ?? null),
+        catchError(() => of(null))
+      );
+  }
+
+  get isMainCurrency(): boolean {
+    return !this.currency || this.currency === '##' || this.currency === this.mainCurncy;
+  }
+
+  get currencyColClass(): string {
+    return this.isMainCurrency ? 'col-12 md:col-12' : 'col-12 md:col-6';
+  }
+
+  private loadTipoCambio(currCode: any) {
+    this.isDisplay = true;
+    return this.fetchTipoCambioRate(currCode).pipe(
+      takeUntil(this.destroy$),
+      tap((data: IExchangeRates | null) => {
+        //Determinar tipo de cambio según la moneda seleccionada
+        const safeRate  = currCode === this.mainCurncy ? data?.sysRate ?? 0 : data?.rate ?? 0;
+        // Tipo de cambio del sistema
+        this.sysRate    = data?.sysRate ?? 0;
+
+        const formattedRate = this.utilService.onRedondearDecimalConCero(safeRate, 3);
+
+        this.modeloFormSoc.patchValue({ docRate: formattedRate }, { emitEvent: false });
+      }),
+
+      catchError((e) => {
+        this.utilService.handleErrorSingle(e, 'loadTipoCambio', this.swaCustomService);
+        return of(null);
+      }),
+
+      finalize(() => { this.isDisplay = false; })
+    );
+  }
+
+  private valTipoCambio() {
+    const selected  : any     = this.modeloFormSoc.controls['currency']?.value;
+    const rate      : number  = Number(this.modeloFormSoc.controls['docRate'].value) || 0;
+
+    if (!selected)
+    {
+      this.swaCustomService.swaMsgInfo('Seleccione la moneda.');
+      return false;
+    }
+
+    const currCode = selected?.value ?? null;
+
+    if (!currCode) return false;
+
+    // Si la moneda es la misma que la moneda principal, el tipo de cambio se debe validar contra sysRate
+    if (currCode && currCode.toUpperCase() === String(this.mainCurncy || '').trim().toUpperCase()) {
+      if (this.sysRate === 0) {
+        this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
+        return false;
+      }
+    }
+
+    // Si la moneda es diferente a la moneda principal, el tipo de cambio se debe validar contra rate
+    if (rate === 0) {
+      this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private refreshAfterCurrencyChange(): void {
+    this.loadTipoCambio(this.currency)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(() => {
+      this.calculateTotals();
+    });
+  }
+
+  private wireCurrencyControl(): void {
+    this.modeloFormSoc.get('currency')?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(selected => {
+
+      if (!selected) return;
+
+      this.currency = selected?.value || '';
+
+      this.refreshAfterCurrencyChange(); // 🔥 limpio
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 7. ADDRESS / LOGÍSTICA >>>
+
+  private wireShipAddressControl(): void {
+    this.modeloFormLog.get('shipAddress')?.valueChanges
+    .pipe(
+      takeUntil(this.destroy$),
+
+      switchMap((selected) => {
+        debugger;
+        if (!selected) return EMPTY;
+
+        const address = selected.value;
+
+        const linesWithData = this.modeloLines.filter(l => this.hasData(l));
+
+        const hasLines = linesWithData.length > 0;
+
+        return this.loadAddress(this.cardCode, address, 'S').pipe(
+          tap((fullAddress: string | null) => {
+            if (fullAddress !== null && fullAddress !== undefined) {
+              this.modeloFormLog.patchValue(
+                { address2: fullAddress },
+                { emitEvent: false }
+              );
+            }
+          }),
+
+          switchMap(() => {
+            if (!hasLines) {
+              return this.loadTaxGroup(this.cardCode, address).pipe(
+                tap((taxGroup) => {
+                  this.taxCode  = taxGroup?.code ?? '';
+                  this.vatPrcnt = taxGroup?.rate ?? 0;
+                })
+              );
+            }
+
+            return from(
+              this.swaCustomService.swaConfirmation(
+                this.globalConstants.titleChangeTaxGroup,
+                this.globalConstants.subTitleChangeTaxGroup,
+                this.globalConstants.icoSwalQuestion
+              )
+            ).pipe(
+              switchMap((result: any) => {
+                if (!result?.isConfirmed) return EMPTY;
+                return this.loadTaxGroup(this.cardCode, address).pipe(
+                  tap((taxGroup) => this.applyTaxToDocument(taxGroup))
+                );
+              })
+            );
+          }),
+          catchError((e) => {
+            this.utilService.handleErrorSingle(e, 'wireShipAddressControl', this.swaCustomService);
+            return EMPTY;
+          })
+        );
+      })
+    )
+    .subscribe();
+  }
+
+  private wirePayAddressControl(): void {
+    this.modeloFormLog.get('payAddress')?.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(selected => !!selected?.value),
+        switchMap(selected =>
+          this.loadAddress(this.cardCode, selected.value, 'B')
+        )
+      )
+      .subscribe({
+        next: (fullAddress) => {
+          if (fullAddress) {
+            this.modeloFormLog.patchValue(
+              { address: fullAddress },
+              { emitEvent: false }
+            );
+          }
+        },
+        error: (e) => {
+          this.utilService.handleErrorSingle(e, 'wirePayAddressControl', this.swaCustomService);
+        }
+      });
+  }
+
+  private loadAddress(cardCode: string, address: string, adresType: string): Observable<string | null> {
+    const params = { cardCode, address, adresType };
+
+    return this.addressesService.getByCode(params).pipe(
+      takeUntil(this.destroy$),
+      map((data: IAddresses) => data?.fullAddress ?? null),
+      catchError((e) => {
+        this.utilService.handleErrorSingle(e, 'loadAddress', this.swaCustomService);
+        return of(null);
+      })
+    );
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 8. TAX / IMPUESTOS >>>
+
+  private loadTaxGroup(cardCode: string, address: string): Observable<ITaxGroups | null> {
+    const formConValues = this.modeloFormSal.getRawValue();
+    const slpCode = formConValues.salesPersons?.value || formConValues.salesPersons || -1;
+
+    const params = { cardCode, address, slpCode };
+
+    return this.taxGroupsService
+    .getByCardCode(params)
+    .pipe(
+      takeUntil(this.destroy$),
+      map((data: ITaxGroups) => data ?? null),
+      catchError((e) => {
+        this.utilService.handleErrorSingle(e, 'loadTaxGroup', this.swaCustomService);
+        return of(null);
+      })
+    );
+  }
+
+  private applyTaxToDocument(tax: ITaxGroups | null): void {
+    this.taxCode  = tax?.code ?? '';
+    this.vatPrcnt = tax?.rate ?? 0;
+
+    // ✅ Refrescar taxCode/vatPrcnt en líneas ya cargadas (si aplica)
+    for (let i = 0; i < this.modeloLines.length; i++) {
+      const line = this.modeloLines[i];
+
+      const hasData = this.hasData(line);
+
+      if (!hasData) continue;
+
+      line.taxCode  = this.taxCode;
+      line.vatPrcnt = this.vatPrcnt;
+
+      this.calculateTotalLine(line, i);
+    }
+
+    this.calculateTotals();
+  }
+
+  //#endregion
+
+
+  //#region <<< 9. AGENCY >>>
+
+  onClickCleanAgencia(): void {
+    Object.keys(this.modeloFormAge.controls).forEach(key => {
+      this.modeloFormAge.get(key)?.setValue('');
+    });
+
+    this.u_BPP_MDCT = '';
+  }
+
+  onSelectedAgencia(value) {
+    // garantizar orden: limpiar controles primero, luego iniciar la carga
+    this.onClickCleanAgencia();
+
+    // cancelar cualquier carga previa pendiente
+    if (this.agenciaLoadSubscription) {
+      this.agenciaLoadSubscription.unsubscribe();
+      this.agenciaLoadSubscription = null;
+    }
+
+    // iniciar nueva carga y guardar la suscripción para posible cancelación
+    this.agenciaLoadSubscription = this.loadAgenciaByCode(value.cardCode)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
+  private loadAgenciaByCode(cardCode: string): Observable<any> {
+    this.isDisplay = true;
+    return this.businessPartnersService
+    .getByCode(cardCode).pipe(
+      takeUntil(this.destroy$),
+      tap(agencia => {
+        this.u_BPP_MDCT    = agencia.cardCode;
+        this.modeloFormAge.patchValue({ 'u_BPP_MDCT': agencia.cardCode, 'u_BPP_MDRT': agencia.licTradNum, 'u_BPP_MDNT': agencia.cardName }, { emitEvent: false });
+      }),
+      map((agencia: IBusinessPartnersQuery) => ({
+        agencia,
+        shipAddr: agencia.shipAddressLines ?? []
+      })),
+      // Actualizamos listas y preselecciones sin disparar eventos
+      tap(({ shipAddr, agencia }) => {
+        this.agencyAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d.address }));
+        debugger;
+        // Selección por defecto de direcciones y otros campos
+        const defaultShipItem = this.agencyAddressList.find(it => it.value === agencia.shipToDef) || null;
+        if (defaultShipItem) {
+          this.modeloFormAge.patchValue({ agencyAddress: defaultShipItem }, { emitEvent: false });
+        }
+      }),
+      // Encadenar las cargas dependientes y esperar a que terminen
+      switchMap(({ shipAddr, agencia }) => {
+        const tasks: Observable<any>[] = [];
+
+        const defaultShip = (shipAddr || []).find((d: IAddresses) => d.address === agencia.shipToDef);
+        if (defaultShip) {
+          tasks.push(
+            this.loadAddressAgency(agencia.cardCode, agencia.shipToDef, 'S').pipe(
+              tap((street: string | null) => {
+                if (street !== null && street !== undefined) {
+                  this.modeloFormAge.patchValue({ u_BPP_MDDT: street }, { emitEvent: false });
+                }
+              })
+            )
+          );
+        }
+
+        if (tasks.length === 0) return of({ shipAddr, agencia });
+        return forkJoin(tasks).pipe(map(() => ({ shipAddr, agencia })));
+      }),
+      catchError(e => {
+        this.utilService.handleErrorSingle(e, 'loadAgenciaByCode', this.swaCustomService);
+        return of(null);
+      }),
+      finalize(() => { this.isDisplay = false; })
+    );
+  }
+
+  private loadAddressAgency(cardCode: string, address: string, adresType: string): Observable<string | null> {
+    const params = { cardCode, address, adresType };
+
+    return this.addressesService.getByCode(params).pipe(
+      takeUntil(this.destroy$),
+      map((data: IAddresses) => data?.street ?? null),
+      catchError((e) => {
+        this.utilService.handleErrorSingle(e, 'loadAddressAgency', this.swaCustomService);
+        return of(null);
+      })
+    );
+  }
+
+  private wireAgencyAddressControl(): void {
+    this.modeloFormAge.get('agencyAddress')?.valueChanges
+    .pipe(
+      takeUntil(this.destroy$),
+      filter(selected => !!selected),
+      switchMap(selected => {
+
+        debugger;
+
+        const address = selected.value;
+
+        return this.loadAddressAgency(this.u_BPP_MDCT, address, 'S');
+      })
+    )
+    .subscribe({
+      next: (street) => {
+        if (street !== null && street !== undefined) {
+          this.modeloFormAge.patchValue({ u_BPP_MDDT: street }, { emitEvent: false });
+        }
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'wireAgencyAddressControl', this.swaCustomService);
+      }
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 14. ARTÍCULO >>>
+
+  onClickOpenArticulo(index: number) {
+    if (!this.valTipoCambio()) return;
+    this.indexArticulo = index;
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  onClickSelectedArticulo(value: IArticulo) {
+    this.getListByCode(value.itemCode, this.indexArticulo);
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  private mapToOrderLine(element: any): IInvoice1Query {
+    /** helpers para evitar repetición */
+    const u          = this.utilService;
+    const p          = (v:any)=>u.normalizePrimitive(v);
+    const n          = (v:any)=>u.normalizeNumber(v);
+    const val        = (v:any)=>v?.value ?? v;
+
+    const f           = this.modeloFormSoc.getRawValue();
+
+    return {
+      itemCode       : p(element.itemCode),
+      dscription     : p(element.itemName),
+      whsCode        : p(element.dfltWH),
+      unitMsr        : p(element.salUnitMsr),
+      onHand         : n(element.onHand),
+      currency       : p(val(f.currency)),
+      priceBefDi     : n(element.priceBefDi),
+      discPrcnt      : n(element.discPrcnt),
+      price          : n(element.price),
+      taxCode        : p(this.taxCode),
+      vatPrcnt       : n(this.vatPrcnt),
+      u_tipoOpT12    : p(element.u_tipoOpT12),
+      u_tipoOpT12Nam : p(element.u_tipoOpT12Nam),
+      quantity       : 1,
+      openQty        : 1,
+    };
+  }
+
+  private setItem(data: any, index: number): void {
+    const element = data[0];
+
+    const newItem = this.utilService.mapLine(
+      this.mapToOrderLine(element)
+    );
+
+    this.modeloLines = this.modeloLines.map((line, i) => {
+      if (i !== index) return line;
+
+      return {
+        ...line,
+        ...newItem,
+        record: line.record === 1 ? 1 : 2
+      };
+    });
+
+    this.calculateTotalLine(this.modeloLines[index], index);
+    this.calculateTotals();
+
+    this.updateHasValidLines();
+  }
+
+  private getListByCode(itemCode: string, index: number): void {
+    this.isDisplay = true;
+
+    this.itemsService
+    .getListByCode(this.buildFilterParams(itemCode))
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplay = false;
+      })
+    )
+    .subscribe({
+      next: (data: any[]) => {
+        if (!data || data.length === 0) {
+          this.swaCustomService.swaMsgError('Artículo no encontrado');
+          return;
+        }
+
+        this.setItem(data, index);
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
+      }
+    });
+  }
+
+  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
+    return {
+      itemCode,
+      cardCode            : this.modeloFormSoc.get('cardCode')?.value ?? '',
+      currency            : this.currency,
+      operationTypeCode   : '01',
+      warehouseType       : 'P'
+    };
+  }
+
+  onDescChange(value: IInvoice1Query) {
+    if (!this.valTipoCambio())
+      {
+        value.dscription = '';
+        return;
+      };
+    this.updateHasValidLines();
+  }
+
+  //#endregion
+
+
 
   private loadData(): void {
     this.route.params
@@ -447,7 +1038,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     this.docTypeSelected = docTypeItem;
 
     this.modeloFormCon.patchValue(
-      { docType: docTypeItem || null },
+      { docTypes: docTypeItem || null },
       { emitEvent: false }
     );
 
@@ -495,7 +1086,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     );
 
     // EXPORTACIÓN
-    const freightTypeItem = this.freightTypeList.find(item => item.value === value.u_TipoFlete);
+    const freightTypeItem = this.freightTypesList.find(item => item.value === value.u_TipoFlete);
 
     this.modeloFormExp.patchValue(
       {
@@ -508,21 +1099,13 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       { emitEvent: false }
     );
 
-    // OTROS
-    const salesTypeItem = this.salesTypeList.find(item => item.value === value.u_STR_TVENTA);
-
-    this.modeloFormOtr.patchValue(
-      { salesType: salesTypeItem || null },
-      { emitEvent: false }
-    );
-
     // EMPLEADO
-    const slpCodeItem = this.salesEmployeesList.find(item => item.value === value.slpCode);
+    const salesPersonsItem = this.salesPersonsList.find(item => item.value === value.slpCode);
 
     // ✅ PATCH SAL (tu bloque original)
     this.modeloFormSal.patchValue(
       {
-        salesEmployees: slpCodeItem || null,
+        salesPersons  : salesPersonsItem || null,
         u_NroOrden    : this.utilService.normalizePrimitive(value.u_NroOrden),
         u_OrdenCompra : this.utilService.normalizePrimitive(value.u_OrdenCompra),
         comments      : this.utilService.normalizePrimitive(value.comments)
@@ -568,7 +1151,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     // =========================================================================
     // SEGUNDO BLOQUE: Cargar modeloLines después de que los formularios estén actualizados
     // =========================================================================
-    this.onBuildColumn();
+    this.buildColumns();
     this.modeloLines = value.lines || [];
     this.updateHasValidLines();
 
@@ -584,7 +1167,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       fin  : this.modeloFormFin.getRawValue(),
       age  : this.modeloFormAge.getRawValue(),
       exp  : this.modeloFormExp.getRawValue(),
-      otr  : this.modeloFormOtr.getRawValue(),
       sal  : this.modeloFormSal.getRawValue(),
       tot  : this.modeloFormTot.getRawValue(),
       lines: structuredClone(this.modeloLines)
@@ -597,7 +1179,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     this.modeloFormFin.markAsPristine();
     this.modeloFormAge.markAsPristine();
     this.modeloFormExp.markAsPristine();
-    this.modeloFormOtr.markAsPristine();
     this.modeloFormSal.markAsPristine();
     this.modeloFormTot.markAsPristine();
 
@@ -627,7 +1208,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       this.modeloFormFin.valueChanges,
       this.modeloFormAge.valueChanges,
       this.modeloFormExp.valueChanges,
-      this.modeloFormOtr.valueChanges,
       this.modeloFormSal.valueChanges,
       this.modeloFormTot.valueChanges
     )
@@ -646,7 +1226,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     this.modeloFormFin.valid &&
     this.modeloFormAge.valid &&
     this.modeloFormExp.valid &&
-    this.modeloFormOtr.valid &&
     this.modeloFormSal.valid &&
     this.modeloFormTot.valid &&
     this.modeloLines.length > 0;
@@ -689,11 +1268,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       this.initialSnapshot.exp
     );
 
-    const otrChanged = this.utilService.hasFormChanged(
-      this.modeloFormOtr,
-      this.initialSnapshot.otr
-    );
-
     const salChanged = this.utilService.hasFormChanged(
       this.modeloFormSal,
       this.initialSnapshot.sal
@@ -704,7 +1278,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       this.initialSnapshot.tot
     );
 
-    const formChanged = socChanged || docChanged || logChanged || finChanged || ageChanged || expChanged || otrChanged || salChanged || totChanged;
+    const formChanged = socChanged || docChanged || logChanged || finChanged || ageChanged || expChanged || salChanged || totChanged;
 
      // =========================
     // 2️⃣ LÍNEAS NUEVAS (record = 1)
@@ -759,347 +1333,11 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       hasUpdatedLines;
   }
 
-  //#region <<< MODAL: CLIENTE >>>
-
-  get isMainCurrency(): boolean {
-    return !this.currency || this.currency === '##' || this.currency === this.mainCurncy;
-  }
-
-  get currencyColClass(): string {
-    return this.isMainCurrency ? 'col-12 md:col-12' : 'col-12 md:col-6';
-  }
-
-  /**
-   * Reutilizable: devuelve únicamente el valor numérico del tipo de cambio (o null).
-   * No tiene side-effects sobre el formulario ni indicadores.
-   */
-  private fetchTipoCambioRate(currCode: any): Observable<IExchangeRates | null> {
-    const docDate: Date = this.modeloFormDoc?.controls['docDate']?.value;
-    const currency      = String(currCode || '').trim().toUpperCase();
-    const sysCurrncy    = this.userContextService.getSysCurrncy();
-
-    const params: any = { rateDate: this.utilService.normalizeDateOrToday(docDate), currency: currency, sysCurrncy: sysCurrncy };
-    return this.exchangeRatesService.getByDocDateAndCurrency(params)
-      .pipe(
-        map((data: IExchangeRates) => data ?? null),
-        catchError(() => of(null))
-      );
-  }
-
-  /**
-   * Wrapper backward-compatible que mantiene comportamiento del componente
-   * (spinner, parcheo del formulario y manejo de errores), pero delega
-   * la obtención del valor a `fetchTipoCambioRate` para permitir reuso.
-   */
-  loadTipoCambio(currCode: any) {
-    this.isDisplay = true;
-    return this.fetchTipoCambioRate(currCode).pipe(
-      takeUntil(this.destroy$),
-      tap((data: IExchangeRates | null) => {
-        //Determinar tipo de cambio según la moneda seleccionada
-        const safeRate  = currCode === this.mainCurncy ? data?.sysRate ?? 0 : data?.rate ?? 0;
-        // Tipo de cambio del sistema
-        this.sysRate    = data?.sysRate ?? 0;
-
-        const formattedRate = this.utilService.onRedondearDecimalConCero(safeRate, 3);
-
-        this.modeloFormSoc.patchValue({ docRate: formattedRate }, { emitEvent: false });
-      }),
-
-      catchError((e) => {
-        this.utilService.handleErrorSingle(e, 'loadTipoCambio', this.swaCustomService);
-        return of(null);
-      }),
-
-      finalize(() => { this.isDisplay = false; })
-    );
-  }
-
-  valTipoCambio() {
-    const selected  : any     = this.modeloFormSoc.controls['docCur']?.value;
-    const rate      : number  = Number(this.modeloFormSoc.controls['docRate'].value) || 0;
-
-    if (!selected)
-    {
-      this.swaCustomService.swaMsgInfo('Seleccione la moneda.');
-      return false;
-    }
-
-    const currCode = selected?.value ?? null;
-
-    if (!currCode) return;
-
-    // Si la moneda es la misma que la moneda principal, el tipo de cambio se debe validar contra sysRate
-    if (currCode && currCode.toUpperCase() === String(this.mainCurncy || '').trim().toUpperCase()) {
-      if (this.sysRate === 0) {
-        this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
-        return false;
-      }
-    }
-
-    // Si la moneda es diferente a la moneda principal, el tipo de cambio se debe validar contra rate
-    if (rate === 0) {
-      this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
-      return false;
-    }
-
-    return true;
-  }
-
-  onChangeCurrency(event?: any) {
-    const selected = event?.value || '';
-
-    this.currency = selected?.value || '';
-
-    if (!selected) return;
 
 
-    // Pasar la moneda actual como fuente de verdad y, una vez cargado el tipo de cambio,
-    // refrescar cada artículo del modeloLines que ya tenga itemCode.
-    this.loadTipoCambio(this.currency)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(() => {
-      for (let index = 0; index < this.modeloLines.length; index++) {
-        if (this.modeloLines[index].itemCode) {
-          this.getListByCode(this.modeloLines[index].itemCode, index);
-        }
-      }
-    });
-  }
-
-  //#endregion
-
-
-  //#region <<< DOCUMENTO >>>
-
-  private wireTipoControl(): void {
-    const tipoCtrl = this.modeloFormDoc.get('u_BPP_MDTD');
-
-    tipoCtrl?.valueChanges
-    .pipe(
-      takeUntil(this.destroy$),
-      // 🔥 evitar repetir mismo valor
-      distinctUntilChanged((a, b) => (a?.value ?? a) === (b?.value ?? b))
-    )
-    .subscribe((selected) => {
-
-      const tipoVal = selected?.value ?? '';
-
-      // 🔥 actualizar variables internas
-      this.u_BPP_NDTD = tipoVal;
-      this.u_BPP_NDSD = '';
-
-      // 🔥 limpiar sin disparar eventos globales
-      this.modeloFormDoc.patchValue({
-        u_BPP_MDSD: '',
-        u_BPP_MDCD: ''
-      }, { emitEvent: false });
-
-      // 🔥 control manual (más eficiente)
-      this.buildNumAtCard();
-      this.detectRealChanges();
-    });
-  }
-
-  onClickSelectedSerieDocumento(value: any): void {
-    this.modeloFormDoc.patchValue({
-      u_BPP_MDSD: value.u_BPP_NDSD,
-      u_BPP_MDCD: value.u_BPP_NDCD
-    }, { emitEvent: true });
-  }
-
-  private wireNumAtCardBuilder(): void {
-    this.modeloFormDoc.valueChanges
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(() => this.buildNumAtCard());
-  }
-
-  private buildNumAtCard(): void {
-    const tipoCtrl   = this.modeloFormDoc.get('u_BPP_MDTD');
-    const serieCtrl  = this.modeloFormDoc.get('u_BPP_MDSD');
-    const numeroCtrl = this.modeloFormDoc.get('u_BPP_MDCD');
-
-    if (!tipoCtrl || !serieCtrl || !numeroCtrl) return;
-
-    const tipoRaw   = tipoCtrl.value;
-    const serieRaw  = serieCtrl.value;
-    const numeroRaw = numeroCtrl.value;
-
-    const tipoVal =
-      typeof tipoRaw === 'object'
-        ? (tipoRaw?.value ?? '')
-        : (tipoRaw ?? '');
-
-    const serieVal  = serieRaw ?? '';
-    const numeroVal = numeroRaw ?? '';
-
-    // 🔥 evitar basura
-    if (!tipoVal && !serieVal && !numeroVal) {
-      this.modeloFormSoc.patchValue({ numAtCard: '' }, { emitEvent: false });
-      return;
-    }
-
-    const numAtCard = [tipoVal, serieVal, numeroVal]
-      .filter(v => v)
-      .join('-');
-
-    // 🔥 evitar patch innecesario
-    const current = this.modeloFormSoc.get('numAtCard')?.value;
-    if (current === numAtCard) return;
-
-    this.modeloFormSoc.patchValue(
-      { numAtCard },
-      { emitEvent: false }
-    );
-  }
-
-  //#endregion
 
 
   //#region <<< CONTENIDO >>>
-
-  private addLine(index: number): void {
-    this.modeloLines.splice(index, 0, {
-      docEntry          : 0,
-      lineNum           : 0,
-      lineStatus        : 'O',
-      itemCode          : '',
-      dscription        : '',
-      acctCode          : '',
-      formatCode        : '',
-      acctName          : '',
-      u_tipoOpT12       : '',
-      u_tipoOpT12Nam    : '',
-      whsCode           : '',
-      unitMsr           : '',
-      onHand            : 0,
-      quantity          : 0,
-      u_FIB_OpQtyPkg    : 0,
-      openQty           : 0,
-      currency          : '',
-      priceBefDi        : 0,
-      discPrcnt         : 0,
-      price             : 0,
-      taxCode           : '',
-      vatPrcnt          : 0,
-      vatSum            : 0,
-      lineTotal         : 0,
-      record            : 1,
-    });
-    this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  onOpenArticulo(): boolean {
-    const cardCodeValid = !!this.cardCode;
-    const salesEmployeeSelected = !!this.modeloFormSal.get('salesEmployees')?.value;
-
-    return cardCodeValid && salesEmployeeSelected;
-  }
-
-  onClickOpenArticulo(index: number) {
-    if (!this.valTipoCambio()) return;
-    this.indexArticulo = index;
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-
-  onClickSelectedArticulo(value: IArticulo) {
-    this.getListByCode(value.itemCode, this.indexArticulo);
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-
-  private setItem(data: any, index: number): void {
-    const formValue = this.modeloFormSoc.getRawValue();
-    const docCur  = formValue.docCur?.value || formValue.docCur || '';
-
-    Object.assign(this.modeloLines[index], {
-      itemCode       : data.itemCode,
-      dscription     : data.itemName,
-      whsCode        : data.dfltWH,
-      unitMsr        : data.salUnitMsr,
-      onHand         : data.onHand,
-      quantity       : data.quantity,
-      openQty        : data.openQty,
-      currency       : docCur,
-      priceBefDi     : data.priceBefDi,
-      discPrcnt      : data.discPrcnt || 0,
-      price          : data.price,
-      taxCode        : this.taxCode,
-      vatPrcnt       : this.vatPrcnt,
-      u_tipoOpT12    : data.u_tipoOpT12,
-      u_tipoOpT12Nam : data.u_tipoOpT12Nam,
-    });
-
-    this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  getListByCode(itemCode: string, index: number): void {
-    this.isDisplay = true;
-
-    this.itemsService
-    .getListByCode(this.buildFilterParams(itemCode))
-    .pipe(
-      takeUntil(this.destroy$),
-      finalize(() => {
-        this.isDisplay = false;
-      })
-    )
-    .subscribe({
-      next: (data: any[]) => {
-        if (!data || data.length === 0) {
-          this.swaCustomService.swaMsgError('Artículo no encontrado');
-          return;
-        }
-
-        this.setItem(data[0], index);
-        this.calculateTotals();
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
-      }
-    });
-  }
-
-  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
-
-    return {
-      itemCode,
-      cardCode            : this.modeloFormSoc.get('cardCode')?.value ?? '',
-      currency            : this.currency,
-      operationTypeCode   : '01',
-      warehouseProduction : 'Y',
-      warehouseLogistics  : '',
-    };
-  }
-
-  onDescChange(line: IInvoice1Query) {
-    if (!this.valTipoCambio()) {
-
-      // ✅ Si es nueva línea, limpiar
-      if (line.record === 1) {
-        line.dscription = '';
-        return;
-      }
-
-      // ✅ Si es línea existente (record=2), restaurar texto original
-      if (line.record === 2) {
-        const original = (this.initialSnapshot?.lines || [])
-          .find((x: any) => x.lineNum === line.lineNum); // <-- usa tu key real
-
-        if (original) {
-          line.dscription = original.dscription ?? '';
-        }
-
-        return;
-      }
-
-      return;
-    }
-
-    this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
 
   /** Abre el modal para seleccionar cuenta contable de la línea indicada */
   onOpenCuentaContable(index: number): void {
@@ -1186,7 +1424,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     let lineTotal      : number;
     let vatSum         : number;
 
-    const docTypeValue = this.modeloFormCon.get('docType')?.value?.value;
+    const docTypeValue = this.modeloFormCon.get('docTypes')?.value?.value;
     const isItemDoc         = docTypeValue === 'I';
 
     // 1️⃣ Cantidad (ROUND 3)
@@ -1282,278 +1520,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
   //#endregion
 
 
-  //#region <<< LOGÍSTICA >>>
-
-  onChangeShipAddress(event?: any) {
-    const selected = event?.value ?? null;
-    if (!selected) return;
-
-    const address = selected.value;
-
-    // ✅ cancelar ejecución anterior si cambia rápido
-    if (this.shipAddressSubscription) {
-      this.shipAddressSubscription.unsubscribe();
-      this.shipAddressSubscription = null;
-    }
-
-    // ✅ calcular si existen líneas con data (según docType)
-    const formConValues = this.modeloFormCon.getRawValue();
-    const docTypeValue  = formConValues.docType?.value;
-    const isItemDoc     = docTypeValue === 'I';
-
-    const linesWithData = this.modeloLines.filter(l =>
-      isItemDoc
-        ? !!String(l.itemCode ?? '').trim()
-        : !!String(l.dscription ?? '').trim()
-    );
-
-    const hasLines = linesWithData.length > 0;
-
-    // ✅ 1) cargar fullAddress (loadAddress maneja isDisplay internamente)
-    this.shipAddressSubscription = this.loadAddress(this.cardCode, address, 'S').pipe(
-      takeUntil(this.destroy$),
-      // 1.1) aplicar fullAddress
-      tap((fullAddress: string | null) => {
-        if (fullAddress !== null && fullAddress !== undefined) {
-          this.modeloFormLog.patchValue({ address2: fullAddress }, { emitEvent: false });
-        }
-      }),
-
-      // ✅ 2) decidir si preguntar o ejecutar directo
-      switchMap(() => {
-        // Caso A: NO hay líneas -> NO preguntar -> SOLO obtener TaxGroup (NO aplicar)
-        if (!hasLines) {
-          return this.loadTaxGroup(this.cardCode, address).pipe(
-            tap((taxGroup) => {
-              // ✅ Guardar el impuesto para que las próximas líneas lo usen
-              // Ajusta según tu modelo: ITaxGroups { code, rate } o similar
-              this.taxCode  = taxGroup?.code ?? taxGroup?.code ?? '';
-              this.vatPrcnt = taxGroup?.rate ?? taxGroup?.rate ?? 0;
-            })
-          );
-        }
-
-        // Caso B: SÍ hay líneas -> preguntar confirmación
-        return from(
-          this.swaCustomService.swaConfirmation(
-            this.globalConstants.titleChangeTaxGroup,
-            this.globalConstants.subTitleChangeTaxGroup,
-            this.globalConstants.icoSwalQuestion
-          )
-        ).pipe(
-          switchMap((result: any) => {
-            if (!result?.isConfirmed) return EMPTY;
-            // ✅ Si dice SÍ -> obtener y aplicar
-            return this.loadTaxGroup(this.cardCode, address).pipe(
-              tap((taxGroup) => this.applyTaxToDocument(taxGroup))
-            );
-          })
-        );
-      }),
-
-      catchError((e) => {
-        this.utilService.handleErrorSingle(e, 'onChangeShipAddress', this.swaCustomService);
-        return EMPTY;
-      })
-    ).subscribe();
-  }
-
-  private wirePayAddressControl(): void {
-    this.modeloFormLog.get('payAddress')?.valueChanges
-    .pipe(
-      takeUntil(this.destroy$),
-      filter(selected => !!selected),
-      switchMap(selected => {
-
-        const address = selected.value;
-
-        return this.loadAddress(this.cardCode, address, 'B');
-      })
-    )
-    .subscribe({
-      next: (fullAddress: string | null) => {
-        if (fullAddress !== null && fullAddress !== undefined) {
-          this.modeloFormLog.patchValue({ address: this.utilService.normalizePrimitive(fullAddress) }, { emitEvent: false });
-
-          this.detectRealChanges();
-        }
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'wirePayAddressControl', this.swaCustomService);
-      }
-    });
-  }
-
-  private loadAddress(cardCode: string, address: string, adresType: string): Observable<string | null> {
-    const params = { cardCode, address, adresType };
-
-    return this.addressesService.getByCode(params).pipe(
-      takeUntil(this.destroy$),
-      map((data: IAddresses) => data?.fullAddress ?? null),
-      catchError((e) => {
-        this.utilService.handleErrorSingle(e, 'loadAddress', this.swaCustomService);
-        return of(null);
-      })
-    );
-  }
-
-  private loadTaxGroup(cardCode: string, address: string): Observable<ITaxGroups | null> {
-    const formConValues = this.modeloFormSal.getRawValue();
-    const slpCode = formConValues.salesEmployees?.value || formConValues.salesEmployees || -1;
-
-    const params = { cardCode, address, slpCode };
-
-    return this.taxGroupsService.getByCardCode(params).pipe(
-      takeUntil(this.destroy$),
-      map((data: ITaxGroups) => data ?? null),
-      catchError((e) => {
-        this.utilService.handleErrorSingle(e, 'loadTaxGroup', this.swaCustomService);
-        return of(null);
-      })
-    );
-  }
-
-  private applyTaxToDocument(tax: ITaxGroups | null): void {
-    this.taxCode  = tax?.code ?? '';
-    this.vatPrcnt = tax?.rate ?? 0;
-
-    // ✅ Refrescar taxCode/vatPrcnt en líneas ya cargadas (si aplica)
-    for (let i = 0; i < this.modeloLines.length; i++) {
-      const line = this.modeloLines[i];
-
-      const hasData =
-        !!String(line.itemCode ?? '').trim() ||
-        !!String(line.dscription ?? '').trim();
-
-      if (!hasData) continue;
-
-      line.taxCode  = this.taxCode;
-      line.vatPrcnt = this.vatPrcnt;
-
-      this.calculateTotalLine(line, i);
-    }
-
-    this.calculateTotals();
-  }
-
-  //#endregion
-
-
-  //#region <<< AGENCIA >>>
-
-  onClickCleanAgencia()
-  {
-    this.u_BPP_MDCT   = '';
-    this.modeloFormAge.reset({
-      'u_BPP_MDCT'      : '',
-      'u_BPP_MDRT'      : '',
-      'u_BPP_MDNT'      : '',
-      'agencyAddress'   : '',
-      'u_BPP_MDDT'      : ''
-    });
-  }
-
-  onSelectedAgencia(value) {
-    // garantizar orden: limpiar controles primero, luego iniciar la carga
-    this.onClickCleanAgencia();
-
-    // cancelar cualquier carga previa pendiente
-    if (this.agenciaLoadSubscription) {
-      this.agenciaLoadSubscription.unsubscribe();
-      this.agenciaLoadSubscription = null;
-    }
-
-    // iniciar nueva carga y guardar la suscripción para posible cancelación
-    this.agenciaLoadSubscription = this.loadAgenciaByCode(value.cardCode)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe();
-  }
-
-  private agenciaLoadSubscription: Subscription | null = null;
-
-  private loadAgenciaByCode(cardCode: string): Observable<any> {
-    this.isDisplay = true;
-    return this.businessPartnersService
-    .getByCode(cardCode).pipe(
-      takeUntil(this.destroy$),
-      tap(agencia => {
-        this.u_BPP_MDCT    = agencia.cardCode;
-        this.modeloFormAge.patchValue({ 'u_BPP_MDCT': agencia.cardCode, 'u_BPP_MDRT': agencia.licTradNum, 'u_BPP_MDNT': agencia.cardName }, { emitEvent: false });
-      }),
-      map((agencia: IBusinessPartnersQuery) => ({
-        agencia,
-        shipAddr: agencia.linesShipAddress ?? []
-      })),
-      // Actualizamos listas y preselecciones sin disparar eventos
-      tap(({ shipAddr, agencia }) => {
-        this.agencyAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d }));
-
-        // Selección por defecto de direcciones y otros campos
-        const defaultShipItem = this.agencyAddressList.find(it => (it.value as IAddresses).address === agencia.shipToDef) || null;
-        if (defaultShipItem) {
-          this.modeloFormAge.patchValue({ agencyAddress: defaultShipItem }, { emitEvent: false });
-        }
-      }),
-      // Encadenar las cargas dependientes y esperar a que terminen
-      switchMap(({ shipAddr, agencia }) => {
-        const tasks: Observable<any>[] = [];
-
-        const defaultShip = (shipAddr || []).find((d: IAddresses) => d.address === agencia.shipToDef);
-        if (defaultShip) {
-          tasks.push(
-            this.loadAddress(agencia.cardCode, agencia.shipToDef, 'S').pipe(
-              tap((fullAddress: string | null) => {
-                if (fullAddress !== null && fullAddress !== undefined) {
-                  this.modeloFormAge.patchValue({ u_BPP_MDDT: fullAddress }, { emitEvent: false });
-                }
-              })
-            )
-          );
-        }
-
-        if (tasks.length === 0) return of({ shipAddr, agencia });
-        return forkJoin(tasks).pipe(map(() => ({ shipAddr, agencia })));
-      }),
-      catchError(e => {
-        this.utilService.handleErrorSingle(e, 'loadAgenciaByCode', this.swaCustomService);
-        return of(null);
-      }),
-      finalize(() => { this.isDisplay = false; })
-    );
-  }
-
-  private wireAgencyAddressControl(): void {
-    this.modeloFormAge.get('agencyAddress')?.valueChanges
-    .pipe(
-      takeUntil(this.destroy$),
-      filter(selected => !!selected),
-      switchMap(selected => {
-
-        const address = selected.value;
-
-        return this.loadAddress(this.u_BPP_MDCT, address, 'S');
-      })
-    )
-    .subscribe({
-      next: (fullAddress: string | null) => {
-        if (fullAddress !== null && fullAddress !== undefined) {
-          this.modeloFormAge.patchValue({ u_BPP_MDDT: this.utilService.normalizePrimitive(fullAddress) }, { emitEvent: false });
-
-          this.detectRealChanges();
-        }
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'wireAgencyAddressControl', this.swaCustomService);
-      }
-    });
-  }
-
-  //#endregion
-
-
-  //#region << EXPORTACIÓN >>>
-  //#endregion
-
 
   //#region <<< TOTALES >>>
 
@@ -1600,7 +1566,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
   }
 
   calculateTotals(): void {
-    const docTypeValue = this.modeloFormCon.get('docType')?.value?.value;
+    const docTypeValue = this.modeloFormCon.get('docTypes')?.value?.value;
     const isItemDoc    = docTypeValue === 'I';
 
     // 1) SubTotal
@@ -1741,8 +1707,8 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     /** obtener valores del formulario */
     const f = this.modeloFormCon.getRawValue();
 
-    const docType   = p(val(f.docType));
-    const isItemDoc = docType === 'I';
+    const docTypes   = p(val(f.docTypes));
+    const isItemDoc = docTypes === 'I';
 
     for (const line of this.modeloLines) {
 
@@ -1786,7 +1752,6 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       ...this.modeloFormFin.getRawValue(),
       ...this.modeloFormAge.getRawValue(),
       ...this.modeloFormExp.getRawValue(),
-      ...this.modeloFormOtr.getRawValue(),
       ...this.modeloFormSal.getRawValue(),
       ...this.modeloFormTot.getRawValue(),
     };
@@ -1807,7 +1772,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
     const userId      = this.userContextService.getIdUsuario();
 
     const docCur      = p(val(f.currency));
-    const docType     = p(val(f.docType));
+    const docTypes     = p(val(f.docTypes));
 
     const docRate     = docCur === this.mainCurncy ? 1 : n(f.docRate);
 
@@ -1817,7 +1782,7 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       docEntry        : this.docEntry,
       docDueDate      : d(f.docDueDate),
       reserveInvoice  : 'Y',
-      docType         : docType,
+      docType         : docTypes,
 
       // SOCIO
       cardCode        : p(f.cardCode),
@@ -1849,11 +1814,8 @@ export class PanelFacturaReservaEditComponent implements OnInit, OnDestroy {
       u_FIB_IMPSEG    : n(f.u_FIB_IMPSEG),
       u_FIB_PUERTO    : p(f.u_FIB_PUERTO),
 
-      // OTROS
-      u_STR_TVENTA    : p(val(f.salesType)),
-
       // VENDEDOR
-      slpCode         : n(val(f.salesEmployees) ?? -1),
+      slpCode         : n(val(f.salesPersons) ?? -1),
 
       u_NroOrden      : p(f.u_NroOrden),
       u_OrdenCompra   : p(f.u_OrdenCompra),

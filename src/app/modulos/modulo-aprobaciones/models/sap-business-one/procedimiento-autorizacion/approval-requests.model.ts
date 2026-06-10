@@ -10,8 +10,8 @@ export class ApprovalStatusReportFilterModel {
   endAuthorOf?                              : number;
   startAuthorizerOf?                        : number;
   endAuthorizerOf?                          : number;
-  startDate?                                : Date | null;
-  endDate?                                  : Date | null;
+  startDate?                                : Date | null | string;
+  endDate?                                  : Date | null | string;
   startCardCode                             : string;
   endCardCode                               : string;
 

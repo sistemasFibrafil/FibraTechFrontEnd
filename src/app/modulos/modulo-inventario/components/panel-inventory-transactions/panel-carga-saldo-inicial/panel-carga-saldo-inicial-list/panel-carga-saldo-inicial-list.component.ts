@@ -7,7 +7,7 @@ import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { InventoryTransferRequestFilterModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
-import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+import { IInventoryTransferRequest, IInventoryTransferRequestLines } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
 
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
@@ -53,7 +53,7 @@ export class PanelCargaSaldoInicialListComponent implements OnInit {
   docStatusList: SelectItem[];
   docStatusSelected: any[];
 
-  modeloDetalle: IInventoryTransferRequest1[] = [];
+  modeloDetalle: IInventoryTransferRequestLines[] = [];
   params: InventoryTransferRequestFilterModel = new InventoryTransferRequestFilterModel();
 
 

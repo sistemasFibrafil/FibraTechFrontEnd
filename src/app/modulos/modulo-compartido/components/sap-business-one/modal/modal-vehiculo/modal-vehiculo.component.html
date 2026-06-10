@@ -1,7 +1,7 @@
 <form [formGroup]="modeloFormVisor">
   <div class="p-inputgroup">
     <input id="float-input-cardCode" type="text" placeholder="Número de placa" maxlength="50" size="100" formControlName="u_BPP_VEPL" autocomplete="off" pInputText readonly>
-    <button pButton type="button" [disabled]="isHabilitarButton" icon="{{globalConstants.icoBuscar}}" (click)="isVisualizar = true"></button>
+    <button pButton type="button" [disabled]="isHabilitarButton ? true : !u_FIB_COTR" icon="{{globalConstants.icoBuscar}}" (click)="isVisualizar = true"></button>
   </div>
 </form>
 <p-dialog header="Vehículo" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">

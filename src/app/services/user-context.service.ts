@@ -104,6 +104,14 @@ export class UserContextService {
     return this.sessionService.getItemDecrypt('dfltWhs');
   }
 
+  public getDflSlp(): number {
+    return this.sessionService.getItemDecrypt('dfltSlp');
+  }
+
+  public getDflPaymentTerm(): number {
+    return this.sessionService.getItemDecrypt('dfCustTerm');
+  }
+
   public getFileAttachments() {
     return this.sessionService.getItemDecrypt('srcCarpetaAnexos');
   }

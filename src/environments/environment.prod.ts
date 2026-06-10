@@ -10,9 +10,9 @@ export const environment = {
 
 
   // PRODUCCION
-  //url_api_fib : 'http://192.168.1.13/BackEnd/api/',
   //url_api_fib : 'http://192.168.1.7:8080/BackEnd/api/',
   //url_api_fib : 'http://192.168.20.8:8080/BackEnd/api/',
+  //url_api_fib : 'http://192.168.1.13/BackEnd/api/',
 
 
   // npm run build

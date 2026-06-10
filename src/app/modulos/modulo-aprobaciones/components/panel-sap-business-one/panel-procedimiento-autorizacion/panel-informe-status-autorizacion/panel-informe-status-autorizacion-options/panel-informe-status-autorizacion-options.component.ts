@@ -92,8 +92,8 @@ export class PanelInformeStatusAutorizacionOptionsComponent implements OnInit, O
       endAuthorOf                       : [null],
       startAuthorizerOf                 : [null],
       endAuthorizerOf                   : [null],
-      startDate                         : [null],
-      endDate                           : [null],
+      startDate                         : [this.utilService.currentDate()],
+      endDate                           : [this.utilService.currentDate()],
       startCardCode                     : [''],
       endCardCode                       : [''],
 

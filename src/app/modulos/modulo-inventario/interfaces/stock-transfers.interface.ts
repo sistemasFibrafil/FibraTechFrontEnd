@@ -68,3 +68,22 @@ export interface ITransferenciaStock1 {
   u_FIB_NBulto?       : number;
   u_FIB_PesoKg?       : number;
 }
+
+
+export interface IStockTransfersQuery {
+  docEntry                : number;
+  docNum                  : number;
+  objType                 : string;
+  docStatus               : string;
+
+  u_FIB_FromPkg           : string;
+  u_FIB_EstadoSunat       : string;
+
+  u_BPP_MDTD              : string;
+  u_BPP_MDSD              : string;
+  u_BPP_MDCD              : string;
+  docDate                 : Date;
+  taxDate                 : Date;
+  filler                  : string;
+  toWhsCode               : string;
+}

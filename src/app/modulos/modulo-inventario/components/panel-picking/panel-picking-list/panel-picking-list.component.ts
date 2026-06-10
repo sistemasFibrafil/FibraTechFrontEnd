@@ -217,7 +217,7 @@ export class PanelPickingListComponent implements OnInit, OnDestroy {
   private loadStatusList(): void {
     const statuses = this.localDataService.statusDocuments;
     this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
-    this.modeloForm.get('docStatus').setValue(statuses);
+    this.modeloForm.get('docStatus')?.setValue(statuses);
   }
 
   // ===========================

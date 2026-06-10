@@ -77,17 +77,15 @@
               </span>
             </td>
             <td class="custom-td-20">
-              <span class="label badge-articulos" *ngIf="modelo?.docType === 'I'">Artículos</span>
-              <span class="label badge-servicios" *ngIf="modelo?.docType === 'S'">Servicios</span>
+              <span class="label" [ngClass]="getDocType(modelo).class">
+                {{ getDocType(modelo).text }}
+              </span>
             </td>
             <td class="p-fluid">
               {{modelo.docDate | date: 'dd/MM/yyyy'}}
             </td>
             <td class="p-fluid">
               {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
-            </td>
-            <td class="p-fluid">
-              {{modelo.taxDate | date: 'dd/MM/yyyy'}}
             </td>
             <td class="custom-td-20">
               <span class="label" [ngClass]="getGroupType(modelo).class">
@@ -102,9 +100,6 @@
             </td>
             <td class="p-fluid">
               {{modelo.slpName}}
-            </td>
-            <td class="p-fluid">
-              {{modelo.docCur}}
             </td>
             <td class="custom-td-numero">
               {{modelo.docTotal | number: '.2':'en-EN'}}

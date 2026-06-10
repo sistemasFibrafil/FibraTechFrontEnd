@@ -34,78 +34,191 @@ export class ContactEmployeeModel {
     position?: string; // Nuevo
     phone1?: string; // Nuevo
     mobilePhone?: string; // Nuevo
-    e_Mail?: string;
     e_MailL?: string; // Para compatibilidad con Get
 
     constructor() {
         this.name = '';
         this.firstName = '';
         this.lastName = '';
-        this.e_Mail = '';
+        this.e_MailL = '';
     }
 }
 
-export class SocioNegocioModel {
-    cardCode?: string;
-    cardName?: string;
-    cardType?: string;
-    groupCode?: number;
-    groupName?: string;
-    licTradNum?: string;
-    phone1?: string;
-    emailAddress?: string;
-    currency?: string;
-    cellular?: string; // Nuevo
-    slpCode?: number; // Nuevo
-    cntctCode?: number; // Nuevo
-    cntctPrsn?: string; // Nuevo
-    groupNum?: number; // Nuevo
-    creditLine?: number; // Nuevo
-    notes?: string; // Nuevo
-    u_BPP_BPAT?: string;
-    u_BPP_BPTD?: string;
-    u_BPP_BPTP?: string;
-    u_BPP_BPNO?: string; // First Name (Persona Natural)
-    u_BPP_BPAP?: string; // Last Name 1 (Persona Natural)
-    u_BPP_BPAM?: string; // Last Name 2 (Persona Natural)
-    u_FIB_Email2?: string; // Email 2
-    u_FIB_Email3?: string; // Email 3
-    u_FIB_Transp?: string; // Transportista (Y/N)
-    u_FIB_Creed?: string; // Creedor (Y/N)
-    u_FIB_Divi?: string;
-    u_FIB_Sector?: string;
-    validFor?: string; // Activo/Inactivo (Y/N)
-    priceListNum?: number;
-    addresses?: AddressModel[];
-    linesPayAddress?: AddressModel[]; // Para facturación (Get)
-    linesShipAddress?: AddressModel[]; // Para envío (Get)
-    contactEmployees?: ContactEmployeeModel[];
-    contactList?: ContactEmployeeModel[]; // Para contactos (Get - algunos casos)
+export class SocioNegocioCreateModel {
+  cardCode?                           : string;
+  cardName?                           : string;
+  cardType?                           : string;
+  groupCode?                          : number;
+  licTradNum?                         : string;
+  currency?                           : string;
 
-    constructor() {
-        this.cardCode = '';
-        this.cardName = '';
-        this.cardType = '';
-        this.groupCode = null;
-        this.licTradNum = '';
-        this.phone1 = '';
-        this.emailAddress = '';
-        this.currency = '';
-        this.u_BPP_BPAT = '';
-        this.u_BPP_BPTD = '';
-        this.u_BPP_BPTP = '';
-        this.u_BPP_BPNO = '';
-        this.u_BPP_BPAP = '';
-        this.u_BPP_BPAM = '';
-        this.u_FIB_Email2 = '';
-        this.u_FIB_Email3 = '';
-        this.u_FIB_Transp = 'N';
-        this.u_FIB_Creed = 'N';
-        this.u_FIB_Divi = '';
-        this.u_FIB_Sector = '';
-        this.validFor = 'Y';
-        this.priceListNum = null;
-        this.addresses = [];
-        this.contactEmployees = [];
-    }
+  u_BPP_BPTP?                         : string;
+  u_BPP_BPTD?                         : string;
+  u_FIB_Divi                          : string;
+  u_FIB_Sector                        : string;
+
+  phone1?                             : string;
+  phone2?                             : string;
+  cellular?                           : string;
+  email?                              : string;
+  validFor?                           : string;
+  slpCode?                            : number;
+  notes?                              : string;
+
+  cntctPrsn?                          : string;
+  contactEmployeesLines?              : ContactEmployeeModel[];
+
+  address?                            : string;
+  billToDef?                          : string;
+  addressesLines?                     : AddressModel[];
+  shipToDef?                          : string;
+  mailAddres?                         : string;
+  shipAddressLines?                   : AddressModel[];
+
+  groupNum?                           : number;
+  listNum?                            : number;
+  creditLine?                         : number;
+  debitLine?                          : number;
+
+  u_BPP_BPAT?                         : string;
+  u_FIB_EMAIL2?                       : string;
+  u_FIB_EMAIL3?                       : string;
+  u_BPP_BPNO?                         : string;
+  u_BPP_BPAP?                         : string;
+  u_BPP_BPAM?                         : string;
+
+  constructor() {
+      this.cardCode                 = '';
+      this.cardName                 = '';
+      this.cardType                 = '';
+      this.groupCode                = 0;
+      this.licTradNum               = '';
+      this.currency                 = '';
+
+      this.u_BPP_BPTP               = '';
+      this.u_BPP_BPTD               = '';
+      this.u_FIB_Divi               = '';
+      this.u_FIB_Sector             = '';
+
+      this.phone1                   = '';
+      this.phone2                   = '';
+      this.cellular                 = '';
+      this.email                    = '';
+      this.validFor                 = 'Y';
+      this.slpCode                  = 0;
+      this.notes                    = '';
+
+      this.cntctPrsn                = '';
+      this.contactEmployeesLines    = [];
+
+      this.address                  = '';
+      this.billToDef                = '';
+      this.addressesLines           = [];
+      this.shipToDef                = '';
+      this.mailAddres               = '';
+      this.shipAddressLines         = [];
+
+      this.groupNum                 = 0;
+      this.listNum                  = 0;
+      this.creditLine               = 0;
+      this.debitLine                = 0;
+
+      this.u_BPP_BPAT               = '';
+      this.u_FIB_EMAIL2             = '';
+      this.u_FIB_EMAIL3             = '';
+      this.u_BPP_BPNO               = '';
+      this.u_BPP_BPAP               = '';
+      this.u_BPP_BPAM               = '';
+
+  }
+}
+
+
+export class SocioNegocioUpdateModel {
+  cardCode?                           : string;
+  cardName?                           : string;
+  cardType?                           : string;
+  groupCode?                          : number;
+  licTradNum?                         : string;
+  currency?                           : string;
+
+  u_BPP_BPTP?                         : string;
+  u_BPP_BPTD?                         : string;
+  u_FIB_Divi                          : string;
+  u_FIB_Sector                        : string;
+
+  phone1?                             : string;
+  phone2?                             : string;
+  cellular?                           : string;
+  email?                              : string;
+  validFor?                           : string;
+  slpCode?                            : number;
+  notes?                              : string;
+
+  cntctPrsn?                          : string;
+  contactEmployeesLines?              : ContactEmployeeModel[];
+
+  address?                            : string;
+  billToDef?                          : string;
+  addressesLines?                     : AddressModel[];
+  shipToDef?                          : string;
+  mailAddres?                         : string;
+  shipAddressLines?                   : AddressModel[];
+
+  groupNum?                           : number;
+  listNum?                            : number;
+  creditLine?                         : number;
+  debitLine?                          : number;
+
+  u_BPP_BPAT?                         : string;
+  u_FIB_EMAIL2?                       : string;
+  u_FIB_EMAIL3?                       : string;
+  u_BPP_BPNO?                         : string;
+  u_BPP_BPAP?                         : string;
+  u_BPP_BPAM?                         : string;
+
+  constructor() {
+      this.cardCode                 = '';
+      this.cardName                 = '';
+      this.cardType                 = '';
+      this.groupCode                = 0;
+      this.licTradNum               = '';
+      this.currency                 = '';
+
+      this.u_BPP_BPTP               = '';
+      this.u_BPP_BPTD               = '';
+      this.u_FIB_Divi               = '';
+      this.u_FIB_Sector             = '';
+
+      this.phone1                   = '';
+      this.phone2                   = '';
+      this.cellular                 = '';
+      this.email                    = '';
+      this.validFor                 = 'Y';
+      this.slpCode                  = 0;
+      this.notes                    = '';
+
+      this.cntctPrsn                = '';
+      this.contactEmployeesLines    = [];
+
+      this.address                  = '';
+      this.billToDef                = '';
+      this.addressesLines           = [];
+      this.shipToDef                = '';
+      this.mailAddres               = '';
+      this.shipAddressLines         = [];
+
+      this.groupNum                 = 0;
+      this.listNum                  = 0;
+      this.creditLine               = 0;
+      this.debitLine                = 0;
+
+      this.u_BPP_BPAT               = '';
+      this.u_FIB_EMAIL2             = '';
+      this.u_FIB_EMAIL3             = '';
+      this.u_BPP_BPNO               = '';
+      this.u_BPP_BPAP               = '';
+      this.u_BPP_BPAM               = '';
+
+  }
 }

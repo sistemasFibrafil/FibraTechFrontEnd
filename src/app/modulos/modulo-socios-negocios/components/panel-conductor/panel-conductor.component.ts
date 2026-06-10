@@ -17,7 +17,7 @@ import { UtilService } from 'src/app/services/util.service';
 import { DriversService } from '../../services/drivers.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { BusinessPartnersService } from '../../services/business-partners.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -66,7 +66,7 @@ export class PanelConductorComponent implements OnInit, OnDestroy {
     private readonly driversService: DriversService,
     private readonly swaCustomService: SwaCustomService,
     private readonly businessPartnersService: BusinessPartnersService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService
+    private readonly userDefinedFieldsService: UserDefinedFieldsService
     ,
   ) {}
 
@@ -192,7 +192,7 @@ export class PanelConductorComponent implements OnInit, OnDestroy {
     const paramType: any = { tableID: '@BPP_CONDUC', aliasID: 'FIB_CHTD' };
 
     forkJoin({
-      objectType: this.camposDefinidoUsuarioService.getList(paramType)
+      objectType: this.userDefinedFieldsService.getList(paramType)
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
@@ -236,7 +236,7 @@ export class PanelConductorComponent implements OnInit, OnDestroy {
           cardCode,
           cardName,
           licTradNum,
-          linesDrivers
+          driversLines
 
         } = data;
 
@@ -246,7 +246,7 @@ export class PanelConductorComponent implements OnInit, OnDestroy {
           licTradNum
         });
 
-        this.modeloLines = linesDrivers?.length ? linesDrivers : [this.createEmptyLine()];
+        this.modeloLines = driversLines?.length ? driversLines : [this.createEmptyLine()];
 
         /* =========================
           SNAPSHOT ORIGINAL

@@ -23,7 +23,6 @@ export class OrdersService {
   }
 
   getListByFilter(value: OrdersFilterModel) {
-    console.log("VALUE FILTER: ", value);
     let params = new HttpParams();
     params = params.append('startDate', this.datePipe.transform(value.startDate, 'yyyy-MM-dd'));
     params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));

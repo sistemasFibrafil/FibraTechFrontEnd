@@ -1,6 +1,6 @@
-import { IMoneda } from "src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/moneda.interface";
-import { IPicking } from "src/app/modulos/modulo-inventario/interfaces/picking.inteface";
-import { IAddresses } from "src/app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
+import { IPicking } from "@app/modulos/modulo-inventario/interfaces/picking.inteface";
+import { IAddresses } from "@app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
+import { ICurrencyCodes } from "@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/currency-codes.interface";
 
 export interface IDrafts {
   docEntry            : number;
@@ -23,7 +23,7 @@ export interface IDrafts {
   cntctCode?          : number;
   numAtCard           : string;
   docCur              : string;
-  currencyList        : IMoneda[];
+  currencyList        : ICurrencyCodes[];
   docRate             : number;
 
   payToCode           : string;
@@ -117,7 +117,7 @@ export interface IDraftsQuery {
   cntctCode?          : number;
   numAtCard           : string;
   docCur              : string;
-  currencyList        : IMoneda[];
+  currencyList        : ICurrencyCodes[];
   docRate             : number;
 
   payToCode           : string;

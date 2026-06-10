@@ -23,7 +23,7 @@ import { LongitudAnchoService } from 'src/app/modulos/modulo-gestion/services/sa
 import { ColorImpresionService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/color-impresion.service';
 import { GrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/grupo-articulo-sap.service';
 import { SubGrupoItemsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/sub-grupo-articulo-sap.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 
@@ -85,8 +85,7 @@ export class PanelSkuComercialUpdateComponent implements OnInit {
     private grupoItemsService: GrupoItemsService,
     private longitudAnchoService: LongitudAnchoService,
     private colorImpresionService: ColorImpresionService,
-    private subGrupoItemsService: SubGrupoItemsService,
-    private camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private subGrupoItemsService: SubGrupoItemsService
   ) {}
 
   ngOnInit() {
@@ -150,12 +149,12 @@ export class PanelSkuComercialUpdateComponent implements OnInit {
 
     const sources = {
       oSlpList          : this.salesPersonsService.getList().pipe(map(data => data.map(item => ({ label: item.slpName, value: item.slpCode })))),
-      //statusList        : this.camposDefinidoUsuarioService.getListByFiltro({ tableID: '@FIB_OSKC', aliasID: 'Status' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
+      //statusList        : this.UserDefinedFieldsService.getListByFiltro({ tableID: '@FIB_OSKC', aliasID: 'Status' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
       grupoList         : this.grupoItemsService.getList().pipe(map(data => data.map(item => ({ label: item.itmsGrpNam, value: item.itmsGrpCod })))),
       subGrupoList      : this.subGrupoItemsService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       unidadMedidaList  : this.unidadMedidaService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       largoAnchoList    : this.longitudAnchoService.getList().pipe(map(data => data.map(item => ({ label: item.unitName, value: item.unitCode })))),
-      //colorList         : this.camposDefinidoUsuarioService.getListByFiltro({ tableID: 'OITM', aliasID: 'FIB_COLOR' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
+      //colorList         : this.UserDefinedFieldsService.getListByFiltro({ tableID: 'OITM', aliasID: 'FIB_COLOR' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
       tipoLaminadoList  : this.tipoLaminadoService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       colorImpresionList: this.colorImpresionService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       tiempoVidaList    : this.tiempoVidaService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code }))))

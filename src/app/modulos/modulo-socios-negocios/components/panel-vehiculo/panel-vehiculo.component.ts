@@ -212,7 +212,7 @@ export class PanelVehiculoComponent implements OnInit, OnDestroy {
           cardCode,
           cardName,
           licTradNum,
-          linesVehicles
+          vehiclesLines
 
         } = data;
 
@@ -222,7 +222,7 @@ export class PanelVehiculoComponent implements OnInit, OnDestroy {
           licTradNum
         });
 
-        this.modeloLines = linesVehicles?.length ? linesVehicles : [this.createEmptyLine()];
+        this.modeloLines = vehiclesLines?.length ? vehiclesLines : [this.createEmptyLine()];
 
         /* =========================
           SNAPSHOT ORIGINAL

@@ -5,7 +5,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { IArticuloDocumentoSap, IArticulo, IArticuloVentaByGrupoSubGrupoEstado, IArticuloVentaStockByGrupoSubGrupo, IMovimientoStockByFechaSede, IArticuloReporte, IArticuloQuery } from '../interfaces/items.interface';
-import { ArticuloModel, ArticuloSapForSodimacBySkuModel, ItemsFindByListCodeModel, MovimientoStokByFechaSedeFindModel } from '../models/items.model';
+import { ArticuloModel, ArticuloSapForSodimacBySkuModel, ArticuloUpdateModel, ItemsFindByListCodeModel, MovimientoStokByFechaSedeFindModel } from '../models/items.model';
 
 
 @Injectable({providedIn: 'root'})
@@ -31,8 +31,7 @@ export class ItemsService {
     params = params.append('cardCode', value.cardCode);
     params = params.append('currency', value.currency);
     params = params.append('operationTypeCode', value.operationTypeCode);
-    params = params.append('warehouseProduction', value.warehouseProduction);
-    params = params.append('warehouseLogistics', value.warehouseLogistics);
+    params = params.append('warehouseType', value.warehouseType);
 
     return this.http.get<IArticuloQuery[]>(`${environment.url_api_fib}Items/GetListByCode/`,{params: params});
   }
@@ -179,5 +178,9 @@ export class ItemsService {
   setCreateMassive(value: ArticuloModel) {
     const param: string = JSON.stringify(value);
     return this.http.post<IArticulo[]>(`${environment.url_api_fib}Items/SetCreateMassive/`, param);
+  }
+
+  setUpdateMassive(value: ArticuloUpdateModel[]) {
+    return this.http.put<IArticulo>(`${environment.url_api_fib}Items/SetUpdateMassive`,value);
   }
 }

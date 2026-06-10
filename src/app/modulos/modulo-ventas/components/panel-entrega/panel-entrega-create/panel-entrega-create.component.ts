@@ -19,8 +19,13 @@ import { IAddresses } from 'src/app/modulos/modulo-socios-negocios/interfaces/ad
 import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
 import { IBusinessPartnersQuery } from 'src/app/modulos/modulo-socios-negocios/interfaces/business-partners.interface';
 import { IDeliveryNotes1Query, IDeliveryNotesQuery } from '../../../interfaces/sap-business-one/delivery-notes.interface';
-import { ITaxGroups } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/impuesto-sap.iterface';
+import { ITaxGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/tax-groups.iterface';
+import { ISalesPersons } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
 import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
+import { IUserDefinedFields } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
+import { IDocumentTypeSunat } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/inicializacion-sistema/document-type-sunat.interface';
+import { IPaymentTermsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/payment-terms-types.interface';
 import { IDocumentNumberingSeriesSunat, IDocumentNumberingSeriesSunatQuery } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/inicializacion-sistema/document-numbering-series-sunat.interface';
 
 import { UtilService } from 'src/app/services/util.service';
@@ -32,11 +37,12 @@ import { DeliveryNotesService } from '../../../services/sap-business-one/deliver
 import { AddressesService } from 'src/app/modulos/modulo-socios-negocios/services/addresses.service';
 import { BusinessPartnersService } from 'src/app/modulos/modulo-socios-negocios/services/business-partners.service';
 import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
-import { TaxGroupsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/impuesto-sap.service';
+import { TaxGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/tax-groups.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 import { DocumentTypeSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-type-sunat.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
-import { PaymentTermsTypesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/paymentTerms-types.service';
+import { PaymentTermsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/payment-terms-types.service';
 import { DocumentNumberingSeriesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series.service';
 import { DocumentNumberingSeriesSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series-sunat.service';
 
@@ -95,14 +101,14 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
 
   currencyList                                  : SelectItem[] = [];
   docTypesList                                  : SelectItem[] = [];
-  salesTypeList                                 : SelectItem[] = [];
   payAddressList                                : SelectItem[] = [];
   shipAddressList                               : SelectItem[] = [];
-  documentTypeSunatList                         : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
   agencyAddressList                             : SelectItem[] = [];
   typeTransportList                             : SelectItem[] = [];
   reasonTransferList                            : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
+  documentTypeSunatList                         : SelectItem[] = [];
   paymentsTermsTypesList                        : SelectItem[] = [];
   typeDriversIdentityDocumentList               : SelectItem[] = [];
   typeCarrierIdentityDocumentList               : SelectItem[] = [];
@@ -116,15 +122,13 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
   isVisualizarAlmacen                           : boolean = false;
   isVisualizarImpuesto                          : boolean = false;
   isVisualizarArticulo                          : boolean = false;
-  isVisualizarTipoOperacion                     : boolean = false;
   isVisualizarCuentaContable                    : boolean = false;
 
   // modeloLines
   indexAlmacen                                  : number = 0;
   indexImpuesto                                 : number = 0;
   indexArticulo                                 : number = 0;
-  indexTipoOperacion                            : number = 0;
-  indexCentroCuentaContable                     : number = 0;
+  indexCuentaContable                           : number = 0;
 
   modeloLinesSelected                           : IDeliveryNotes1Query;
 
@@ -148,10 +152,11 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     private readonly salesPersonsService: SalesPersonsService,
     private readonly exchangeRatesService: ExchangeRatesService,
     private readonly deliveryNotesService: DeliveryNotesService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly businessPartnersService: BusinessPartnersService,
     private readonly paymentTermsTypesService: PaymentTermsTypesService,
     private readonly documentTypeSunatService: DocumentTypeSunatService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     private readonly documentNumberingSeriesService: DocumentNumberingSeriesService,
     private readonly DocumentNumberingSeriesSunatService: DocumentNumberingSeriesSunatService,
     public  readonly utilService: UtilService,
@@ -284,13 +289,12 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     });
     // OTROS
     this.modeloFormOtr = this.fb.group({
-      salesType                     : new FormControl('', Validators.required), // u_STR_TVENTA
       reasonTransfer                : new FormControl('', Validators.required), // u_BPP_MDMT
       u_BPP_MDOM                    : new FormControl(''),
     });
     // PIE - Información adicional y totales
     this.modeloFormSal = this.fb.group({
-      salesEmployees                : new FormControl('', Validators.required), // slpCode
+      salesPersons                  : new FormControl('', Validators.required), // slpCode
       u_FIB_NBULTOS                 : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
       u_FIB_KG                      : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
       u_NroOrden                    : new FormControl(''),
@@ -328,12 +332,9 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
         { field: 'u_FIB_PesoKg',    header: 'Kg' },
         { field: 'quantity',        header: 'Cantidad' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
-        { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
+        { field: 'u_tipoOpT12',     header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
     else{
@@ -342,12 +343,9 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
         { field: 'formatCode',      header: 'Cuenta mayor' },
         { field: 'acctName',        header: 'Nombre de la cuenta de mayor' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
-        { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
+        { field: 'u_tipoOpT12',     header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
 
@@ -602,11 +600,12 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     }, { emitEvent: false });
 
     this.modeloFormOtr.reset({
-      salesType: ''
+      reasonTransfer: '',
+      u_BPP_MDOM: '',
     }, { emitEvent: false });
 
     this.modeloFormSal.reset({
-      salesEmployees: '',
+      salesPersons  : '',
       u_NroOrden    : '',
       u_OrdenCompra : '',
       comments      : '',
@@ -660,7 +659,6 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
 
   private loadAllCombos(): void {
     this.idUsuario                          = this.userContextService.getIdUsuario();
-    const paramSalesType                    : any = { tableID: 'ORDR', aliasID: 'STR_TVENTA' };
     const paramTypeTransport                : any = { tableID: 'ODLN', aliasID: 'FIB_TIP_TRANS' };
     const paramReasonTransfer               : any = { tableID: 'ODLN', aliasID: 'BPP_MDMT' };
     const paramDocumentTypeSunat            : any = { u_FIB_ENTR: 'Y', u_FIB_FAVE: '', u_FIB_TRAN: '' };
@@ -683,15 +681,15 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     }
 
     forkJoin({
-      salesType                     : this.camposDefinidoUsuarioService.getList(paramSalesType),
-      typeTransport                 : this.camposDefinidoUsuarioService.getList(paramTypeTransport),
-      reasonTransfer                : this.camposDefinidoUsuarioService.getList(paramReasonTransfer),
-      salesEmployees                : this.salesPersonsService.getList(),
-      documentTypeSunat             : this.documentTypeSunatService.getListByType(paramDocumentTypeSunat),
-      paymentsTermsTypes            : this.paymentTermsTypesService.getList(),
-      documentNumberingSeries       : this.documentNumberingSeriesService.getNumero(paramDocumentNumberingSeries),
-      typeCarrierIdentityDocument   : this.camposDefinidoUsuarioService.getList(paramTypeCarrierIdentityDocument),
-      typeDriversIdentityDocument   : this.camposDefinidoUsuarioService.getList(paramTypeDriversIdentityDocument),
+      salesPersons                  : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      typeTransport                 : this.userDefinedFieldsService.getList(paramTypeTransport).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      reasonTransfer                : this.userDefinedFieldsService.getList(paramReasonTransfer).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      operationsTypes               : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
+      documentTypeSunat             : this.documentTypeSunatService.getListByType(paramDocumentTypeSunat).pipe(catchError(() => of([] as IDocumentTypeSunat[]))),
+      paymentsTermsTypes            : this.paymentTermsTypesService.getList().pipe(catchError(() => of([] as IPaymentTermsTypes[]))),
+      documentNumberingSeries       : this.documentNumberingSeriesService.getNumero(paramDocumentNumberingSeries).pipe(catchError(() => of(null))),
+      typeCarrierIdentityDocument   : this.userDefinedFieldsService.getList(paramTypeCarrierIdentityDocument).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      typeDriversIdentityDocument   : this.userDefinedFieldsService.getList(paramTypeDriversIdentityDocument).pipe(catchError(() => of([] as IUserDefinedFields[]))),
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -701,10 +699,10 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.modeloFormDoc.patchValue({ docNum: res.documentNumberingSeries.nextNumber }, { emitEvent: false });
 
-        this.salesTypeList                    = (res.salesType || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.salesPersonsList                 = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
         this.typeTransportList                = (res.typeTransport || []).map(item => ({ label: item.descr, value: item.fldValue }));
         this.reasonTransferList               = (res.reasonTransfer || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.salesEmployeesList               = (res.salesEmployees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+        this.operationsTypesList              = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
         this.documentTypeSunatList            = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
         this.paymentsTermsTypesList           = (res.paymentsTermsTypes || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
         this.typeCarrierIdentityDocumentList  = (res.typeCarrierIdentityDocument || []).map(item => ({ label: item.descr, value: item.fldValue }));
@@ -814,8 +812,8 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     this.shipAddressList = (value.shipAddressList || []).map(d => ({ label: d.address, value: d.address }));
     this.payAddressList  = (value.payAddressList  || []).map(d => ({ label: d.address, value: d.address }));
 
-    const shipAddressItem = this.shipAddressList.find(item => item.label === value.shipToCode);
-    const payAddressItem  = this.payAddressList.find(item => item.label === value.payToCode);
+    const shipAddressItem = this.shipAddressList.find(item => item.value === value.shipToCode);
+    const payAddressItem  = this.payAddressList.find(item => item.value === value.payToCode);
 
     this.modeloFormLog.patchValue(
       {
@@ -828,8 +826,8 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     );
 
     // Agencia
-    this.agencyAddressList = (value.agencyAddressList || []).map(d => ({ label: d.address, value: d }));
-    const agencyAddressItem = this.agencyAddressList.find(item => item.label === value.u_FIB_CODT);
+    this.agencyAddressList = (value.agencyAddressList || []).map(d => ({ label: d.address, value: d.address }));
+    const agencyAddressItem = this.agencyAddressList.find(item => item.value === value.u_FIB_CODT);
 
     this.modeloFormAge.patchValue(
       {
@@ -842,21 +840,13 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       { emitEvent: false }
     );
 
-    // Otros
-    const salesTypeItem = this.salesTypeList.find(item => item.value === value.u_STR_TVENTA);
-
-    this.modeloFormOtr.patchValue(
-      { salesType: salesTypeItem || null },
-      { emitEvent: false }
-    );
-
     // Vendedor
-    const slpCodeItem = this.salesEmployeesList.find(item => item.value === value.slpCode);
+    const salesPersonsItem = this.salesPersonsList.find(item => item.value === value.slpCode);
 
     // ✅ PATCH SAL (tu bloque original)
     this.modeloFormSal.patchValue(
       {
-        salesEmployees: slpCodeItem || null,
+        salesPersons  : salesPersonsItem || null,
         u_NroOrden    : this.utilService.normalizePrimitive(value.u_NroOrden),
         u_OrdenCompra : this.utilService.normalizePrimitive(value.u_OrdenCompra),
         comments      : this.utilService.normalizePrimitive(value.comments)
@@ -921,16 +911,16 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       // 2) Preparar listas
       map((socio: IBusinessPartnersQuery) => ({
         socio,
-        monedas  : socio.linesCurrency ?? [],
-        shipAddr : socio.linesShipAddress ?? [],
-        payAddr  : socio.linesPayAddress ?? []
+        monedas  : socio.currencyCodesLines ?? [],
+        shipAddr : socio.shipAddressLines ?? [],
+        payAddr  : socio.payAddressLines ?? []
       })),
 
       // 3) Actualizar combos + defaults (sin disparar eventos)
       tap(({ monedas, shipAddr, payAddr, socio }) => {
         this.currencyList    = (monedas || []).map(m => ({ label: m.currName, value: m.currCode }));
-        this.shipAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d }));
-        this.payAddressList  = (payAddr || []).map(d => ({ label: d.address, value: d }));
+        this.shipAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d.address }));
+        this.payAddressList  = (payAddr || []).map(d => ({ label: d.address, value: d.address }));
 
         // Selección por defecto de moneda
         if (this.currencyList.length > 0) {
@@ -952,14 +942,14 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
 
         // Selección por defecto de direcciones y otros campos
         const defaultShipItem =
-          this.shipAddressList.find(it => (it.value as IAddresses).address === socio.shipToDef) || null;
+          this.shipAddressList.find(it => it.value === socio.shipToDef) || null;
 
         if (defaultShipItem) {
           this.modeloFormLog.patchValue({ shipAddress: defaultShipItem }, { emitEvent: false });
         }
 
         const defaultPayItem =
-          this.payAddressList.find(it => (it.value as IAddresses).address === socio.billToDef) || null;
+          this.payAddressList.find(it => it.value  === socio.billToDef) || null;
 
         if (defaultPayItem) {
           this.modeloFormLog.patchValue({ payAddress: defaultPayItem }, { emitEvent: false });
@@ -975,16 +965,16 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
         const slpCodeNormalized = (socio.slpCode ?? 0) === 0 ? -1 : socio.slpCode;
 
         const defaultSalesEmployee =
-          this.salesEmployeesList.find(it => it.value === slpCodeNormalized) || null;
+          this.salesPersonsList.find(it => it.value === slpCodeNormalized) || null;
 
         if (defaultSalesEmployee) {
-          this.modeloFormSal.patchValue({ salesEmployees: defaultSalesEmployee }, { emitEvent: false });
+          this.modeloFormSal.patchValue({ salesPersons: defaultSalesEmployee }, { emitEvent: false });
         }
       }),
 
       // 4) Encadenar cargas dependientes + esperar a que terminen
       switchMap(({ monedas, shipAddr, payAddr, socio }) => {
-        // OJO: aquí ya están seteados los defaults del form (salesEmployees, shipAddress, etc.)
+        // OJO: aquí ya están seteados los defaults del form (salesPersons, shipAddress, etc.)
 
         const defaultShip = (shipAddr || []).find((d: IAddresses) => d.address === socio.shipToDef);
         const defaultPay  = (payAddr  || []).find((d: IAddresses) => d.address === socio.billToDef);
@@ -1243,9 +1233,9 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
 
   canSearchArticulo(): boolean {
     const cardCodeValid = !!this.cardCode;
-    const salesEmployeeSelected = !!this.modeloFormSal.get('salesEmployees')?.value;
+    const salesPersonsSelected = !!this.modeloFormSal.get('salesPersons')?.value;
 
-    return cardCodeValid && salesEmployeeSelected;
+    return cardCodeValid && salesPersonsSelected;
   }
 
   canSearchAccount(modelo: any): boolean {
@@ -1421,8 +1411,7 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       cardCode            : this.modeloFormSoc.get('cardCode')?.value ?? '',
       currency            : this.currency,
       operationTypeCode   : '01',
-      warehouseProduction : 'Y',
-      warehouseLogistics  : '',
+      warehouseType       : 'P'
 
     };
   }
@@ -1439,7 +1428,7 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
   /** Abre el modal para seleccionar cuenta contable de la línea indicada */
   onOpenCuentaContable(index: number): void {
     // Abre modal para seleccionar cuenta contable de la línea
-    this.indexCentroCuentaContable  = index;
+    this.indexCuentaContable  = index;
     this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
   }
   /** Maneja la selección de una cuenta contable desde el modal */
@@ -1448,7 +1437,7 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     const currency  = formValue.currency?.value || formValue.currency || '';
 
     // Aplica el centro de costo seleccionado a la línea actual
-    const currentLine               = this.modeloLines[this.indexCentroCuentaContable];
+    const currentLine               = this.modeloLines[this.indexCuentaContable];
     currentLine.acctCode            = value.acctCode;
     currentLine.formatCode          = value.formatCode;
     currentLine.acctName            = value.acctName;
@@ -1576,29 +1565,10 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     this.isVisualizarImpuesto = !this.isVisualizarImpuesto;
   }
 
-  onClickCloseImpuesto()
-  {
+  onClickCloseImpuesto() {
     this.isVisualizarImpuesto = !this.isVisualizarImpuesto;
   }
 
-  /** Abre el modal para seleccionar tipo de operación de la línea indicada */
-  onOpenTipoOperacion(index: number): void {
-    // Abre modal para seleccionar tipo de operación de la línea
-    this.indexTipoOperacion = index;
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-  }
-  /** Maneja la selección de un tipo de operación desde el modal */
-  onSelectedTipoOperacion(value: any): void {
-    // Aplica el tipo de operación seleccionado a la línea actual
-    const currentLine               = this.modeloLines[this.indexTipoOperacion];
-    currentLine.u_tipoOpT12         = value.code;
-    currentLine.u_tipoOpT12Nam      = value.u_descrp;
-    this.isVisualizarTipoOperacion  = !this.isVisualizarTipoOperacion;
-  }
-  /** Cierra el modal de búsqueda de tipos de operación */
-  onClickCloseTipoOperacion(): void {
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-  }
 
   //#endregion
 
@@ -1614,7 +1584,10 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
 
         if (!selected) return EMPTY;
 
-        const address = selected.value;
+        const value = selected?.value ?? null;
+        if (!value) return;
+
+        const address = value;
 
         const formConValues = this.modeloFormCon.getRawValue();
         const docTypeValue  = formConValues.docType?.value;
@@ -1679,6 +1652,8 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
     .subscribe({
       next: (selected) => {
 
+        if (!selected) return EMPTY;
+
         const value = selected?.value ?? null;
         if (!value) return;
 
@@ -1718,7 +1693,7 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
 
   private loadTaxGroup(cardCode: string, address: string): Observable<ITaxGroups | null> {
     const formConValues = this.modeloFormSal.getRawValue();
-    const slpCode = formConValues.salesEmployees?.value || formConValues.salesEmployees || -1;
+    const slpCode = formConValues.salesPersons?.value || formConValues.salesPersons || -1;
 
     const params = { cardCode, address, slpCode };
 
@@ -1801,14 +1776,14 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       }),
       map((agencia: IBusinessPartnersQuery) => ({
         agencia,
-        shipAddr: agencia.linesShipAddress ?? []
+        shipAddr: agencia.shipAddressLines ?? []
       })),
       // Actualizamos listas y preselecciones sin disparar eventos
       tap(({ shipAddr, agencia }) => {
-        this.agencyAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d }));
+        this.agencyAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d.address }));
 
         // Selección por defecto de direcciones y otros campos
-        const defaultShipItem = this.agencyAddressList.find(it => (it.value as IAddresses).address === agencia.shipToDef) || null;
+        const defaultShipItem = this.agencyAddressList.find(it => it.value === agencia.shipToDef) || null;
         if (defaultShipItem) {
           this.modeloFormAge.patchValue({ agencyAddress: defaultShipItem }, { emitEvent: false });
         }
@@ -1848,7 +1823,7 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       filter(selected => !!selected),
       switchMap(selected => {
 
-        const address = selected.value.address;
+        const address = selected.value;
 
         return this.loadAddress(this.u_BPP_MDCT, address, 'S');
       })
@@ -1896,7 +1871,7 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
   onSelectedTransportista(value) {
     this.resetTransportista();
 
-    this.u_FIB_COD_TRA = value.cardCode;
+    this.u_FIB_COD_TRA = this.utilService.normalizePrimitive(value.cardCode);
 
     const typeCarrierIdentityDocumentItem = this.typeCarrierIdentityDocumentList.find(item => item.value === value.u_BPP_BPTD);
 
@@ -2306,11 +2281,10 @@ export class PanelEntregaCreateComponent implements OnInit, OnDestroy {
       u_FIB_NPRESCINTO3 : p(f.u_FIB_NPRESCINTO3),
       u_FIB_NPRESCINTO4 : p(f.u_FIB_NPRESCINTO4),
 
-      u_STR_TVENTA      : p(val(f.salesType)),
       u_BPP_MDMT        : p(val(f.reasonTransfer)),
       u_BPP_MDOM        : p(f.u_BPP_MDOM),
 
-      slpCode           : n(val(f.salesEmployees) ?? -1),
+      slpCode           : n(val(f.salesPersons) ?? -1),
 
       u_FIB_NBULTOS     : n(f.u_FIB_NBULTOS),
       u_FIB_KG          : n(f.u_FIB_KG),

@@ -35,7 +35,7 @@
               <div class="col-12 md:col-6" *ngIf="!isMainCurrency">
                 <label class="label-custom" for="float-input-tipo-cambio">Tipo cambio </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docRate" class="field-numero field-mandatory" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSoc, 'docRate', 3, true)">
+                  <input id="float-input-docRate" class="field-numero field-mandatory" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormSoc, 'docRate', 3, true)">
                 </div>
               </div>
             </div>
@@ -217,40 +217,25 @@
                         </ng-template>
                       </p-cellEditor>
                     </td>
-                    <td class="custom-td-numero" pEditableColumn>
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="discPrcnt" type="text" autocomplete="off" [(ngModel)]="modelo.discPrcnt" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.discPrcnt)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.discPrcnt | number: '.2':'en-EN'}}
-                        </ng-template>
-                      </p-cellEditor>
-                    </td>
-                    <td class="custom-td-numero" pEditableColumn>
-                      <p-cellEditor>
-                        <ng-template pTemplate="input">
-                          <input id="price" type="text" autocomplete="off" [(ngModel)]="modelo.price" maxlength="23" (ngModelChange)="onChangePrice(modelo,ri)" pInputText (keypress)="this.utilService.aceptaSoloNumeros($event,modelo.price)">
-                        </ng-template>
-                        <ng-template pTemplate="output">
-                          {{modelo.price | number: '.3':'en-EN'}}
-                        </ng-template>
-                      </p-cellEditor>
-                    </td>
+
                     <td class="p-fluid">
                       <i *ngIf="canSearchTax(modelo)" class="pi pi-search" (click)="onClickOpenImpuesto(ri)"></i>
                       {{modelo.taxCode}}
                     </td>
-                    <td class="p-fluid">
-                      <i *ngIf="canSearchTipoOperacion(modelo)" class="pi pi-search" (click)="onOpenTipoOperacion(ri)"></i>
-                      {{modelo.u_tipoOpT12Nam}}
+
+                    <td class="p-fluid" pEditableColumn>
+                      <p-cellEditor>
+                        <ng-template pTemplate="input">
+                          <p-dropdown [options]="operationsTypesList" [(ngModel)]="modelo.u_tipoOpT12" optionLabel="label" optionValue="value" appendTo="body" [filter]="true" [style]="{ width: '100%' }"></p-dropdown>
+                        </ng-template>
+                        <ng-template pTemplate="output">
+                          {{ utilService.getSelectItemLabel(operationsTypesList, modelo.u_tipoOpT12) }}
+                        </ng-template>
+                      </p-cellEditor>
                     </td>
                     <td class="custom-td-numero">
                       {{modelo.lineTotal | number: '.2':'en-EN'}}
                     </td>
-                    <!-- <td class="custom-td-numero">
-                      {{modelo.vatSum | number: '.2':'en-EN'}}
-                    </td> -->
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage" let-columns>
@@ -496,15 +481,11 @@
               </ng-template>
               <form [formGroup]="modeloFormOtr">
                 <div class="p-fluid p-formgrid grid">
-                  <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-salesType">Tipo de venta </label>
-                    <p-dropdown id="float-input-salesType" class="field-mandatory" [options]="salesTypeList" placeholder="Seleccione tipo de venta" formControlName="salesType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                  </div>
-                  <div class="col-12 md:col-4">
+                  <div class="col-12 md:col-6">
                     <label class="label-custom" for="float-input-reasonTransfer">Motivo de traslado </label>
                     <p-dropdown id="float-input-reasonTransfer" class="field-mandatory" [options]="reasonTransferList" placeholder="Seleccione motivo de traslado" formControlName="reasonTransfer" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                   </div>
-                  <div class="col-12 md:col-4">
+                  <div class="col-12 md:col-6">
                     <label class="label-custom" for="float-input-u_u_BPP_MDOM">Otro motivo de traslado </label>
                     <div class="p-inputgroup">
                       <input id="float-input-u_BPP_MDOM" type="text" placeholder="Otro motivo de traslado" maxlength="50" size="50" formControlName="u_BPP_MDOM" autocomplete="off" pInputText>
@@ -522,22 +503,22 @@
           <form [formGroup]="modeloFormSal">
             <div class="p-fluid p-formgrid grid">
               <div class="col-12 md:col-6">
-                <label class="label-custom" for="float-input-empleado-venta">Empleado de ventas </label>
-                <p-dropdown id="float-input-salesEmployees" class="field-mandatory" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormSal.controls['salesEmployees'].errors && modeloFormSal.controls['salesEmployees'].dirty">
-                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesEmployees'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                <p-dropdown id="float-input-salesPersons" class="field-mandatory" [options]="salesPersonsList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesPersons" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormSal.controls['salesPersons'].errors && modeloFormSal.controls['salesPersons'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesPersons'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_NBULTOS">N° bultos </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_FIB_NBULTOS" class="field-numero label-bold" type="text" placeholder="N° bultos" maxlength="20" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormSal, 'u_FIB_NBULTOS', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSal, 'u_FIB_NBULTOS', 2, true)">
+                  <input id="float-input-u_FIB_NBULTOS" class="field-numero label-bold" type="text" placeholder="N° bultos" maxlength="20" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormSal, 'u_FIB_NBULTOS', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormSal, 'u_FIB_NBULTOS', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_KG">Total kilos </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_FIB_KG" class="field-numero label-bold" type="text" placeholder="Total kilos" maxlength="20" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormSal, 'u_FIB_KG', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSal, 'u_FIB_KG', 2, true)">
+                  <input id="float-input-u_FIB_KG" class="field-numero label-bold" type="text" placeholder="Total kilos" maxlength="20" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormSal, 'u_FIB_KG', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormSal, 'u_FIB_KG', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-6">
@@ -576,13 +557,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-discPrcnt">% Dto. </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discPrcnt', 2, true)">
+                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discPrcnt', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-discSum">Descuento </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="this.utilService.onNumericInput1(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discSum', 2, true)">
+                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="this.utilService.onNumericInput(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discSum', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-12">
@@ -642,13 +623,6 @@
   <app-busqueda-impuesto  (eventoAceptar)="onClickSelectedImpuesto($event)"></app-busqueda-impuesto>
   <ng-template pTemplate="footer">
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseImpuesto()"></p-button>
-  </ng-template>
-</p-dialog>
-
-<p-dialog *ngIf="isVisualizarTipoOperacion" header="Tipo de operación" [(visible)]="isVisualizarTipoOperacion" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
-  <app-busqueda-tipo-operacion [title]="'Tipo de Operación'" [placeholder]="'Tipo de operación'" [nomTabla]="'OWTR'" [nomCampo]="'U_tipoOpT12'" (eventoAceptar)="onSelectedTipoOperacion($event)"></app-busqueda-tipo-operacion>
-  <ng-template pTemplate="footer">
-    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoOperacion()"></p-button>
   </ng-template>
 </p-dialog>
 

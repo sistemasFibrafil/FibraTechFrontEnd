@@ -1,26 +1,27 @@
 import { Router } from '@angular/router';
 import { SelectItem } from 'primeng/api';
-import { Component, OnInit } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { Subject, of, Observable, takeUntil } from 'rxjs';
-import { catchError, finalize, map, take } from 'rxjs/operators';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { catchError, finalize, map, Observable, of, Subject, take, takeUntil } from 'rxjs';
 
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { DeliveryNotesFilterModel } from '../../../models/sap-business-one/delivery-notes.model';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
-import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
-import { IDeliveryNotesQuery } from '../../../interfaces/sap-business-one/delivery-notes.interface';
-import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+import { ButtonAcces } from '@app/models/acceso-button.model';
+import { DeliveryNotesFilterModel } from '@app/modulos/modulo-ventas/models/sap-business-one/delivery-notes.model';
 
-import { UtilService } from 'src/app/services/util.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { DeliveryNotesService } from '../../../services/sap-business-one/delivery-notes.service';
-import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
+import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
+import { IExchangeRates } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+import { IDeliveryNotesQuery } from '@app/modulos/modulo-ventas/interfaces/sap-business-one/delivery-notes.interface';
+
+import { UtilService } from '@app/services/util.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { AccesoOpcionesService } from '@app/services/acceso-opciones.service';
+import { DeliveryNotesService } from '@app/modulos/modulo-ventas/services/sap-business-one/delivery-notes.service';
+import { ExchangeRatesService } from '@app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
+
 
 
 @Component({
@@ -28,44 +29,77 @@ import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sa
   templateUrl: './panel-entrega-list.component.html',
   styleUrls: ['./panel-entrega-list.component.css']
 })
-export class PanelEntregaListComponent implements OnInit {
-  // Lifecycle management
+export class PanelEntregaListComponent implements OnInit, OnDestroy {
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                     = new Subject<void>();
 
-  // Forms
-  modeloForm                                    : FormGroup;
 
-  // Configuration
-  readonly titulo                               : string = 'Entrega de Venta';
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
   buttonAcces                                   : ButtonAcces = new ButtonAcces();
   globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  codGrpCustNat                                 : number = 0;
-  codGrpCustFor                                 : number = 0;
 
-  // UI State
-  isCancel                                     : boolean = false;
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
+  modeloForm                                    : FormGroup;
+
+
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
+  isCancel                                      : boolean = false;
   isClosing                                     : boolean = false;
   isDisplay                                     : boolean = false;
   isDisplayVisor                                : boolean = false;
   isDisplayGenerandoVisor                       : boolean = false;
 
-  // Table configuration
+
+  // ===========================
+  // 🔹 5. UI DATA
+  // ===========================
+  isDataBlob                                    : Blob | null = null;
+
+
+  // ===========================
+  // 🔹 6. TABLE CONFIG
+  // ===========================
   opciones                                      : MenuItem[] = [];
   columnas                                      : TableColumn[] = [];
-  private opcionesMap                           : Map<string, MenuItem>;
-
-  docStatusList                                 : SelectItem[] = [];
-
-  // Paginación de la tabla
-  rows                                          = 20;
+  opcionesMap                                   : Map<string, MenuItem>;
   rowsPerPageOptions                            = [20, 40, 60, 80, 100];
 
-  // Data
-  modelo                                        : IDeliveryNotesQuery[] = [];
-  modeloSelected                                : IDeliveryNotesQuery;
 
-  isDataBlob                                    : Blob;
+  // ===========================
+  // 🔹 7. DATA (CORE)
+  // ===========================
+  modelo                                        : IDeliveryNotesQuery[] = [];
+  modeloSelected                                : IDeliveryNotesQuery | null = null;
+
+
+  // ===========================
+  // 🔹 8. COMBOS / LISTS
+  // ===========================
+  docStatusList                                 : SelectItem[] = [];
+
+
+  // ===========================
+  // 🔹 9. INDEXES (UI CONTROL)
+  // ===========================
+  rows                                          : number = 20;
+  codGrpCustNat                                 : number = 0;
+  codGrpCustFor                                 : number = 0;
+
+
+  // ===========================
+  // 🔹 10. TEXT / AUX / FILTERS
+  // ===========================
+  titulo                                        : string = 'Entrega de Venta';
+
 
   constructor(
     private readonly router: Router,
@@ -80,13 +114,24 @@ export class PanelEntregaListComponent implements OnInit {
   ) {}
 
 
+
+  //#region <<< 1. LIFECYCLE >>>
+
   ngOnInit() {
     this.initializeComponent();
   }
 
-  // ===========================
-  // Initialization
-  // ===========================
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  //#endregion
+
+
+
+
+  //#region <<< 2. INITIALIZATION >>>
 
   private initializeComponent(): void {
     this.onBuildForm();
@@ -94,17 +139,12 @@ export class PanelEntregaListComponent implements OnInit {
     this.opcionesTabla();
     this.loadStatusList();
 
-    this.codGrpCustNat = this.userContextService.getCodGrpCustNat();
-    this.codGrpCustFor = this.userContextService.getCodGrpCustFor();
+    this.codGrpCustNat = Number(this.userContextService.getCodGrpCustNat());
+    this.codGrpCustFor = Number(this.userContextService.getCodGrpCustFor());
 
     if (!this.buttonAcces.btnBuscar) {
       this.loadData();
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private onBuildForm(): void {
@@ -118,25 +158,23 @@ export class PanelEntregaListComponent implements OnInit {
     this.buttonAcces = this.accesoOpcionesService.getObtieneOpciones('app-ven-panel-entrega-list');
   }
 
-  onBuildColumn() {
+  private onBuildColumn() {
     this.columnas = [
       { field: 'docNum',        header: 'Número' },
       { field: 'docStatus',     header: 'Estado' },
       { field: 'u_BPP_MDCD',    header: 'Guía' },
       { field: 'docDate',       header: 'Fecha de contabilización' },
       { field: 'docDueDate',    header: 'Fecha de entrega' },
-      { field: 'taxDate',       header: 'Fecha de documento' },
       { field: 'groupCode',     header: 'Tipo venta' },
       { field: 'cardCode',      header: 'Código de cliente' },
       { field: 'cardName',      header: 'Nombre de cliente' },
       { field: 'slpName',       header: 'Vendedor' },
-      { field: 'docCur',        header: 'Moneda' },
       { field: 'docTotal',      header: 'Total MN' },
       { field: 'docTotalSy',    header: 'Total ME' }
     ];
   }
 
-  opcionesTabla() {
+  private opcionesTabla() {
     this.opciones = [
       { value: '1', label: 'Ver',         icon: 'pi pi-eye',      command: () => { this.onClickVer(); } },
       { value: '2', label: 'Editar',      icon: 'pi pi-pencil',   command: () => { this.onClickEditar(); } },
@@ -149,9 +187,23 @@ export class PanelEntregaListComponent implements OnInit {
     this.opcionesMap = new Map(this.opciones.map(op => [op.label, op]));
   }
 
-  // ===========================
-  // Helper Methods
-  // ===========================
+  private loadStatusList(): void {
+    const statuses = this.localDataService.statusDocuments;
+    this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
+    this.modeloForm.get('docStatus')?.setValue(statuses);
+  }
+
+  //#endregion
+
+
+
+
+  //#region <<< 3. TABLE / MENU >>>
+
+  onToItemSelected(modelo: IDeliveryNotesQuery): void {
+    this.modeloSelected = modelo;
+    this.updateMenuVisibility(modelo);
+  }
 
   private validateSelection(): boolean {
     if (!this.modeloSelected) {
@@ -174,43 +226,15 @@ export class PanelEntregaListComponent implements OnInit {
     this.opcionesMap.get('Cancelar')!.visible = isCancel;
   }
 
-  // ===========================
-  // Table Events
-  // ===========================
+  //#endregion
 
-  onToItemSelected(modelo: IDeliveryNotesQuery): void {
-    this.modeloSelected = modelo;
-    this.updateMenuVisibility(modelo);
-  }
 
-  // ===========================
-  // Data Operations
-  // ===========================
 
-  private loadStatusList(): void {
-    const statuses = this.localDataService.statusDocuments;
-    this.docStatusList = statuses.map(s => ({ label: s.name, value: s }));
-    this.modeloForm.get('docStatus').setValue(statuses);
-  }
 
-  // ===========================
-  // Data Operations
-  // ===========================
+  //#region <<< 4. LOAD DATA / FILTERS >>>
 
-  private buildFilterParams(): DeliveryNotesFilterModel {
-    const {
-      startDate,
-      endDate,
-      docStatus,
-      searchText
-    } = this.modeloForm.getRawValue();
-
-    return {
-      startDate,
-      endDate,
-      docStatus: (docStatus || []).map(x => x.code).join(','),
-      searchText
-    };
+  onClickBuscar(): void {
+    this.loadData();
   }
 
   private loadData(): void {
@@ -231,47 +255,59 @@ export class PanelEntregaListComponent implements OnInit {
     });
   }
 
-  // ===========================
-  // UI Actions
-  // ===========================
+  private buildFilterParams(): DeliveryNotesFilterModel {
+    const {
+      startDate,
+      endDate,
+      docStatus,
+      searchText
+    } = this.modeloForm.getRawValue();
 
-  onClickBuscar(): void {
-    this.loadData();
+    return {
+      startDate,
+      endDate,
+      docStatus: (docStatus || []).map(x => x.code).join(','),
+      searchText
+    };
   }
 
-  getEstado(modelo: any) {
-    const reglas = [
-      {
-        cond: () => modelo.canceled === 'Y',
-        value: { text: 'Cancelado', class: 'estado-cancelado' }
-      },
-      {
-        cond: () => modelo.docStatus === 'O',
-        value: { text: 'Abierto', class: 'estado-abierto' }
-      },
-      {
-        cond: () => modelo.docStatus === 'C',
-        value: { text: 'Cerrado', class: 'estado-cerrado' }
-      }
-    ];
+  //#endregion
 
-    return reglas.find(r => r.cond())?.value ?? { text: '', class: '' };
+
+
+
+  //#region <<< 5. UI HELPERS >>>
+
+  getEstado(modelo: IDeliveryNotesQuery) {
+    if (modelo.canceled === 'Y') {
+      return { text: 'Cancelado', class: 'estado-cancelado' };
+    }
+
+    if (modelo.docStatus === 'O') {
+      return { text: 'Abierto', class: 'estado-abierto' };
+    }
+
+    if (modelo.docStatus === 'C') {
+      return { text: 'Cerrado', class: 'estado-cerrado' };
+    }
+
+    return { text: '', class: '' };
   }
 
-  getGroupType(modelo: any) {
-    const reglas = [
-      {
-        cond: () => modelo?.groupCode != this.codGrpCustFor,
-        value: { text: 'Nacional', class: 'type-nacional' }
-      },
-      {
-        cond: () => modelo?.groupCode == this.codGrpCustFor,
-        value: { text: 'Exportación', class: 'type-exportacion' }
-      }
-    ];
+  getGroupType(modelo: IDeliveryNotesQuery) {
+    const groupCode = Number(modelo?.groupCode);
 
-    return reglas.find(r => r.cond())?.value ?? { text: '', class: '' };
+    return groupCode === this.codGrpCustFor
+      ? { text: 'Exportación', class: 'type-exportacion' }
+      : { text: 'Nacional', class: 'type-nacional' };
   }
+
+  //#endregion
+
+
+
+
+  //#region <<< 6. TIPO CAMBIO >>>
 
   private fetchTipoCambioRate(): Observable<IExchangeRates | null> {
     const docDate: Date = new Date();
@@ -310,6 +346,13 @@ export class PanelEntregaListComponent implements OnInit {
     });
   }
 
+  //#endregion
+
+
+
+
+  //#region <<< 7. ACTIONS >>>
+
   onClickCreate() {
     this.validarTipoCambioYContinuar(() => {
       this.router.navigate(['/main/modulo-ven/panel-entrega-create'], { state: { mode: 'create' } });
@@ -319,41 +362,16 @@ export class PanelEntregaListComponent implements OnInit {
   onClickVer(){
     if (!this.validateSelection()) return;
 
-    this.router.navigate(['/main/modulo-ven/panel-entrega-view', this.modeloSelected.docEntry]);
+    this.validarTipoCambioYContinuar(() => {
+      this.router.navigate(['/main/modulo-ven/panel-entrega-view', this.modeloSelected!.docEntry]);
+    });
   }
 
   onClickEditar() {
     if (!this.validateSelection()) return;
 
     this.validarTipoCambioYContinuar(() => {
-      this.router.navigate(['/main/modulo-ven/panel-entrega-edit', this.modeloSelected.docEntry]);
-    });
-  }
-
-  close(): void {
-    this.isClosing = true;
-
-    const userId        = this.userContextService.getIdUsuario();
-    const { docEntry }  = this.modeloSelected;
-
-    const param = {
-      docEntry,
-      u_UsrClose: userId
-    };
-
-    this.deliveryNotesService
-    .setClose(param)
-    .pipe(
-      takeUntil(this.destroy$),
-      finalize(() => (this.isClosing = false))
-    )
-    .subscribe({
-      next: () => {
-        this.loadData();
-        this.swaCustomService.swaMsgExito(null);
-      },
-      error: (e) =>
-        this.utilService.handleErrorSingle(e, 'close', this.swaCustomService)
+      this.router.navigate(['/main/modulo-ven/panel-entrega-edit', this.modeloSelected!.docEntry]);
     });
   }
 
@@ -373,23 +391,19 @@ export class PanelEntregaListComponent implements OnInit {
     });
   }
 
-  cancel(): void {
-    this.isCancel = true;
-
-    const userId        = this.userContextService.getIdUsuario();
-    const { docEntry }  = this.modeloSelected;
+  close(): void {
+    this.isClosing = true;
 
     const param = {
-      docEntry,
-      u_UsrCreate: userId,
-      u_UsrCancel: userId
+      docEntry: this.modeloSelected!.docEntry,
+      u_UsrClose: this.userContextService.getIdUsuario()
     };
 
     this.deliveryNotesService
-    .setCancel(param)
+    .setClose(param)
     .pipe(
       takeUntil(this.destroy$),
-      finalize(() => (this.isCancel = false))
+      finalize(() => (this.isClosing = false))
     )
     .subscribe({
       next: () => {
@@ -397,7 +411,7 @@ export class PanelEntregaListComponent implements OnInit {
         this.swaCustomService.swaMsgExito(null);
       },
       error: (e) =>
-        this.utilService.handleErrorSingle(e, 'cancel', this.swaCustomService)
+        this.utilService.handleErrorSingle(e, 'close', this.swaCustomService)
     });
   }
 
@@ -417,42 +431,70 @@ export class PanelEntregaListComponent implements OnInit {
     });
   }
 
+  cancel(): void {
+    this.isCancel = true;
+
+    const param = {
+      docEntry: this.modeloSelected!.docEntry,
+      u_UsrCreate: this.userContextService.getIdUsuario(),
+      u_UsrCancel: this.userContextService.getIdUsuario()
+    };
+
+    this.deliveryNotesService
+    .setCancel(param)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => (this.isCancel = false))
+    )
+    .subscribe({
+      next: () => {
+        this.loadData();
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) =>
+        this.utilService.handleErrorSingle(e, 'cancel', this.swaCustomService)
+    });
+  }
+
+  //#endregion
+
+
+
+
+  //#region <<< 8. PRINT / VISOR >>>
+
   onClickPrint(): void {
-    if (!this.validateSelection()) {
-      return;
-    }
-
     if (!this.validateSelection()) return;
-
-
-    const docEntry  = this.modeloSelected.docEntry;
-    const groupCode = Number(this.modeloSelected.groupCode);
-
-    // Solo 115 usa formato exportación, todo lo demás es nacional
-    const request$ =
-      groupCode === 115
-        ? this.deliveryNotesService.getPrintExportDocEntry(docEntry)
-        : this.deliveryNotesService.getPrintNationalDocEntry(docEntry);
 
     this.isDisplayGenerandoVisor = true;
 
+    const docEntry  = this.modeloSelected!.docEntry;
+    const groupCode = Number(this.modeloSelected!.groupCode);
+
+    const request$ =
+    groupCode === this.codGrpCustFor
+    ? this.deliveryNotesService.getPrintExportDocEntry(docEntry)
+    : this.deliveryNotesService.getPrintNationalDocEntry(docEntry);
+
     request$
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => {
-          this.isDisplayGenerandoVisor = false;
-        })
-      )
-      .subscribe({
-        next: (resp: any) => {
-          if (resp.type === HttpEventType.Response) {
-            this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
-            this.isDisplayVisor = true;
-          }
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'onClickPrint', this.swaCustomService);
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isDisplayGenerandoVisor = false;
+      })
+    )
+    .subscribe({
+      next: (resp: any) => {
+        if (resp.type === HttpEventType.Response) {
+          this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
+          this.isDisplayVisor = true;
         }
-      });
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'onClickPrint', this.swaCustomService);
+      }
+    });
   }
+
+  //#endregion
 }

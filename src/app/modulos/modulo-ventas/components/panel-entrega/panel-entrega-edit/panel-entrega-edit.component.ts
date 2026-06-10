@@ -18,7 +18,7 @@ import { IBusinessPartnersQuery } from 'src/app/modulos/modulo-socios-negocios/i
 import { IDeliveryNotes1Query, IDeliveryNotesQuery } from '../../../interfaces/sap-business-one/delivery-notes.interface';
 import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
 import { IUserDefinedFields } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
-import { IPaymentTermsTypes } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/condicion-pago-sap.interface';
+import { IPaymentTermsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/payment-terms-types.interface';
 
 import { UtilService } from 'src/app/services/util.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
@@ -30,8 +30,10 @@ import { AddressesService } from 'src/app/modulos/modulo-socios-negocios/service
 import { BusinessPartnersService } from 'src/app/modulos/modulo-socios-negocios/services/business-partners.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
 import { DocumentTypeSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-type-sunat.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
-import { PaymentTermsTypesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/paymentTerms-types.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { PaymentTermsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/payment-terms-types.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
 
 
 
@@ -89,14 +91,14 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
 
   currencyList                                  : SelectItem[] = [];
   docTypesList                                  : SelectItem[] = [];
-  salesTypeList                                 : SelectItem[] = [];
   payAddressList                                : SelectItem[] = [];
   shipAddressList                               : SelectItem[] = [];
-  documentTypeSunatList                         : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
   agencyAddressList                             : SelectItem[] = [];
   typeTransportList                             : SelectItem[] = [];
   reasonTransferList                            : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
+  documentTypeSunatList                         : SelectItem[] = [];
   paymentsTermsTypesList                        : SelectItem[] = [];
   typeDriversIdentityDocumentList               : SelectItem[] = [];
   typeCarrierIdentityDocumentList               : SelectItem[] = [];
@@ -133,10 +135,11 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
     private readonly deliveryNotesService: DeliveryNotesService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly businessPartnersService: BusinessPartnersService,
     private readonly paymentTermsTypesService: PaymentTermsTypesService,
     private readonly documentTypeSunatService: DocumentTypeSunatService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     public  readonly utilService: UtilService,
   ) {}
 
@@ -244,13 +247,12 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
     });
     // OTROS
     this.modeloFormOtr = this.fb.group({
-      salesType                     : new FormControl('', Validators.required), // u_STR_TVENTA
       reasonTransfer                : new FormControl('', Validators.required), // u_BPP_MDMT
       u_BPP_MDOM                    : new FormControl(''),
     });
     // PIE - Información adicional y totales
     this.modeloFormSal = this.fb.group({
-      salesEmployees                : new FormControl('', Validators.required), // slpCode
+      salesPersons                  : new FormControl('', Validators.required), // slpCode
       u_FIB_NBULTOS                 : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
       u_FIB_KG                      : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
       u_NroOrden                    : new FormControl(''),
@@ -288,12 +290,9 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
         { field: 'u_FIB_PesoKg',    header: 'Kg' },
         { field: 'quantity',        header: 'Cantidad' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
         { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
     else{
@@ -302,12 +301,9 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
         { field: 'formatCode',      header: 'Cuenta mayor' },
         { field: 'acctName',        header: 'Nombre de la cuenta de mayor' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
         { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
 
@@ -437,7 +433,6 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
 
   private loadAllCombos(): void {
     this.idUsuario                          = this.userContextService.getIdUsuario();
-    const paramSalesType                    : any = { tableID: 'ORDR', aliasID: 'STR_TVENTA' };
     const paramTypeTransport                : any = { tableID: 'ODLN', aliasID: 'FIB_TIP_TRANS' };
     const paramReasonTransfer               : any = { tableID: 'ODLN', aliasID: 'BPP_MDMT' };
     const paramDocumentTypeSunat            : any = { u_FIB_ENTR: 'Y', u_FIB_FAVE: '', u_FIB_TRAN: '' };
@@ -458,14 +453,14 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
     }
 
     forkJoin({
-      salesType                     : this.camposDefinidoUsuarioService.getList(paramSalesType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      typeTransport                 : this.camposDefinidoUsuarioService.getList(paramTypeTransport).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      reasonTransfer                : this.camposDefinidoUsuarioService.getList(paramReasonTransfer).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      salesEmployees                : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
-      documentTypeSunat             : this.documentTypeSunatService.getListByType(paramDocumentTypeSunat),
+      salesPersons                  : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      typeTransport                 : this.userDefinedFieldsService.getList(paramTypeTransport).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      reasonTransfer                : this.userDefinedFieldsService.getList(paramReasonTransfer).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      operationsTypes               : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
+      documentTypeSunat             : this.documentTypeSunatService.getListByType(paramDocumentTypeSunat).pipe(catchError(() => of(null))),
       paymentsTermsTypes            : this.paymentTermsTypesService.getList().pipe(catchError(() => of([] as IPaymentTermsTypes[]))),
-      typeCarrierIdentityDocument   : this.camposDefinidoUsuarioService.getList(paramTypeCarrierIdentityDocument).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      typeDriversIdentityDocument   : this.camposDefinidoUsuarioService.getList(paramTypeDriversIdentityDocument).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      typeCarrierIdentityDocument   : this.userDefinedFieldsService.getList(paramTypeCarrierIdentityDocument).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      typeDriversIdentityDocument   : this.userDefinedFieldsService.getList(paramTypeDriversIdentityDocument).pipe(catchError(() => of([] as IUserDefinedFields[]))),
     })
       .pipe(
         takeUntil(this.destroy$),
@@ -473,10 +468,10 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          this.salesTypeList                    = (res.salesType || []).map(item => ({ label: item.descr, value: item.fldValue }));
+          this.salesPersonsList                 = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
           this.typeTransportList                = (res.typeTransport || []).map(item => ({ label: item.descr, value: item.fldValue }));
           this.reasonTransferList               = (res.reasonTransfer || []).map(item => ({ label: item.descr, value: item.fldValue }));
-          this.salesEmployeesList               = (res.salesEmployees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+          this.operationsTypesList              = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
           this.documentTypeSunatList            = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
           this.paymentsTermsTypesList           = (res.paymentsTermsTypes || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
           this.typeCarrierIdentityDocumentList  = (res.typeCarrierIdentityDocument || []).map(item => ({ label: item.descr, value: item.fldValue }));
@@ -676,12 +671,10 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
     );
 
     // OTROS
-    const salesTypeItem       = this.salesTypeList.find(item => item.value === value.u_STR_TVENTA);
     const reasonTransferItem  = this.reasonTransferList.find(item => item.value === value.u_BPP_MDMT);
 
     this.modeloFormOtr.patchValue(
       {
-        salesType       : salesTypeItem || null,
         reasonTransfer  : reasonTransferItem || null,
         u_BPP_MDOM      : this.utilService.normalizePrimitive(value.u_BPP_MDOM)
       },
@@ -689,12 +682,12 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
     );
 
     // SALES EMPLOYEE
-    const slpCodeItem = this.salesEmployeesList.find(item => item.value === value.slpCode);
+    const salesPersonsItem = this.salesPersonsList.find(item => item.value === value.slpCode);
 
     // ✅ PATCH SAL (tu bloque original)
     this.modeloFormSal.patchValue(
       {
-        salesEmployees: slpCodeItem || null,
+        salesPersons  : salesPersonsItem || null,
         u_FIB_NBULTOS : this.utilService.onRedondearDecimalConCero(value.u_FIB_NBULTOS, 2),
         u_FIB_KG      : this.utilService.onRedondearDecimalConCero(value.u_FIB_KG, 2),
         u_NroOrden    : this.utilService.normalizePrimitive(value.u_NroOrden),
@@ -1080,14 +1073,14 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
       }),
       map((agencia: IBusinessPartnersQuery) => ({
         agencia,
-        shipAddr: agencia.linesShipAddress ?? []
+        shipAddr: agencia.shipAddressLines ?? []
       })),
       // Actualizamos listas y preselecciones sin disparar eventos
       tap(({ shipAddr, agencia }) => {
         this.agencyAddressList = (shipAddr || []).map(d => ({ label: d.address, value: d.address }));
 
         // Selección por defecto de direcciones y otros campos
-        const defaultShipItem = this.agencyAddressList.find(it => (it.value as IAddresses).address === agencia.shipToDef) || null;
+        const defaultShipItem = this.agencyAddressList.find(it => it.value === agencia.shipToDef) || null;
         if (defaultShipItem) {
           this.modeloFormAge.patchValue({ agencyAddress: defaultShipItem }, { emitEvent: false });
         }
@@ -1444,11 +1437,10 @@ export class PanelEntregaEditComponent implements OnInit, OnDestroy {
       u_FIB_NPRESCINTO3 : p(f.u_FIB_NPRESCINTO3),
       u_FIB_NPRESCINTO4 : p(f.u_FIB_NPRESCINTO4),
 
-      u_STR_TVENTA      : p(val(f.salesType)),
       u_BPP_MDMT        : p(val(f.reasonTransfer)),
       u_BPP_MDOM        : p(f.u_BPP_MDOM),
 
-      slpCode           : n(val(f.salesEmployees) ?? -1),
+      slpCode           : n(val(f.salesPersons) ?? -1),
 
       u_FIB_NBULTOS     : n(f.u_FIB_NBULTOS),
       u_FIB_KG          : n(f.u_FIB_KG),

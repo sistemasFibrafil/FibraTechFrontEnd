@@ -51,6 +51,7 @@ import { BusquedaCuentaContableComponent } from './components/sap-business-one/b
 import { BusquedaCampoDefinidoUsuarioComponent } from './components/sap-business-one/busqueda/busqueda-campo-definido-usuario/busqueda-campo-definido-usuario.component';
 import { ModalVehiculoComponent } from './components/sap-business-one/modal/modal-vehiculo/modal-vehiculo.component';
 import { ModalUsuarioComponent } from './components/sap-business-one/modal/modal-usuario/modal-usuario.component';
+import { BusquedaUbigeoComponent } from './components/sap-business-one/busqueda/busqueda-ubigeo/busqueda-ubigeo.component';
 
 
 
@@ -105,7 +106,9 @@ import { ModalUsuarioComponent } from './components/sap-business-one/modal/modal
 
       BusquedaCampoDefinidoUsuarioComponent,
 
-      ModalUsuarioComponent
+      ModalUsuarioComponent,
+
+      BusquedaUbigeoComponent
     ],
     imports: [
       RouterOutlet,
@@ -161,7 +164,9 @@ import { ModalUsuarioComponent } from './components/sap-business-one/modal/modal
 
       BusquedaCampoDefinidoUsuarioComponent,
 
-      ModalUsuarioComponent
+      ModalUsuarioComponent,
+
+      BusquedaUbigeoComponent
     ],
     providers: [ ],
     schemas:

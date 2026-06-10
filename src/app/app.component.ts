@@ -1,22 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { PrimeNGConfig } from 'primeng/api';
+import { AppVersionService } from './services/app-version.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit, OnDestroy {
   title = 'GF-FrontEnd';
 
-  constructor
-  (
+  private versionInterval: any;
+
+  constructor(
     private primengConfig: PrimeNGConfig,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private appVersionService: AppVersionService
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.primengConfig.setTranslation({
       firstDayOfWeek  : 1,
       dayNames        : ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
@@ -29,5 +32,17 @@ export class AppComponent implements OnInit{
       weekHeader      : 'Sm',
       dateFormat      : 'dd/mm/yy'
     });
+
+    this.appVersionService.checkVersion();
+
+    this.versionInterval = setInterval(() => {
+      this.appVersionService.checkVersion();
+    }, 60000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.versionInterval) {
+      clearInterval(this.versionInterval);
+    }
   }
 }

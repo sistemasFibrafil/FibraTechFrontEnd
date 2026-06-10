@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { ITaxGroups } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/impuesto-sap.iterface';
+import { ITaxGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/tax-groups.iterface';
 
 
 @Injectable({providedIn: 'root'})
@@ -12,6 +12,10 @@ export class TaxGroupsService {
   (
     private http: HttpClient
   ) { }
+
+  getList() {
+    return this.http.get<ITaxGroups[]>(`${environment.url_api_fib}TaxGroups/GetList`);
+  }
 
   getListByFilter(value: FilterRequestModel) {
     let params = new HttpParams();
@@ -27,5 +31,12 @@ export class TaxGroupsService {
     params = params.append('slpCode', value.slpCode);
 
     return this.http.get<ITaxGroups>(`${environment.url_api_fib}TaxGroups/GetByCardCode/`, { params: params });
+  }
+
+  getByCode(code: string) {
+    let params = new HttpParams();
+    params = params.append('code', code);
+
+    return this.http.get<ITaxGroups>(`${environment.url_api_fib}TaxGroups/GetByCode/`, { params: params });
   }
 }

@@ -7,19 +7,19 @@ import { catchError, finalize, map, Observable, of, Subject, take, takeUntil } f
 import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
 import { ButtonAcces } from '@app/models/acceso-button.model';
-import { PurchaseRequestFilterModel } from '../../../models/sap-business-one/purchase-request.model';
+import { PurchaseRequestFilterModel } from '@app/modulos/modulo-compras/models/sap-business-one/purchase-request.model';
 
 import { MenuItem } from '@app/interface/common-ui.interface';
-import { IPurchaseRequest } from '../../../interfaces/sap-business-one/purchase-request.interface';
 import { IExchangeRates } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
+import { IPurchaseRequestQuery } from '@app/modulos/modulo-compras/interfaces/sap-business-one/purchase-request.interface';
 
 import { UtilService } from '@app/services/util.service';
 import { LocalDataService } from '@app/services/local-data.service';
 import { SwaCustomService } from '@app/services/swa-custom.service';
 import { UserContextService } from '@app/services/user-context.service';
 import { AccesoOpcionesService } from '@app/services/acceso-opciones.service';
-import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
 import { ExchangeRatesService } from '@app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
+import { PurchaseRequestService } from '@app/modulos/modulo-compras/services/sap-business-one/purchase-request.service';
 
 interface DocStatus {
   statusCode  : string,
@@ -46,9 +46,9 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   columnas: any[];
   opciones: any = [];
 
-  modeloDelete: IPurchaseRequest;
-  modeloSelected: IPurchaseRequest;
-  modelo: IPurchaseRequest[] = [];
+  modeloDelete: IPurchaseRequestQuery;
+  modeloSelected: IPurchaseRequestQuery;
+  modelo: IPurchaseRequestQuery[] = [];
 
   docStatus: DocStatus[];
   docStatusList: SelectItem[];
@@ -120,7 +120,8 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   onBuildColumn() {
     this.columnas = [
       { field: 'docNum',          header: 'Número' },
-      { field: 'docType',         header: 'Tipo documento' },
+      { field: 'docStatus',       header: 'Estado' },
+      { field: 'docType',         header: 'Clase' },
       { field: 'docDate',         header: 'Fecha de contabilización' },
       { field: 'docDueDate',      header: 'Fecha de entrega' },
       { field: 'taxDate',         header: 'Fecha de documento' },
@@ -150,7 +151,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
     return true;
   }
 
-  private updateMenuVisibility(modelo: IPurchaseRequest): void {
+  private updateMenuVisibility(modelo: IPurchaseRequestQuery): void {
     const isOpen        = modelo.docStatus === 'O';
 
     this.opcionesMap.get('Ver')!.visible        = !this.buttonAcces.btnVer;
@@ -163,7 +164,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: IPurchaseRequest) {
+  onSelectedItem(modelo: IPurchaseRequestQuery) {
     this.modeloSelected = modelo;
     this.updateMenuVisibility(modelo);
   }
@@ -183,6 +184,34 @@ export class PanelSolicitdCompraListComponent implements OnInit {
     this.loadData();
   }
 
+
+  //#region <<< 5. UI HELPERS >>>
+
+  getEstado(modelo: IPurchaseRequestQuery) {
+    if (modelo.canceled === 'Y') {
+      return { text: 'Cancelado', class: 'estado-cancelado' };
+    }
+
+    if (modelo.docStatus === 'O') {
+      return { text: 'Abierto', class: 'estado-abierto' };
+    }
+
+    if (modelo.docStatus === 'C') {
+      return { text: 'Cerrado', class: 'estado-cerrado' };
+    }
+
+    return { text: '', class: '' };
+  }
+
+  getDocType(modelo: IPurchaseRequestQuery) {
+    return modelo.docType === 'I'
+      ? { text: 'Artículos', class: 'docType-articulos' }
+      : { text: 'Servicios', class: 'docType-servicios' };
+  }
+
+  //#endregion
+
+
   loadData(): void {
     this.isDisplay = true;
 
@@ -195,7 +224,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
       })
     )
     .subscribe({
-      next: (data: IPurchaseRequest[]) => {
+      next: (data: IPurchaseRequestQuery[]) => {
         this.modelo = data;
       },
       error: (e) => {
@@ -259,7 +288,7 @@ export class PanelSolicitdCompraListComponent implements OnInit {
 
   onClickCreate() {
     this.validarTipoCambioYContinuar(() => {
-      this.router.navigate(['/main/modulo-com/panel-solicitud-compra-create']);
+      this.router.navigate(['/main/modulo-com/panel-solicitud-compra-create'], { state: { mode: 'create' } });
     });
   }
 

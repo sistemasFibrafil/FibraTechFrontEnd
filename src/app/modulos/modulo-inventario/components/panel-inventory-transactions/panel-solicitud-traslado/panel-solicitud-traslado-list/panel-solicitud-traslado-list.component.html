@@ -73,8 +73,14 @@
                 {{modelo.docNum}}
               </td>
               <td class="custom-td-20">
-                <span class="label" style="background:#17a2b8" *ngIf="modelo?.u_FIB_IsPkg === 'Y'">Sí</span>
-                <span class="label" style="background:#dc3545" *ngIf="modelo?.u_FIB_IsPkg !== 'Y'">No</span>
+                <span class="label" [ngClass]="getEstado(modelo).class">
+                  {{ getEstado(modelo).text }}
+                </span>
+              </td>
+              <td class="custom-td-20">
+                <span class="label" [ngClass]="getPickingType(modelo).class">
+                  {{ getPickingType(modelo).text }}
+                </span>
               </td>
               <td class="p-fluid">
                 {{modelo.docDate | date: 'dd/MM/yyyy'}}

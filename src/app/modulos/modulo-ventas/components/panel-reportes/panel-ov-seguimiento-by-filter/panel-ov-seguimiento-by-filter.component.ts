@@ -9,14 +9,14 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 
 import { IOrdersSeguimiento } from '../../../interfaces/sap-business-one/orders.interface';
 import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
+import { IBusinessPartnerGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/business-partner-groups.interface';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { OrdersService } from '../../../services/sap-business-one/orders.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
 import { OrdersSeguimientoFindModel } from '../../../models/sap-business-one/orders.model';
+import { BusinessPartnerGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/business-partner-groups.service';
 
 
 
@@ -52,15 +52,15 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
   statusList: SelectItem[];
   statusSelected: IStatus[];
   documentTypeList: SelectItem[];
-  salesEmployeeList: SelectItem[];
+  salesPersonsList: SelectItem[];
   businessPartnerGroupSapList: SelectItem[];
 
   statusItem: IStatus[];
   documentTypeItem: ITipoDocumento[];
   documentTypeSelected: ITipoDocumento[];
-  salesEmployeeSelected: ISalesPersons[];
+  salesPersonsSelected: ISalesPersons[];
   reporteList: IOrdersSeguimiento[];
-  businessPartnerGroupSelected: IGrupoSocioNegocioSap[];
+  businessPartnerGroupSelected: IBusinessPartnerGroups[];
 
   params: OrdersSeguimientoFindModel = new OrdersSeguimientoFindModel();
 
@@ -75,7 +75,7 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
     private readonly accesoOpcionesService: AccesoOpcionesService,
     private readonly ordersService: OrdersService,
     private salesPersonsService: SalesPersonsService,
-    private grupoSocionegocioSapService: GrupoSocionegocioSapService
+    private readonly businessPartnerGroupsService: BusinessPartnerGroupsService,
   ) {}
 
   ngOnInit() {
@@ -110,8 +110,8 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
       { field: 'nomTipDocumento', header: 'Tipo de Documento' },
       { field: 'numeroDocumento', header: 'Número de Documento' },
       { field: 'docDate',         header: 'Fecha de Contabilización' },
-      { field: 'taxDate',         header: 'Fecha de Emisión' },
-      { field: 'docDueDate',      header: 'Fecha de Entrega' },
+      // { field: 'taxDate',         header: 'Fecha de Emisión' },
+      // { field: 'docDueDate',      header: 'Fecha de Entrega' },
       { field: 'nomStatus',       header: 'Estado' },
       { field: 'slpName',         header: 'Vendedor' },
       { field: 'docTotalSy',      header: 'Total USD' },
@@ -120,8 +120,8 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
 
   getListGrupoAll() {
     const param: any = { groupType: 'C' };
-    this.grupoSocionegocioSapService.getListByGroupType(param)
-    .subscribe({next:(data: IGrupoSocioNegocioSap[]) =>{
+    this.businessPartnerGroupsService.getListByGroupType(param)
+    .subscribe({next:(data: IBusinessPartnerGroups[]) =>{
         this.businessPartnerGroupSapList = [];
         this.businessPartnerGroupSelected = [];
 
@@ -139,12 +139,12 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
   getListEmpleadoVenta() {
     this.salesPersonsService.getList()
     .subscribe({next:(data: ISalesPersons[]) =>{
-        this.salesEmployeeList = [];
-        this.salesEmployeeSelected = [];
+        this.salesPersonsList = [];
+        this.salesPersonsSelected = [];
 
         for (let item of data) {
-          this.salesEmployeeSelected.push({ slpCode: item.slpCode, slpName: item.slpName });
-          this.salesEmployeeList.push({ label: item.slpName, value: { slpCode: item.slpCode, slpName: item.slpName } });
+          this.salesPersonsSelected.push({ slpCode: item.slpCode, slpName: item.slpName });
+          this.salesPersonsList.push({ label: item.slpName, value: { slpCode: item.slpCode, slpName: item.slpName } });
         }
       },error:(e)=>{
         this.isDisplay = false;
@@ -195,7 +195,7 @@ export class PanelOrdenVentaSeguimientoByFilterComponent implements OnInit {
   {
     this.params = this.modeloForm.getRawValue();
     this.params.businessPartnerGroup = this.businessPartnerGroupSelected.map(x=> x.groupCode).join(",");
-    this.params.salesEmployee = this.salesEmployeeSelected.map(x=> x.slpCode).join(",");
+    this.params.salesEmployee = this.salesPersonsSelected.map(x=> x.slpCode).join(",");
     this.params.documentType = this.documentTypeSelected.map(x=> x.codTipDocumento).join(",");
     this.params.status = this.statusSelected.map(x=> x.codStatus).join(",");
   }

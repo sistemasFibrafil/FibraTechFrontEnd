@@ -138,10 +138,14 @@ export class ModalConductorComponent implements OnInit {
     this.modelo = [];
   }
 
-  onClickNew()
-  {
+  onClickNew(): void {
+    const appBase = window.location.pathname.split('/')[1];
+
     const url = this.router.serializeUrl(this.router.createUrlTree(['/main/modulo-soc/panel-conductor', this.u_FIB_COTR]));
-    window.open(url, '_blank');
+
+    const fullUrl = `${window.location.origin}/${appBase}${url}`;
+
+    window.open(fullUrl, '_blank');
   }
 
   onClickClose()

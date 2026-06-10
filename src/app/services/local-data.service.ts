@@ -10,6 +10,16 @@ export class LocalDataService {
   (
   ) { }
 
+  readonly yesNoOptions: SelectOption[] = [
+    { code: 'Y', name: 'Sí' },
+    { code: 'N', name: 'No' }
+  ];
+
+  readonly addressType: SelectOption[] = [
+    { code: 'B', name: 'Fiscal' },
+    { code: 'S', name: 'Entrega' }
+  ];
+
   readonly reqTypes: SelectOption[] = [
     { code: 12, name: 'Usuario' },
     { code: 17, name: 'Empleado' }
@@ -29,8 +39,8 @@ export class LocalDataService {
 
   readonly cardType: SelectOption[] = [
     { code: 'C', name: 'Cliente' },
-    { code: 'S', name: 'Proveedor' }
-
+    { code: 'S', name: 'Proveedor' },
+    { code: 'L', name: 'Lead' }
   ];
 
   readonly statusBusinessPartners: SelectOption[] = [
@@ -59,5 +69,11 @@ export class LocalDataService {
     { code: '02', name: 'Fecha de actualización' },
     { code: '03', name: 'Fecha de contabilización' },
     { code: '04', name: 'Fecha de documento' },
+  ];
+
+  printModelTypesOrders: SelectOption[] = [
+    { code: '01', name: 'Nacioal' },
+    { code: '02', name: 'Planta' },
+    { code: '03', name: 'Exportación' }
   ];
 }

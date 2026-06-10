@@ -17,7 +17,7 @@ import { IMes } from 'src/app/modulos/modulo-gestion/interfaces/web/definiciones
 import { IAnio } from 'src/app/modulos/modulo-gestion/interfaces/web/definiciones/general/anio.interface';
 import { ISemana } from 'src/app/modulos/modulo-gestion/interfaces/web/definiciones/general/semana.interface';
 import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
+import { IBusinessPartnerGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/business-partner-groups.interface';
 
 import { UtilService } from 'src/app/services/util.service';
 import { SopService } from '../../../services/web/sop.service';
@@ -27,7 +27,8 @@ import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service'
 import { OrdersService } from '../../../services/sap-business-one/orders.service';
 import { TiempoService } from 'src/app/modulos/modulo-gestion/services/web/definiciones/general/tiempo.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
+import { BusinessPartnerGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/business-partner-groups.service';
+
 
 interface ITipoDocumento {
   codTipDocumento: string;
@@ -76,8 +77,8 @@ export class PanelOrdenVentaDetalladoDirecionFiscalComponent implements OnInit {
   statusSelected                : IStatus[];
   documentTypeItem              : ITipoDocumento[];
   documentTypeSelected          : ITipoDocumento[];
-  salesEmployeeSelected         : ISalesPersons[];
-  businessPartnerGroupSelected  : IGrupoSocioNegocioSap[];
+  salesPersonsSelected          : ISalesPersons[];
+  businessPartnerGroupSelected  : IBusinessPartnerGroups[];
 
   readonly nombreArchivo        = `Órdenes de Venta - Seguimiento Detallado - ${this.utilService.fecha_DD_MM_YYYY()}`;
 
@@ -97,7 +98,7 @@ export class PanelOrdenVentaDetalladoDirecionFiscalComponent implements OnInit {
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private readonly grupoSocionegocioSapService: GrupoSocionegocioSapService,
+    private readonly businessPartnerGroupsService: BusinessPartnerGroupsService,
     public  readonly utilService: UtilService,
   ) {}
 
@@ -212,7 +213,7 @@ export class PanelOrdenVentaDetalladoDirecionFiscalComponent implements OnInit {
 
     // 🔹 forkJoin SOLO servicios (igual que tu base)
     forkJoin({
-      grupos: this.grupoSocionegocioSapService.getListByGroupType(param)
+      grupos: this.businessPartnerGroupsService.getListByGroupType(param)
         .pipe(catchError(() => of([]))),
 
       vendedores: this.salesPersonsService.getList()

@@ -4703,7 +4703,7 @@ p-treeselect.p-treeselect-clearable .p-treeselect-clear-icon {
   border: 0 none;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   border-radius: 6px;
-  width: 12.5rem;
+  width: 20rem;
 }
 .p-contextmenu .p-menuitem-link {
   padding: 0.75rem 1.25rem;

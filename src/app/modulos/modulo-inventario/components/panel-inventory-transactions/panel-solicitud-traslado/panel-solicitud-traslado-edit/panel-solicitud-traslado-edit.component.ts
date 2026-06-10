@@ -1,16 +1,21 @@
 import { SelectItem } from 'primeng/api';
-import { Subject, forkJoin, merge } from 'rxjs';
+import { Subject, forkJoin, merge, of } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
+import { catchError, finalize, switchMap, takeUntil } from 'rxjs/operators';
+
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
 import { InventoryTransferRequest1UpdateModel, InventoryTransferRequestUpdateModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
 
+import { TableColumn, MenuItem } from 'src/app/interface/common-ui.interface';
 import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
-import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+import { IWarehouses } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
+import { ISalesPersons } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
+import { IUserDefinedFields } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
+import { IInventoryTransferRequest, IInventoryTransferRequestLines, IInventoryTransferRequestLinesQuery } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
 
 import { UtilService } from 'src/app/services/util.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
@@ -19,7 +24,8 @@ import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.s
 import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
 import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -48,11 +54,12 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
   // Combos
   /** Listas de soporte para dropdowns */
-  WarehouseList                                 : SelectItem[] = [];
-  tipoTrasladoList                              : SelectItem[] = [];
-  motivoTrasladoList                            : SelectItem[] = [];
-  tipoSalidaList                                : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
+  warehousesList                                : SelectItem[] = [];
+  outputsTypesList                              : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
+  transfersTypesList                            : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
+  reasonsTransfersList                          : SelectItem[] = [];
 
   // UI State
   /** Estados de overlays y modales */
@@ -62,7 +69,6 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   hasValidLines                                 = false;
   hasRealChanges                                = false;
   isVisualizarArticulo                          = false;
-  isVisualizarTipoOperacion                     = false;
   isVisualizarAlmacenOrigen                     = false;
   isVisualizarAlmacenDestino                    = false;
 
@@ -73,11 +79,11 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
   // Data
   /** Modelos de cabecera y detalle */
-  modeloLinesSelected                           : IInventoryTransferRequest1;
+  modeloLinesSelected                           : IInventoryTransferRequestLinesQuery;
 
-  modeloLines                                   : IInventoryTransferRequest1[] = [];
-  modeloLinesEliminar                           : IInventoryTransferRequest1[] = [];
-  modeloLinesOriginal                           : IInventoryTransferRequest1[] = [];
+  modeloLines                                   : IInventoryTransferRequestLinesQuery[] = [];
+  modeloLinesEliminar                           : IInventoryTransferRequestLinesQuery[] = [];
+  modeloLinesOriginal                           : IInventoryTransferRequestLinesQuery[] = [];
 
   // Filters / Additional properties
   /** Identificadores y auxiliares */
@@ -89,7 +95,6 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   docEntry                                      = 0;
   cntctCode                                     = 0;
   indexArticulo                                 = 0;
-  indexTipoOperacion                            = 0;
   indexAlmacenOrigen                            = 0;
   indexAlmacenDestino                           = 0;
 
@@ -107,7 +112,8 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     private readonly warehousesService: WarehousesService,
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly operationsTypesService: OperationsTypesService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     private readonly InventoryTransferRequestService: InventoryTransferRequestService,
     public  readonly utilService: UtilService
   ) {}
@@ -166,7 +172,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     });
 
     this.modeloFormPie = this.fb.group({
-      slpCode                 : ['', Validators.required],
+      salesPersons            : ['', Validators.required],
       jrnlMemo                : [this.jrnlMemo],
       comments                : ['']
     });
@@ -178,7 +184,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
       { field: 'itemName',        header: 'Descripción' },
       { field: 'fromWhsCod',      header: 'De almacén' },
       { field: 'whsCode',         header: 'Almacén destino' },
-      { field: 'u_tipoOpT12Nam',  header: 'Tipo operación' },
+      { field: 'u_tipoOpT12',     header: 'Tipo operación' },
       { field: 'unitMsr',         header: 'UM' },
       { field: 'quantity',        header: 'Cantidad' },
       { field: 'openQty',         header: 'Pendiente de despacho' }
@@ -196,7 +202,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   // Table Events
   // ===========================
 
-  onSelectedItem(modelo: IInventoryTransferRequest1): void {
+  onSelectedItem(modelo: IInventoryTransferRequestLines): void {
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility(modelo);
   }
@@ -225,50 +231,29 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   }
 
   private loadAllCombos(): void {
-    const paramInactive : any = { inactive: 'N' };
-    const paramCampo1   : any = { tableID: 'OWTQ', aliasID: 'FIB_TIP_TRAS' };
-    const paramCampo2   : any = { tableID: 'OWTQ', aliasID: 'BPP_MDMT' };
-    const paramCampo3   : any = { tableID: 'OWTQ', aliasID: 'BPP_MDTS' };
+    const paramMotivo     : any = { tableID: 'OWTQ', aliasID: 'BPP_MDMT' };
+    const paramAlmacen    : any = { inactive: 'N' };
+    const paramTipoTras   : any = { tableID: 'OWTQ', aliasID: 'FIB_TIP_TRAS' };
+    const paramTipoSalida : any = { tableID: 'OWTQ', aliasID: 'BPP_MDTS' };
 
     forkJoin({
-      warehouse         : this.warehousesService.getListByInactive(paramInactive),
-      tipoTraslado      : this.camposDefinidoUsuarioService.getList(paramCampo1),
-      motivoTraslado    : this.camposDefinidoUsuarioService.getList(paramCampo2),
-      tipoSalida        : this.camposDefinidoUsuarioService.getList(paramCampo3),
-      salesEmployee     : this.salesPersonsService.getList()
+      warehouses        : this.warehousesService.getListByInactive(paramAlmacen).pipe(catchError(() => of([] as IWarehouses[]))),
+      outputsTypes      : this.userDefinedFieldsService.getList(paramTipoSalida).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      salesPersons      : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      transfersTypes    : this.userDefinedFieldsService.getList(paramTipoTras).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      operationsTypes   : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
+      reasonsTransfers  : this.userDefinedFieldsService.getList(paramMotivo).pipe(catchError(() => of([] as IUserDefinedFields[]))),
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (result) => {
-        // Warehouse
-        this.WarehouseList = result.warehouse.map(item => ({
-          label: item.fullDescr,
-          value: item.whsCode
-        }));
+      next: (res) => {
+        this.warehousesList        = (res.warehouses || []).map(item => ({ label: item.fullDescr, value: item.whsCode }));
+        this.outputsTypesList      = (res.outputsTypes || []).map(item => ({ label: item.fullDescr, value: item.fldValue }));
+        this.salesPersonsList      = (res.salesPersons || []).map((item: any) => ({ label: item.slpName, value: item.slpCode }));
+        this.transfersTypesList    = (res.transfersTypes || []).map(item => ({ label: item.fullDescr, value: item.fldValue }));
+        this.operationsTypesList   = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
+        this.reasonsTransfersList  = (res.reasonsTransfers || []).map(item => ({ label: item.fullDescr, value: item.fldValue }));
 
-        // Tipo Traslado
-        this.tipoTrasladoList = result.tipoTraslado.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
-
-        // Motivo Traslado
-        this.motivoTrasladoList = result.motivoTraslado.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
-
-        // Tipo Salida
-        this.tipoSalidaList = result.tipoSalida.map(item => ({
-          label: item.descr,
-          value: item.fldValue
-        }));
-
-        // Sales Employee
-        this.salesEmployeesList = result.salesEmployee.map(item => ({
-          label: item.slpName,
-          value: item.slpCode
-        }));
 
         // AHORA SÍ cargar datos - los combos están listos
         this.loadData();
@@ -336,8 +321,8 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     );
 
     // Buscar y asignar valores como SelectItem para los dropdowns de Almacenes
-    const fillerItem              = this.WarehouseList.find(item => item.value === value.filler);
-    const toWhsCodeItem           = this.WarehouseList.find(item => item.value === value.toWhsCode);
+    const fillerItem              = this.warehousesList.find(item => item.value === value.filler);
+    const toWhsCodeItem           = this.warehousesList.find(item => item.value === value.toWhsCode);
 
     // Actualizar formulario de Documento
     this.modeloFormDoc.patchValue(
@@ -355,9 +340,9 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     );
 
     // Buscar y asignar valores como SelectItem para campos definidos por usuario
-    const tipoTrasladoItem        = this.tipoTrasladoList.find(item => item.value === value.u_FIB_TIP_TRAS);
-    const motivoTrasladoItem      = this.motivoTrasladoList.find(item => item.value === value.u_BPP_MDMT);
-    const tipoSalidaItem          = this.tipoSalidaList.find(item => item.value === value.u_BPP_MDTS);
+    const tipoTrasladoItem        = this.transfersTypesList.find(item => item.value === value.u_FIB_TIP_TRAS);
+    const motivoTrasladoItem      = this.reasonsTransfersList.find(item => item.value === value.u_BPP_MDMT);
+    const tipoSalidaItem          = this.outputsTypesList.find(item => item.value === value.u_BPP_MDTS);
 
     // Actualizar formulario Otros
     this.modeloFormOtr.patchValue(
@@ -370,12 +355,12 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     );
 
     // Buscar y asignar valor como SelectItem para empleado de ventas
-    const slpCodeItem             = this.salesEmployeesList.find(item => item.value === value.slpCode);
+    const salesPersonsItem             = this.salesPersonsList.find(item => item.value === value.slpCode);
 
     // Actualizar formulario Pie
     this.modeloFormPie.patchValue(
       {
-        slpCode                   : slpCodeItem || null,
+        salesPersons              : salesPersonsItem || null,
         jrnlMemo                  : this.utilService.normalizePrimitive(value.jrnlMemo),
         comments                  : this.utilService.normalizePrimitive(value.comments)
       },
@@ -644,13 +629,13 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.isVisualizarArticulo = false;
   }
 
-  onOpenAlmacenOrigenItem(value: IInventoryTransferRequest1, index: number): void {
+  onOpenAlmacenOrigenItem(value: IInventoryTransferRequestLines, index: number): void {
     this.indexAlmacenOrigen = index;
     this.itemCode = value.itemCode;
     this.isVisualizarAlmacenOrigen = !this.isVisualizarAlmacenOrigen;
   }
 
-  onOpenAlmacenDestinoItem(value: IInventoryTransferRequest1, index: number): void {
+  onOpenAlmacenDestinoItem(value: IInventoryTransferRequestLines, index: number): void {
     this.indexAlmacenDestino = index;
     this.itemCode = value.itemCode;
     this.isVisualizarAlmacenDestino = !this.isVisualizarAlmacenDestino;
@@ -678,31 +663,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.isVisualizarAlmacenDestino = false;
   }
 
-  //=======================================================================================================================
-  //============================= INI: TIPO DE OPERACION ==================================================================
-  //=======================================================================================================================
-  onOpenTipoOperacionItem(index: number): void {
-    this.indexTipoOperacion = index;
-    this.isVisualizarTipoOperacion = true;
-  }
-
-  onSelectedTipoOperacionItem(value: any): void {
-    const currentLine = this.modeloLines[this.indexTipoOperacion];
-    currentLine.u_tipoOpT12 = value.code;
-    currentLine.u_tipoOpT12Nam = value.u_descrp;
-    this.isVisualizarTipoOperacion = false;
-
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  onClickCloseTipoOperacionItem(): void {
-    this.isVisualizarTipoOperacion = false;
-  }
-  //=======================================================================================================================
-  //============================= FIN: TIPO DE OPERACION ==================================================================
-  //=======================================================================================================================
-
-  onChangeQuantity(value: IInventoryTransferRequest1, index: number): void {
+  onChangeQuantity(value: IInventoryTransferRequestLinesQuery, index: number): void {
     if (value.record === 1) {
       this.updateQuantityNew(value, index);
     } else {
@@ -712,7 +673,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  private updateQuantityNew(value: IInventoryTransferRequest1, index: number): void {
+  private updateQuantityNew(value: IInventoryTransferRequestLines, index: number): void {
     if (value.itemCode === '') {
       this.modeloLines[index].quantity = 0;
       this.modeloLines[index].u_FIB_OpQtyPkg = 0;
@@ -726,7 +687,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
     this.modeloLines[index].openQty = quantity;
   }
 
-  private updateQuantityExisting(value: IInventoryTransferRequest1, index: number): void {
+  private updateQuantityExisting(value: IInventoryTransferRequestLines, index: number): void {
     const modelomodeloLinesOriginal = this.modeloLinesOriginal.find(d => d.lineNum === value.lineNum && d.docEntry === value.docEntry);
 
     if (!modelomodeloLinesOriginal) return;
@@ -747,7 +708,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   }
 
   private addLine(): void {
-    this.modeloLines.push({lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, openQty: 0, record: 1 });
+    this.modeloLines.push({lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', unitMsr: '', quantity: 0, u_FIB_LinStPkg: 'O', u_FIB_OpQtyPkg: 0, openQty: 0, record: 1 });
     this.updateHasValidLines();
   }
 
@@ -807,6 +768,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
 
   private mergeForms() {
     return {
+      ...this.modeloFormSn.getRawValue(),
       ...this.modeloFormDoc.getRawValue(),
       ...this.modeloFormOtr.getRawValue(),
       ...this.modeloFormPie.getRawValue()
@@ -836,6 +798,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
       unitMsr         : p(line.unitMsr),
       quantity        : n(line.quantity),
 
+      u_FIB_LinStPkg  : p(line.u_FIB_LinStPkg),
       u_FIB_OpQtyPkg  : n(line.u_FIB_OpQtyPkg),
       u_tipoOpT12     : p(line.u_tipoOpT12),
 
@@ -880,7 +843,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
       u_BPP_MDMT      : p(val(f.u_BPP_MDMT)),
       u_BPP_MDTS      : p(val(f.u_BPP_MDTS)),
 
-      slpCode         : n(val(f.slpCode) ?? -1),
+      slpCode         : n(val(f.salesPersons) ?? -1),
 
       jrnlMemo        : p(f.jrnlMemo),
       comments        : p(f.comments),
@@ -941,7 +904,7 @@ export class PanelSolicitudTrasladoEditComponent implements OnInit, OnDestroy {
   // Helper Methods
   // ===========================
 
-  private updateMenuVisibility(modelo: IInventoryTransferRequest1): void {
+  private updateMenuVisibility(modelo: IInventoryTransferRequestLines): void {
     const hasEmptyLines = this.modeloLines.some(x => x.itemCode === '');
     const canDelete = this.modeloLines.length > 0
       && modelo.lineStatus === 'O'

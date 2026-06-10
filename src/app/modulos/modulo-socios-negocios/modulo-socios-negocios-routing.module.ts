@@ -11,15 +11,16 @@ import { PanelSocioNegociosEditComponent } from './components/panel-socio-negoci
 import { PanelSocioNegociosViewComponent } from './components/panel-socio-negocios/panel-socio-negocios-view/panel-socio-negocios-view.component';
 
 
+
 const ROUTES: Routes = [
   { path: 'panel-socio-negocios-list',        data: { breadcrumb: 'Socios de Negocios' }, component: PanelSocioNegociosListComponent },
+  { path: 'panel-socio-negocio-create',       data: { breadcrumb: 'Socios de Negocios' }, component: PanelSocioNegociosCreateComponent },
+  { path: 'panel-socio-negocio-edit/:id',     data: { breadcrumb: 'Socios de Negocios' }, component: PanelSocioNegociosEditComponent },
+  { path: 'panel-socio-negocio-view/:id',     data: { breadcrumb: 'Socios de Negocios' }, component: PanelSocioNegociosViewComponent },
+
   { path: 'panel-vehiculo/:id',               data: { breadcrumb: 'Vehículo' }, component: PanelVehiculoComponent },
   { path: 'panel-conductor/:id',              data: { breadcrumb: 'Conductor' }, component: PanelConductorComponent },
-
-  { path: 'panel-cliente-by-sector-estado',   data: { breadcrumb: 'Informe - Clientes' }, component: PanelClienteBySectorEstadoComponent },
-  { path: 'panel-socio-negocio-create',       data: { breadcrumb: 'Nuevo Socio' }, component: PanelSocioNegociosCreateComponent },
-  { path: 'panel-socio-negocio-edit/:id',     data: { breadcrumb: 'Editar Socio' }, component: PanelSocioNegociosEditComponent },
-  { path: 'panel-socio-negocio-view/:id',     data: { breadcrumb: 'Ver Socio' }, component: PanelSocioNegociosViewComponent },
+  { path: 'panel-cliente-by-sector-estado',   data: { breadcrumb: 'Informe - Clientes' }, component: PanelClienteBySectorEstadoComponent }
 ];
 
 @NgModule({

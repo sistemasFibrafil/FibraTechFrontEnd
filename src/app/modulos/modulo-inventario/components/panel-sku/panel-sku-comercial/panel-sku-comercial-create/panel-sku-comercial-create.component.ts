@@ -139,12 +139,12 @@ export class PanelSkuComercialCreateComponent implements OnInit {
 
     const sources = {
       oSlpList            : this.salesPersonsService.getList().pipe(map(data => data.map(item => ({ label: item.slpName, value: item.slpCode })))),
-      //statusList          : this.camposDefinidoUsuarioService.getListByFiltro({ tableID: '@FIB_OSKC', aliasID: 'Status' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
+      //statusList          : this.UserDefinedFieldsService.getListByFiltro({ tableID: '@FIB_OSKC', aliasID: 'Status' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
       grupoList           : this.grupoItemsService.getList().pipe(map(data => data.map(item => ({ label: item.itmsGrpNam, value: item.itmsGrpCod })))),
       subGrupoList        : this.subGrupoItemsService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       unidadMedidaList    : this.unidadMedidaService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       largoAnchoList      : this.longitudAnchoService.getList().pipe(map(data => data.map(item => ({ label: item.unitName, value: item.unitCode })))),
-      //colorList           : this.camposDefinidoUsuarioService.getListByFiltro({ tableID: 'OITM', aliasID: 'FIB_COLOR' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
+      //colorList           : this.UserDefinedFieldsService.getListByFiltro({ tableID: 'OITM', aliasID: 'FIB_COLOR' }).pipe(map(data => data.map(item => ({ label: item.descr, value: item.fldValue })))),
       tipoLaminadoList    : this.tipoLaminadoService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       colorImpresionList  : this.colorImpresionService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),
       tiempoVidaList      : this.tiempoVidaService.getList().pipe(map(data => data.map(item => ({ label: item.name, value: item.code })))),

@@ -189,6 +189,14 @@ $gutter: 1rem; //for primeflex grid system
   max-width: 14em !important;
   white-space: nowrap;
 }
+.custom-td-15 {
+  text-align: left !important;
+  width: 15em!important;
+  min-width: 15em !important;
+  max-width: 15em !important;
+  white-space: nowrap;
+}
+
 .custom-td-16 {
   text-align: left !important;
   width: 16em!important;
@@ -231,6 +239,13 @@ $gutter: 1rem; //for primeflex grid system
   max-width: 24em !important;
   white-space: nowrap;
 }
+.custom-td-25 {
+  text-align: left !important;
+  width: 25em !important;
+  min-width: 25em !important;
+  max-width: 25em !important;
+  white-space: nowrap;
+}
 .custom-td-26 {
   text-align: left !important;
   width: 26em !important;
@@ -250,6 +265,14 @@ $gutter: 1rem; //for primeflex grid system
   width: 30em !important;
   min-width: 30em !important;
   max-width: 30em !important;
+  white-space: nowrap;
+}
+
+.custom-td-50 {
+  text-align: left !important;
+  width: 50em !important;
+  min-width: 50em !important;
+  max-width: 50em !important;
   white-space: nowrap;
 }
 
@@ -321,6 +344,16 @@ $gutter: 1rem; //for primeflex grid system
   white-space: nowrap;
 }
 
+.custom-td-flex {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-td-default {
+  font-weight: bold;
+}
+
 
 
 .fibratech-button {
@@ -387,15 +420,16 @@ table {
 
 .readonly-control {
   @include text-color-readonly-control();
+  color: #495057;
+  cursor: default; // 👈 aquí está la clave
+
   .p-inputtext {
       @include text-color-readonly-control();
+      cursor: default; // 👈 evita el 🚫
   }
   .p-dropdown {
       @include text-color-readonly-control();
   }
-  color: #495057;
-  cursor: not-allowed;
-  pointer-events: none; // si quieres bloquear clics
 }
 
 /* ✅ lo visible del dropdown */
@@ -486,11 +520,11 @@ table {
 }
 
 // Tipo de documento
-.badge-articulos {
+.docType-articulos {
   background: linear-gradient(135deg, #5b3df5, #7a5af8);
 }
 
-.badge-servicios {
+.docType-servicios {
   background: linear-gradient(135deg, #d946ef, #f472b6);
 }
 
@@ -512,11 +546,75 @@ table {
   background: #0d6efd;
 }
 
-
+// Tipo de venta
 .type-nacional {
   background: linear-gradient(135deg, #14b8a6, #14b8a6);
 }
 
 .type-exportacion {
   background: linear-gradient(135deg, #fb923c, #fb923c);
+}
+
+
+// Picking
+.picking-si {
+  background: #28a745;
+}
+
+.picking-no {
+  background: #dc3545;
+}
+
+
+// Estado de SUNAT
+.estado-sunat-pendiente {
+  background: #17a2b8;
+}
+
+.estado-sunat-enviado {
+  background: #28a745;
+}
+
+.estado-suant-aceptado {
+  background: #0d6efd;
+}
+
+.estado-sunat-rechazado {
+  background: #dc3545;
+}
+
+.estado-sunat-observado {
+  background: #fd7e14;
+}
+
+
+// Artículo
+.item-active-si {
+  background: #17a2b8;
+}
+
+.item-active-no {
+  background: #dc3545;
+}
+
+
+// Icono de lupa dentro del input
+.input-search {
+  position: relative;
+  width: 100%;
+}
+
+.input-search .search-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 1;
+  color: #f58220;
+}
+
+.input-search input {
+  width: 100%;
+  padding-right: 30px;
 }

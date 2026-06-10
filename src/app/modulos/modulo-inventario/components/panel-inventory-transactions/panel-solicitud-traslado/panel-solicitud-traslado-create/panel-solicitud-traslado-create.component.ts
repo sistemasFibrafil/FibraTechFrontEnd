@@ -1,30 +1,37 @@
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import { SelectItem } from 'primeng/api';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject, forkJoin, of } from 'rxjs';
 import { NavigationStart, Router } from '@angular/router';
-import { filter, finalize, takeUntil } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
+import { catchError, filter, finalize, takeUntil } from 'rxjs/operators';
 
-import { ItemsFindByListCodeModel } from 'src/app/modulos/modulo-inventario/models/items.model';
-import { InventoryTransferRequestPickingCreateModel } from 'src/app/modulos/modulo-inventario/models/picking.model';
-import { InventoryTransferRequest1CreateModel, InventoryTransferRequestCreateModel } from 'src/app/modulos/modulo-inventario/models/inventory-transfer-request.model';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
-import { MenuItem, TableColumn } from 'src/app/interface/common-ui.interface';
-import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
-import { IInventoryTransferRequest, IInventoryTransferRequest1 } from 'src/app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
+import { ItemsFindByListCodeModel } from '@app/modulos/modulo-inventario/models/items.model';
+import { InventoryTransferRequestPickingCreateModel } from '@app/modulos/modulo-inventario/models/picking.model';
+import { InventoryTransferRequest1CreateModel, InventoryTransferRequestCreateModel } from '@app/modulos/modulo-inventario/models/inventory-transfer-request.model';
 
-import { UtilService } from 'src/app/services/util.service';
-import { SwaCustomService } from 'src/app/services/swa-custom.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { IPicking } from 'src/app/modulos/modulo-inventario/interfaces/picking.inteface';
-import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
-import { InventoryTransferRequestService } from 'src/app/modulos/modulo-inventario/services/inventory-transfer-request.service';
-import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
-import { DocumentNumberingSeriesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series.service';
+import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
+import { IArticuloQuery } from '@app/modulos/modulo-inventario/interfaces/items.interface';
+import { IWarehouses } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
+import { ISalesPersons } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
+import { IUserDefinedFields } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
+import { IInventoryTransferRequestLines, IInventoryTransferRequestLinesQuery, IInventoryTransferRequestQuery } from '@app/modulos/modulo-inventario/interfaces/inventory-transfer-request.interface';
 
+import { UtilService } from '@app/services/util.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { ItemsService } from '@app/modulos/modulo-inventario/services/items.service';
+import { IPicking } from '@app/modulos/modulo-inventario/interfaces/picking.inteface';
+import { InventoryTransferRequestService } from '@app/modulos/modulo-inventario/services/inventory-transfer-request.service';
+import { WarehousesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
+import { SalesPersonsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { DocumentNumberingSeriesService } from '@app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series.service';
 
 
 @Component({
@@ -33,33 +40,30 @@ import { DocumentNumberingSeriesService } from 'src/app/modulos/modulo-gestion/s
   styleUrls: ['./panel-solicitud-traslado-create.component.css']
 })
 export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy {
-  // Lifecycle management
-  /** Gestión de ciclo de vida y estado inicial */
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                     = new Subject<void>();
 
-  // Forms
-  /** Formularios reactivos de la vista */
+
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
+  globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
+
+
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
   modeloFormSn                                  : FormGroup;
   modeloFormDoc                                 : FormGroup;
   modeloFormOtr                                 : FormGroup;
   modeloFormPie                                 : FormGroup;
 
-  // Configuration
-  /** Configuración general y constantes */
-  readonly titulo                               = 'Solicitud de Traslado';
-  readonly jrnlMemo                             = 'Solicitud de traslado - ';
-  globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  // Combos
-  /** Listas de soporte para dropdowns */
-  warehouseList                                 : SelectItem[] = [];
-  tipoSalidaList                                : SelectItem[] = [];
-  tipoTrasladoList                              : SelectItem[] = [];
-  motivoTrasladoList                            : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
-
-  // UI State
-  /** Estados de overlays, modales y banderas UI */
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
   isLocked                                      = true;
   isSaving                                      = false;
   isDisplay                                     = false;
@@ -67,35 +71,57 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
   hasValidLines                                 = false;
   isDisplayUpload                               = false;
   isVisualizarArticulo                          = false;
-  isVisualizarTipoOperacion                     = false;
   isVisualizarAlmacenOrigen                     = false;
   isVisualizarAlmacenDestino                    = false;
 
-  // Table configuration
-  /** Configuración de tabla y menús */
+
+  // ===========================
+  // 🔹 5. TABLE CONFIG
+  // ===========================
   items                                         : MenuItem[];
   opciones                                      : MenuItem[];
   columnas                                      : TableColumn[];
 
-  // Data
-  /** Modelos de detalle y selección */
-  modeloLinesSelected                           : IInventoryTransferRequest1;
-  modeloLinesSelectedContext                    : IInventoryTransferRequest1;
 
-  modeloLines                                   : IInventoryTransferRequest1[] = [];
+  // ===========================
+  // 🔹 6. DATA (CORE)
+  // ===========================
+  modeloLinesSelected                           : IInventoryTransferRequestLinesQuery;
+  modeloLinesSelectedContext                    : IInventoryTransferRequestLinesQuery;
+
+  modeloLines                                   : IInventoryTransferRequestLinesQuery[] = [];
   modeloPickingOriginalLines                    : IPicking[] = [];
 
-  // Filters / Additional properties
-  /** Identificadores y auxiliares */
-  cardCode                                      = '';
-  itemCode                                      = '';
-  inactiveAlmacenItem                           = 'N';
 
+  // ===========================
+  // 🔹 7. COMBOS / LISTS
+  // ===========================
+  warehousesList                                : SelectItem[] = [];
+  outputsTypesList                              : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
+  transfersTypesList                            : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
+  reasonsTransfersList                          : SelectItem[] = [];
+
+
+  // ===========================
+  // 🔹 8. INDEXES (UI CONTROL)
+  // ===========================
   cntctCode                                     = 0;
   indexArticulo                                 = 0;
-  indexTipoOperacion                            = 0;
   indexAlmacenOrigen                            = 0;
   indexAlmacenDestino                           = 0;
+
+
+  // ===========================
+  // 🔹 9. AUX / FILTERS
+  // ===========================
+  titulo                                        = 'Solicitud de Traslado';
+  jrnlMemo                                      = 'Solicitud de traslado - ';
+  itemCode                                      = '';
+  cardCode                                      = '';
+  inactiveAlmacenItem                           = 'N';
+
 
   constructor(
     private readonly router: Router,
@@ -105,16 +131,16 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     private readonly warehousesService: WarehousesService,
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly operationsTypesService: OperationsTypesService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     private readonly documentNumberingSeriesService: DocumentNumberingSeriesService,
-    private readonly InventoryTransferRequestService: InventoryTransferRequestService,
+    private readonly inventoryTransferRequestService: InventoryTransferRequestService,
     public  readonly utilService: UtilService,
   ) {}
 
-  // ===========================
-  // Lifecycle Hooks
-  // ==========================
 
+
+  //#region <<< 1. LIFECYCLE >>>
 
   ngOnInit(): void {
     // 1️⃣ Inicializa UI
@@ -143,17 +169,30 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     });
   }
 
-  // ===========================
-  // Initialization
-  // ===========================
+  //#endregion
+
+
+
+  //#region <<< 2. INITIALIZATION >>>
 
   private initializeComponent(): void {
+    // 1️⃣ Crear formularios
     this.buildForms();
-    this.onBuildColumn();
-    this.opcionesTabla();
-    this.opcionesContextMenu();
-    // Cargar todos los combos en paralelo y aplicar valores por defecto sin emitir eventos
+
+    // 2️⃣ Cargar datos base
     this.loadAllCombos();
+
+    // 3️⃣ Registrar listeners reactivos
+    this.wireAlmacenOrigenControl();
+    this.wireAlmacenDestinoControl();
+
+    // 4️⃣ Inicializar UI
+    this.buildColumns();
+    this.buildTableOptions();
+    this.buildContextMenuOptions();
+
+    // 5️⃣ Inicializar líneas
+    this.addLine(0);
   }
 
   private buildForms(): void {
@@ -183,55 +222,151 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     });
 
     this.modeloFormPie = this.fb.group({
-      slpCode                 : ['', Validators.required],
+      salesPersons            : ['', Validators.required],
       jrnlMemo                : [this.jrnlMemo],
       comments                : ['']
     });
-
-    this.addLine(0);
   }
 
-  private onBuildColumn(): void {
+  private loadAllCombos(): void {
+    const paramNumero     : any = { objectCode: '1250000001', docSubType:'--' };
+    const paramMotivo     : any = { tableID: 'OWTQ', aliasID: 'BPP_MDMT' };
+    const paramAlmacen    : any = { inactive: 'N' };
+    const paramTipoTras   : any = { tableID: 'OWTQ', aliasID: 'FIB_TIP_TRAS' };
+    const paramTipoSalida : any = { tableID: 'OWTQ', aliasID: 'BPP_MDTS' };
+
+    // Mostrar spinner mientras cargan los combos
+    this.isDisplay = true;
+
+    forkJoin({
+      numero            : this.documentNumberingSeriesService.getNumero(paramNumero).pipe(catchError(() => of(null))),
+      warehouses        : this.warehousesService.getListByInactive(paramAlmacen).pipe(catchError(() => of([] as IWarehouses[]))),
+      outputsTypes      : this.userDefinedFieldsService.getList(paramTipoSalida).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      salesPersons      : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      transfersTypes    : this.userDefinedFieldsService.getList(paramTipoTras).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      operationsTypes   : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
+      reasonsTransfers  : this.userDefinedFieldsService.getList(paramMotivo).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+    })
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.isDisplay = false; })
+    )
+    .subscribe({
+      next: (res) => {
+        this.modeloFormDoc.patchValue({ docNum: res.numero.nextNumber }, { emitEvent: false });
+
+        this.warehousesList        = (res.warehouses || []).map(item => ({ label: item.fullDescr, value: item.whsCode }));
+        this.outputsTypesList      = (res.outputsTypes || []).map(item => ({ label: item.fullDescr, value: item.fldValue }));
+        this.salesPersonsList      = (res.salesPersons || []).map((item: any) => ({ label: item.slpName, value: item.slpCode }));
+        this.transfersTypesList    = (res.transfersTypes || []).map(item => ({ label: item.fullDescr, value: item.fldValue }));
+        this.operationsTypesList   = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
+        this.reasonsTransfersList  = (res.reasonsTransfers || []).map(item => ({ label: item.fullDescr, value: item.fldValue }));
+
+
+
+        // Almacenes
+        const warehousesDefault = this.userContextService.getDfltWhs();
+
+        if (warehousesDefault) {
+          const defaultWhs = this.warehousesList.find(i => i.value === warehousesDefault);
+          if (defaultWhs) {
+            this.modeloFormDoc.get('filler').setValue({ label: defaultWhs.label, value: defaultWhs.value }, { emitEvent: false });
+            this.modeloFormDoc.get('toWhsCode').setValue({ label: defaultWhs.label, value: defaultWhs.value }, { emitEvent: false });
+          }
+        }
+
+        // Tipo Traslado
+        const transfersTypesDefault = this.transfersTypesList.find(i => i.value === '01');
+
+        if (transfersTypesDefault) {
+          this.modeloFormOtr.get('u_FIB_TIP_TRAS').setValue({ label: transfersTypesDefault.label, value: transfersTypesDefault.value }, { emitEvent: false });
+        }
+
+        // Motivo Traslado
+        const reasonsTransfersDefault = this.reasonsTransfersList.find(i => i.value === '04');
+
+        if (reasonsTransfersDefault) {
+          this.modeloFormOtr.get('u_BPP_MDMT').setValue({ label: reasonsTransfersDefault.label, value: reasonsTransfersDefault.value }, { emitEvent: false });
+        }
+
+        // Tipo Salida
+        const outputsTypesDefautl = this.outputsTypesList.find(i => i.value === 'TSI');
+
+        if (outputsTypesDefautl) {
+          this.modeloFormOtr.get('u_BPP_MDTS').setValue({ label: outputsTypesDefautl.label, value: outputsTypesDefautl.value }, { emitEvent: false });
+        }
+
+
+        // AHORA SÍ cargar datos - los combos están listos
+        this.loadData();
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
+      }
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 3. GETTERS >>>
+
+  private get getNameFile(): string {
+    return `Solicitud de Traslado - ${this.utilService.fechaHoraArchivo()}`;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 4. TABLE CONFIG >>>
+
+  private buildColumns(): void {
     /** Construye la definición de columnas para la tabla */
     this.columnas = [
       { field: 'itemCode',        header: 'Código' },
       { field: 'itemName',        header: 'Descripción' },
       { field: 'fromWhsCod',      header: 'De almacén' },
       { field: 'whsCode',         header: 'Almacén destino' },
-      { field: 'u_tipoOpT12Nam',  header: 'Tipo operación' },
+      { field: 'u_tipoOpT12',     header: 'Tipo operación' },
       { field: 'unitMsr',         header: 'UM' },
       { field: 'quantity',        header: 'Cantidad' }
     ];
   }
 
-  private opcionesTabla(): void {
+  private buildTableOptions(): void {
     /** Define las acciones del split-button para operaciones de fila */
     this.opciones = [
-      { value: '1', label: 'Añadir línea', icon: 'pi pi-pencil',  command: () => this.onClickAddLine() },
-      { value: '2', label: 'Borrar línea', icon: 'pi pi-times',   command: () => this.onClickDelete() }
+      { value: '1', label: 'Insertar línea',  icon: 'pi pi-plus',   command: () => this.onClickAddLine() },
+      { value: '2', label: 'Borrar línea',    icon: 'pi pi-trash',  command: () => this.onClickDelete() }
     ];
   }
 
-  private opcionesContextMenu(): void {
+  private buildContextMenuOptions(): void {
     /** Define las acciones del menú contextual para las filas */
     this.items = [
-      { value: '1', label: 'Añadir línea',    icon: 'pi pi-fw pi-plus',     command: () => this.onClickContextMenuAddLine(this.modeloLinesSelectedContext) },
-      { value: '2', label: 'Borrar línea',    icon: 'pi pi-fw pi-times',    command: () => this.onClickContextMenuDelete(this.modeloLinesSelectedContext) },
-      { value: '3', label: 'Subir artículos', icon: 'pi pi-fw pi-arrow-up', command: () => this.onClickContextMenuUpload() },
+      { value: '1', label: 'Insertar línea',      icon: 'pi pi-plus',     command: () => this.onClickContextMenuAddLine(this.modeloLinesSelectedContext) },
+      { value: '2', label: 'Borrar línea',        icon: 'pi pi-trash',    command: () => this.onClickContextMenuDelete(this.modeloLinesSelectedContext) },
+      { value: '3', label: 'Descargar plantilla', icon: 'pi pi-download', command: () => this.onClickContextMenuDownload() },
+      { value: '4', label: 'Cargar plantilla',    icon: 'pi pi-upload',   command: () => this.onClickContextMenuUploadView() }
     ];
   }
 
+  //#endregion
+
+
+
+  //#region <<< 5. CONTEXT MENU >>>
+
   onContextMenuShow(event: any): void {
-    /** Actualiza la selección del menú contextual y visibilidad de opciones */
-    // No sobrescribir la selección del contexto si el evento no trae datos de fila.
-    // El p-table ya actualiza `modeloLinesSelectedContext` vía [(contextMenuSelection)].
     if (event?.item?.data) {
       this.modeloLinesSelectedContext = event.item.data;
     }
     this.updateMenuContextVisibility();
   }
 
-  onClickContextMenuAddLine(modelo: IInventoryTransferRequest1)
+  private onClickContextMenuAddLine(modelo: IInventoryTransferRequestLines)
   {
     /** Agrega una nueva línea después de la línea seleccionada en el menú contextual */
     // Manejar casos donde el objeto 'modelo' no es pasado correctamente
@@ -246,7 +381,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.addLine(insertIndex);
   }
 
-  onClickContextMenuDelete(modelo: IInventoryTransferRequest1)
+  private onClickContextMenuDelete(modelo: IInventoryTransferRequestLines)
   {
     /** Elimina la línea seleccionada en el menú contextual */
     const index = this.modeloLines.indexOf(modelo);
@@ -261,31 +396,300 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.updateHasValidLines();
   }
 
-  onClickContextMenuUpload()
+  private onClickContextMenuDownload(): void {
+    this.swaCustomService.swaConfirmation(
+      this.globalConstants.titleDownload,
+      this.globalConstants.subTitleDownload,
+      this.globalConstants.icoSwalQuestion
+    ).then((result) => {
+      if (result.isConfirmed) {
+        this.download();
+      }
+    });
+  }
+
+  private download(): void {
+    this.isDisplay = true;
+
+    this.inventoryTransferRequestService.getDownloadItemsTemplate()
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isDisplay = false)
+    )
+    .subscribe({
+      next: (response: any) => {
+        saveAs(
+          new Blob([response], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }),
+          this.getNameFile
+        );
+
+        this.swaCustomService.swaMsgExito(null);
+      },
+      error: (e) => {
+        this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
+      }
+    });
+  }
+
+  private onClickContextMenuUploadView()
   {
-    /** Abre el modal de carga masiva de artículos */
-    this.isUploadItem = true;
     this.isDisplayUpload = true;
   }
 
-  // ===========================
-  // Table Events
-  // ===========================
+  //#endregion
 
-  onSelectedItem(modelo: IInventoryTransferRequest1): void {
+
+
+  //#region <<< 6. EXCEL UPLOAD >>>
+
+  onClickUpload(file: any): void {
+    this.isDisplayUpload = false;
+
+    const fileObj: File = file instanceof File
+      ? file
+      : file?.files
+        ? file.files[0]
+        : file;
+
+    if (!fileObj || !(fileObj instanceof File)) {
+      this.swaCustomService.swaMsgInfo('Archivo inválido.');
+      return;
+    }
+
+    if (fileObj.size === 0) {
+      this.swaCustomService.swaMsgInfo('El archivo está vacío.');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+
+        const columns = this.getExcelColumns();
+        const headers = this.getExcelHeaders(worksheet);
+
+        if (!this.validateExcelHeaders(headers, columns)) {
+          return;
+        }
+
+        const rows: any[] = XLSX.utils.sheet_to_json(worksheet, {
+          defval: null
+        });
+
+        const lines = this.mapExcelRowsToLines(rows, columns);
+
+        if (!lines) {
+          return;
+        }
+
+        this.validarLineasExcel(lines);
+
+      } catch (e: any) {
+        this.utilService.handleErrorSingle(e, 'onClickUpload', this.swaCustomService);
+      }
+    };
+
+    reader.onerror = (e) => {
+      this.utilService.handleErrorSingle(e, 'onClickUpload', this.swaCustomService);
+    };
+
+    reader.readAsArrayBuffer(fileObj);
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 7. EXCEL CONFIG / HEADERS >>>
+
+  private getExcelColumns(): { field: string; aliases: string[] }[] {
+    return [
+      { field: 'itemCode', aliases: ['itemCode', 'Codigo'] },
+      { field: 'fromWhsCod', aliases: ['fromWhsCod', 'De almacen'] },
+      { field: 'whsCode', aliases: ['whsCode', 'Almacen destino'] },
+      { field: 'u_tipoOpT12', aliases: ['u_tipoOpT12', 'Codigo tipo de operacion'] },
+      { field: 'unitMsr', aliases: ['unitMsr', 'UM'] },
+      { field: 'quantity', aliases: ['quantity', 'Cantidad'] },
+    ];
+  }
+
+  private getExcelHeaders(worksheet: XLSX.WorkSheet): string[] {
+    return (XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+      defval: ''
+    })[0] as any[] || []).map(x => x?.toString().trim());
+  }
+
+  private validateExcelHeaders(headers: string[], columns: { field: string; aliases: string[] }[]): boolean {
+    const validHeaders = columns.flatMap(x => x.aliases);
+
+    if (headers.length !== columns.length) {
+      this.swaCustomService.swaMsgInfo('El formato del archivo no es correcto. La cantidad de columnas no coincide.');
+      return false;
+    }
+
+    const invalidHeader = headers.find(h => !validHeaders.includes(h));
+    if (invalidHeader) {
+      this.swaCustomService.swaMsgInfo(`El formato del archivo no es correcto. La columna '${invalidHeader}' no es válida.`);
+      return false;
+    }
+
+    const missingColumn = columns.find(c => !headers.some(h => c.aliases.includes(h)));
+    if (missingColumn) {
+      this.swaCustomService.swaMsgInfo(`El formato del archivo no es correcto. Falta la columna '${missingColumn.aliases[1]}'.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 8. EXCEL MAPPING >>>
+
+  private mapExcelRowsToLines(rows: any[], columns: { field: string; aliases: string[] }[]): any[] | null {
+    const lines: any[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] || {};
+      const nroLinea = i + 1;
+
+      const m = this.mapExcelRow(row, columns);
+      const line = this.buildExcelLine(m);
+
+      if (!this.validateExcelLine(line, nroLinea)) {
+        return null;
+      }
+
+      lines.push(line);
+    }
+
+    return lines;
+  }
+
+  private mapExcelRow(row: any, columns: { field: string; aliases: string[] }[]): any {
+    const m: any = {};
+
+    columns.forEach(c => {
+      m[c.field] = this.pickExcelValue(row, c.aliases);
+    });
+
+    return m;
+  }
+
+  private pickExcelValue(row: any, aliases: string[]): any {
+    for (const a of aliases) {
+      if (a in row && row[a] !== null && row[a] !== undefined) {
+        return row[a];
+      }
+    }
+
+    return null;
+  }
+
+  private buildExcelLine(m: any): any {
+    return {
+      itemCode     : (m.itemCode ?? '').toString().trim(),
+      fromWhsCod   : (m.fromWhsCod ?? '').toString().trim(),
+      whsCode      : (m.whsCode ?? '').toString().trim(),
+      u_tipoOpT12  : (m.u_tipoOpT12 ?? '').toString().trim(),
+      unitMsr      : (m.unitMsr ?? '').toString().trim(),
+      quantity     : m.quantity !== null ? Number(m.quantity) : 0
+    };
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 9. EXCEL VALIDATION >>>
+
+  private validateExcelLine(line: any, nroLinea: number): boolean {
+    const validations = [
+      { cond: !line.itemCode, msg: `Línea ${nroLinea}: Ingrese el código de artículo.` },
+      { cond: !line.fromWhsCod, msg: `Línea ${nroLinea}: Ingrese el almacén de origen.` },
+      { cond: !line.whsCode, msg: `Línea ${nroLinea}: Ingrese el almacén de destino.` },
+      { cond: !line.u_tipoOpT12, msg: `Línea ${nroLinea}: Ingrese el tipo de operación.` },
+      { cond: !line.unitMsr, msg: `Línea ${nroLinea}: Ingrese la unidad de medida.` },
+      {
+        cond: line.quantity == null || line.quantity === '' || line.quantity === undefined,
+        msg: `Línea ${nroLinea}: Ingrese la cantidad.`
+      },
+      {
+        cond: Number(line.quantity) <= 0,
+        msg: `Línea ${nroLinea}: La cantidad no debe ser menor o igual que cero (0).`
+      },
+    ];
+
+    const error = validations.find(x => x.cond);
+
+    if (error) {
+      this.swaCustomService.swaMsgInfo(error.msg);
+      return false;
+    }
+
+    return true;
+  }
+
+  private validarLineasExcel(lines: any[]): void {
+    if (!lines || lines.length === 0) {
+      this.swaCustomService.swaMsgInfo('No existen filas para validar.');
+      return;
+    }
+
+    this.isDisplay = true;
+
+    this.inventoryTransferRequestService.setValidateLinesExcel(lines)
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isDisplay = false)
+    )
+    .subscribe({
+      next: (data: any) => {
+        this.modeloLines = data || [];
+
+        this.updateHasValidLines();
+
+        this.swaCustomService.swaMsgExito(
+          'Archivo procesado correctamente. Filas: ' + this.modeloLines.length
+        );
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'validarLineasExcel', this.swaCustomService);
+      }
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 10. TABLE SELECTION / ACTIONS >>>
+
+  onSelectedItem(modelo: IInventoryTransferRequestLines): void {
     /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility();
   }
 
-  onClickAddLine(): void {
+  private onClickAddLine(): void {
     /** Agrega una nueva línea vacía después de la fila seleccionada */
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
     const insertIndex = index + 1;
     this.addLine(insertIndex);
   }
 
-  onClickDelete(): void {
+  private onClickDelete(): void {
     /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
     if (index > -1) {
@@ -303,114 +707,371 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.updateHasValidLines();
   }
 
-  // ===========================
-  // Helper Methods
-  // ===========================
+  //#endregion
+
+
+
+  //#region <<< 11. MENU VISIBILITY >>>
+
+  private hasEmptyLine(): boolean {
+    return this.modeloLines.some(line => !this.utilService.normalizePrimitive(line.itemCode)
+    );
+  }
 
   private updateMenuVisibility(): void {
-    /** Activa/desactiva opciones del split-button según líneas presentes y vacías */
-    const hasEmptyLines     = this.modeloLines.some(x => x.itemCode === '');
+    const hasEmptyLines = this.hasEmptyLine();
     const hasLines          = this.modeloLines.length > 0;
 
-    const addLineOption     = this.opciones.find(x => x.label === 'Añadir línea');
-    const deleteLineOption  = this.opciones.find(x => x.label === 'Borrar línea');
+    const addLineOption     = this.opciones.find(x => x.value === '1');
+    const deleteLineOption  = this.opciones.find(x => x.value === '2');
 
     if (addLineOption) addLineOption.visible = !hasEmptyLines;
     if (deleteLineOption) deleteLineOption.visible = hasLines;
   }
 
   private updateMenuContextVisibility(): void {
-    /** Activa/desactiva opciones del menú contextual según líneas presentes y vacías */
-    const hasEmptyLines     = this.modeloLines.some(x => x.itemCode === '');
+    const hasEmptyLines = this.hasEmptyLine();
     const hasLines          = this.modeloLines.length > 0;
 
-    const addLineOption     = this.items.find(x => x.label === 'Añadir línea');
-    const deleteLineOption  = this.items.find(x => x.label === 'Borrar línea');
+    const addLineOption     = this.items.find(x => x.value === '1');
+    const deleteLineOption  = this.items.find(x => x.value === '2');
 
     if (addLineOption) addLineOption.visible = !hasEmptyLines;
     if (deleteLineOption) deleteLineOption.visible = hasLines;
+
   }
 
-  /**
-   * Carga en paralelo las listas de soporte (numeración, almacenes, tipos y empleados)
-   * y establece los valores por defecto en los formularios usando { emitEvent: false } para
-   * evitar triggers no deseados en valueChanges.
-   */
-  private loadAllCombos(): void {
-    const paramNumero     : any = { objectCode: '1250000001', docSubType:'--' };
-    const paramAlmacen    : any = { inactive: 'N' };
-    const paramTipoTras   : any = { tableID: 'OWTQ', aliasID: 'FIB_TIP_TRAS' };
-    const paramMotivo     : any = { tableID: 'OWTQ', aliasID: 'BPP_MDMT' };
-    const paramTipoSalida : any = { tableID: 'OWTQ', aliasID: 'BPP_MDTS' };
+  //#endregion
 
-    // Mostrar spinner mientras cargan los combos
+
+
+  //#region <<< 12. LINES (CORE) >>>
+
+  private addLine(index: number): void {
+    const newLine: IInventoryTransferRequestLinesQuery = {
+      lineStatus        : 'O',
+      itemCode          : '',
+      dscription        : '',
+      fromWhsCod        : '',
+      whsCode           : '',
+      u_tipoOpT12       : '',
+      u_tipoOpT12Nam    : '',
+      unitMsr           : '',
+      quantity          : 0,
+      openQty           : 0,
+      u_FIB_LinStPkg    : 'O',
+      u_FIB_OpQtyPkg    : 0,
+      record            : 0
+    };
+
+    // 🔥 Crear nueva referencia
+    this.modeloLines = [
+      ...this.modeloLines.slice(0, index),
+      newLine,
+      ...this.modeloLines.slice(index)
+    ];
+
+    this.updateHasValidLines();
+  }
+
+  private updateHasValidLines(): void {
+    this.hasValidLines =
+      this.modeloLines.length > 0 &&
+      !this.hasEmptyLine()
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 13. BUSINESS PARTNER >>>
+
+  onSelectedSocioNegocio(value: any): void {
+    this.cardCode = value.cardCode;
+    this.cntctCode = value.cntctCode;
+    this.modeloFormSn.patchValue({
+      cardCode  : value.cardCode,
+      cardName  : value.cardName,
+      address   : value.address2,
+      cntctCode : value.cntctCode
+    });
+
+    const jrnlMemoNew = `${this.jrnlMemo}${this.cardCode}`;
+    this.modeloFormPie.patchValue({ jrnlMemo: jrnlMemoNew });
+  }
+
+  onSelectedPersonaContacto(value: any): void {
+    this.cntctCode = value.cntctCode;
+    this.modeloFormSn.patchValue({ cntctCode: value.cntctCode });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 14. ARTÍCULO >>>
+
+  onOpenArticulo(index: number): void {
+    this.indexArticulo = index;
+    this.isVisualizarArticulo = !this.isVisualizarArticulo;
+  }
+
+  onSelectedArticulo(value: any): void {
+    this.isVisualizarArticulo = false;
+    this.getListByCode(value.itemCode);
+  }
+
+  onClickCloseArticulo(): void {
+    this.isVisualizarArticulo = false;
+  }
+
+  private mapToPurchaseRequest(element: IArticuloQuery): IInventoryTransferRequestLinesQuery {
+    /** helpers para evitar repetición */
+    const u       = this.utilService;
+    const p       = (v:any)=>u.normalizePrimitive(v);
+
+    const fillerValue       = this.modeloFormDoc.get('filler')?.value?.value;
+    const toWhsCodeValue    = this.modeloFormDoc.get('toWhsCode')?.value?.value;
+
+    return {
+      itemCode       : p(element.itemCode),
+      dscription     : p(element.itemName),
+      fromWhsCod     : p(fillerValue || element.dfltWH),
+      whsCode        : p(toWhsCodeValue || element.dfltWH),
+      u_tipoOpT12    : p(element.u_tipoOpT12),
+      u_tipoOpT12Nam : p(element.u_tipoOpT12Nam),
+      unitMsr        : p(element.invntryUom),
+      quantity       : 1,
+      openQty        : 1,
+      u_FIB_OpQtyPkg : 1
+    };
+  }
+
+  private setItem(data: IArticuloQuery[]): void {
+    if (!data || data.length === 0) return;
+
+    const element = data[0];
+
+    const newItem = this.mapToPurchaseRequest(element);
+
+    this.modeloLines = this.modeloLines.map((line, index) =>
+      index === this.indexArticulo
+        ? {
+            ...line,     // mantiene valores por defecto: record, u_FIB_LinStPkg, etc.
+            ...newItem   // actualiza solo los campos del artículo
+          }
+        : line
+    );
+
+    this.updateHasValidLines();
+  }
+
+  private getListByCode(itemCode: string): void {
     this.isDisplay = true;
 
-    forkJoin({
-      numero          : this.documentNumberingSeriesService.getNumero(paramNumero),
-      almacenes       : this.warehousesService.getListByInactive(paramAlmacen),
-      tipoTraslado    : this.camposDefinidoUsuarioService.getList(paramTipoTras),
-      motivoTraslado  : this.camposDefinidoUsuarioService.getList(paramMotivo),
-      tipoSalida      : this.camposDefinidoUsuarioService.getList(paramTipoSalida),
-      salesEmployee   : this.salesPersonsService.getList()
-    })
+    this.itemsService
+    .getListByCode(this.buildFilterParams(itemCode))
     .pipe(
       takeUntil(this.destroy$),
-      finalize(() => { this.isDisplay = false; })
+      finalize(() => {
+        this.isDisplay = false;
+      })
     )
     .subscribe({
-      next: (res) => {
-        // Numeracion
-        this.modeloFormDoc.patchValue({ docNum: res.numero.nextNumber }, { emitEvent: false });
-
-        // Almacenes
-        const whsData = (res.almacenes || []) as any[];
-        this.warehouseList = whsData.map(i => ({ label: i.fullDescr, value: i.whsCode }));
-        const dftWhs = this.userContextService.getDfltWhs();
-        if (dftWhs) {
-          const defaultWhs = whsData.find(i => i.whsCode === dftWhs);
-          if (defaultWhs) {
-            this.modeloFormDoc.get('filler').setValue({ label: defaultWhs.fullDescr, value: defaultWhs.whsCode }, { emitEvent: false });
-            this.modeloFormDoc.get('toWhsCode').setValue({ label: defaultWhs.fullDescr, value: defaultWhs.whsCode }, { emitEvent: false });
-          }
-        }
-
-
-        // Tipo Traslado
-        const tipoTrasData = (res.tipoTraslado || []) as any[];
-        this.tipoTrasladoList = tipoTrasData.map(i => ({ label: i.descr, value: i.fldValue }));
-        const defaultTipo = tipoTrasData.find(i => i.fldValue === '01');
-        if (defaultTipo) {
-          this.modeloFormOtr.get('u_FIB_TIP_TRAS').setValue({ label: defaultTipo.descr, value: defaultTipo.fldValue }, { emitEvent: false });
-        }
-
-        // Motivo Traslado
-        const motivoData = (res.motivoTraslado || []) as any[];
-        this.motivoTrasladoList = motivoData.map(i => ({ label: i.descr, value: i.fldValue }));
-        const defaultMotivo = motivoData.find(i => i.fldValue === '04');
-        if (defaultMotivo) {
-          this.modeloFormOtr.get('u_BPP_MDMT').setValue({ label: defaultMotivo.descr, value: defaultMotivo.fldValue }, { emitEvent: false });
-        }
-
-        // Tipo Salida
-        const tipoSalidaData = (res.tipoSalida || []) as any[];
-        this.tipoSalidaList = tipoSalidaData.map(i => ({ label: i.descr, value: i.fldValue }));
-        const defaultTipoSalida = tipoSalidaData.find(i => i.fldValue === 'TSI');
-        if (defaultTipoSalida) {
-          this.modeloFormOtr.get('u_BPP_MDTS').setValue({ label: defaultTipoSalida.descr, value: defaultTipoSalida.fldValue }, { emitEvent: false });
-        }
-
-        // Sales Employee
-        this.salesEmployeesList = (res.salesEmployee || []).map((i: any) => ({ label: i.slpName, value: i.slpCode }));
-
-        // AHORA SÍ cargar datos - los combos están listos
-        this.loadData();
+      next: (data: IArticuloQuery[]) => {
+        this.setItem(data);
       },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
       }
     });
   }
+
+  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
+    return {
+      itemCode,
+      cardCode            : '',
+      currency            : '',
+      operationTypeCode   : '11',
+      warehouseType       : 'P'
+    };
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 15. ALMACÉN DE ORIGEN >>>
+
+  onOpenAlmacenOrigenItem(value: IInventoryTransferRequestLines, index: number): void {
+    this.indexAlmacenOrigen = index;
+    this.itemCode = value.itemCode;
+    this.isVisualizarAlmacenOrigen = !this.isVisualizarAlmacenOrigen;
+  }
+
+  onSelectedAlmacenOrigenItem(value: any): void {
+    const currentLine = this.modeloLines[this.indexAlmacenOrigen];
+
+    currentLine.fromWhsCod = value.whsCode;
+
+    // Actualizar modeloPickingOriginalLines relacionadas
+    if (this.modeloPickingOriginalLines.length > 0) {
+      this.modeloPickingOriginalLines
+        .filter(x => x.u_ItemCode === currentLine.itemCode && x.u_FromWhsCod === currentLine.fromWhsCod)
+        .forEach(x => x.u_FromWhsCod = value.whsCode);
+    }
+
+    this.isVisualizarAlmacenOrigen = false;
+  }
+
+  onClickCloseAlmacenOrigenItem(): void {
+    this.isVisualizarAlmacenOrigen = false;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 16. ALMACÉN DE DESTINO >>>
+
+  onOpenAlmacenDestinoItem(value: IInventoryTransferRequestLines, index: number): void {
+    this.indexAlmacenDestino = index;
+    this.itemCode = value.itemCode;
+    this.isVisualizarAlmacenDestino = !this.isVisualizarAlmacenDestino;
+  }
+
+  onSelectedAlmacenDestinoItem(value: any): void {
+    const currentLine = this.modeloLines[this.indexAlmacenDestino];
+
+    currentLine.whsCode = value.whsCode;
+
+    // Actualizar modeloPickingOriginalLines relacionadas
+    if (this.modeloPickingOriginalLines.length > 0) {
+      this.modeloPickingOriginalLines
+        .filter(x => x.u_ItemCode === currentLine.itemCode && x.u_FromWhsCod === currentLine.fromWhsCod)
+        .forEach(x => x.u_WhsCode = value.whsCode);
+    }
+
+    this.modeloLines[this.indexAlmacenDestino].whsCode = value.whsCode;
+    this.isVisualizarAlmacenDestino = false;
+  }
+
+  onClickCloseAlmacenDestinoItem(): void {
+    this.isVisualizarAlmacenDestino = false;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 18. CANTIDAD >>>
+
+  onChangeQuantity(value: IInventoryTransferRequestLines, index: number): void {
+    /** Actualiza cantidades en la línea con validación de decimales */
+    if (value.itemCode === '') {
+      this.modeloLines[index].quantity = 0;
+      this.modeloLines[index].openQty = 0;
+      this.modeloLines[index].u_FIB_OpQtyPkg = 0;
+      return;
+    }
+
+    const quantity = this.utilService.onRedondearDecimal(value.quantity, 3);
+    this.modeloLines[index].quantity = quantity;
+    this.modeloLines[index].openQty = quantity;
+    this.modeloLines[index].u_FIB_OpQtyPkg = quantity;
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 19. REQUESTER / HEADER LOGIC >>>
+
+  private wireAlmacenOrigenControl(): void {
+    this.modeloFormDoc.get('filler')
+    ?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((value) => {
+
+      const hasValidLines = this.modeloLines.some(
+        x => x.itemCode && x.itemCode.trim() !== ''
+      );
+
+      if (value && hasValidLines) {
+
+        this.swaCustomService.swaConfirmation(
+          this.globalConstants.titleActualizarDeAlmacen,
+          this.globalConstants.subTitleActualizarDeAlmacen,
+          this.globalConstants.icoSwalQuestion
+        ).then((result) => {
+
+          if (result.isConfirmed) {
+            const whsCode = value?.value || value;
+
+            this.applyAlmacenOrigenTomodeloLines(whsCode);
+          }
+        });
+      }
+    });
+  }
+
+  private applyAlmacenOrigenTomodeloLines(whsCode: string): void {
+    this.modeloLines.forEach(x => {
+      if (x.itemCode !== '') {
+        x.fromWhsCod = whsCode;
+      }
+    });
+
+    this.modeloPickingOriginalLines.forEach(x => {
+      x.u_FromWhsCod = whsCode;
+    });
+  }
+
+  private wireAlmacenDestinoControl(): void {
+    this.modeloFormDoc.get('toWhsCode')
+    ?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((value) => {
+
+      const hasValidLines = this.modeloLines.some(
+        x => x.itemCode && x.itemCode.trim() !== ''
+      );
+
+      if (value && hasValidLines) {
+
+        this.swaCustomService.swaConfirmation(
+          this.globalConstants.titleActualizarAAlmacen,
+          this.globalConstants.subTitleActualizarAAlmacen,
+          this.globalConstants.icoSwalQuestion
+        ).then((result) => {
+
+          if (result.isConfirmed) {
+            const whsCode = value?.value || value;
+
+            this.applyAlmacenDestinoTomodeloLines(whsCode);
+          }
+        });
+      }
+    });
+  }
+
+  private applyAlmacenDestinoTomodeloLines(whsCode: string): void {
+    this.modeloLines.forEach(x => {
+      if (x.itemCode !== '') {
+        x.whsCode = whsCode;
+      }
+    });
+
+    this.modeloPickingOriginalLines.forEach(x => {
+      x.u_WhsCode = whsCode;
+    });
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 20. LOAD DATA (EDICIÓN) >>>
 
   private loadData(): void {
     const mode = history.state?.mode;
@@ -428,16 +1089,12 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
       tomaInventario = cache ? JSON.parse(cache) : null;
     }
 
-    if (!tomaInventario) {
-      this.swaCustomService.swaMsgInfo('La información de solicitud se perdió. Vuelva a iniciar el proceso.');
-      this.onClickBack();
-      return;
-    }
+    if (!tomaInventario) return;
 
     this.setFormValues(tomaInventario);
   }
 
-  private setFormValues(value: IInventoryTransferRequest): void {
+  private setFormValues(value: IInventoryTransferRequestQuery): void {
     const isDisabled = value.pickingLines.length > 0;
 
     // Setear valor
@@ -463,408 +1120,92 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     this.updateHasValidLines();
   }
 
-  // Verifica si todas las líneas son válidas
-  private updateHasValidLines(): void {
-    this.hasValidLines =
-    this.modeloLines.length > 0 &&
-    this.modeloLines.every(line =>!!line.itemCode?.trim());
-  }
+  //#endregion
 
-  private addLine(index: number): void {
-    /** Inserta una nueva línea vacía en el índice especificado */
-    this.modeloLines.splice(index, 0, { lineStatus: 'O', itemCode: '', dscription: '', fromWhsCod: '', whsCode: '', u_tipoOpT12: '', u_tipoOpT12Nam: '', unitMsr: '', quantity: 0, u_FIB_OpQtyPkg: 0, u_FIB_LinStPkg: 'O', openQty: 0 });
-    this.updateHasValidLines();
-  }
 
-  // ===========================
-  // Data Operations
-  // ===========================
 
-  onSelectedSocioNegocio(value: any): void {
-    this.cardCode = value.cardCode;
-    this.cntctCode = value.cntctCode;
-    this.modeloFormSn.patchValue({
-      cardCode  : value.cardCode,
-      cardName  : value.cardName,
-      address   : value.address2,
-      cntctCode : value.cntctCode
-    });
+  //#region <<< 21. SAVE >>>
 
-    const jrnlMemoNew = `${this.jrnlMemo}${this.cardCode}`;
-    this.modeloFormPie.patchValue({ jrnlMemo: jrnlMemoNew });
-  }
-
-  onSelectedPersonaContacto(value: any): void {
-    /** Actualiza el código de contacto seleccionado */
-    this.cntctCode = value.cntctCode;
-    this.modeloFormSn.patchValue({ cntctCode: value.cntctCode });
-  }
-
-  onChangeAlmacenOrigen(event: any): void {
-    /** Maneja cambios en el almacén origen; actualiza todas las líneas si confirma */
-    const hasValidLines = this.modeloLines.some(x => x.itemCode && x.itemCode.trim() !== '');
-    if (event.value && hasValidLines) {
-      this.swaCustomService.swaConfirmation(
-      this.globalConstants.titleActualizarDeAlmacen,
-      this.globalConstants.subTitleActualizarDeAlmacen,
+  onClickSave(): void {
+    this.swaCustomService.swaConfirmation(
+      this.globalConstants.titleGrabar,
+      this.globalConstants.subTitleGrabar,
       this.globalConstants.icoSwalQuestion
-      ).then((result) => {
-        if (result.isConfirmed) {
-          const whsCode = event.value.value || event.value;
-          this.applyAlmacenOrigenTomodeloLines(whsCode);
-        }
-      });
-    }
-  }
-
-  /**
-   * Aplica el código de almacén origen a todas las líneas del modeloLines
-   * que ya tengan un itemCode definido.
-   */
-  private applyAlmacenOrigenTomodeloLines(whsCode: string): void {
-    this.modeloLines.forEach(x => {
-      if (x.itemCode !== '') {
-        x.fromWhsCod = whsCode;
+    ).then((result) => {
+      if (result.isConfirmed) {
+        this.save();
       }
     });
-
-    this.modeloPickingOriginalLines.forEach(x => {
-      x.u_FromWhsCod = whsCode;
-    });
   }
 
-  onChangeAlmacenDestino(event: any): void {
-    /** Maneja cambios en el almacén destino; actualiza todas las líneas si confirma */
-    const hasValidLines = this.modeloLines.some(x => x.itemCode && x.itemCode.trim() !== '');
-    if (event.value && hasValidLines) {
-      this.swaCustomService.swaConfirmation(
-        this.globalConstants.titleActualizarAAlmacen,
-        this.globalConstants.subTitleActualizarAAlmacen,
-        this.globalConstants.icoSwalQuestion
-      ).then((result) => {
-        if (result.isConfirmed) {
-          const whsCode = event.value.value || event.value;
-          this.applyAlmacenDestinoTomodeloLines(whsCode);
-        }
-      });
-    }
-  }
-
-  /**
-   * Aplica el código de almacén destino a todas las líneas del modeloLines
-   * que ya tengan un itemCode definido.
-   */
-  private applyAlmacenDestinoTomodeloLines(whsCode: string): void {
-    this.modeloLines.forEach(x => {
-      if (x.itemCode !== '') {
-        x.whsCode = whsCode;
-      }
-    });
-
-    this.modeloPickingOriginalLines.forEach(x => {
-      x.u_WhsCode = whsCode;
-    });
-  }
-
-  onOpenArticulo(index: number): void {
-    /** Abre el modal para buscar/seleccionar un artículo para la línea indicada */
-    this.isUploadItem = false;
-    this.indexArticulo = index;
-    this.isVisualizarArticulo = !this.isVisualizarArticulo;
-  }
-
-  setItem(data: IArticulo[]): void {
-    /** Asigna el primer artículo seleccionado a la línea actual */
-    const item              = this.modeloLines[this.indexArticulo];
-    const fillerControl     = this.modeloFormDoc.controls['filler'].value;
-    const toWhsCodeControl  = this.modeloFormDoc.controls['toWhsCode'].value;
-    const fillerValue       = fillerControl?.value || fillerControl || '';
-    const toWhsCodeValue    = toWhsCodeControl?.value || toWhsCodeControl || '';
-
-    for (let index = 0; index < data.length; index++) {
-      const element = data[index];
-      if(index === 0) {
-        item.itemCode       = element.itemCode;
-        item.dscription     = element.itemName;
-        item.fromWhsCod     = fillerValue || element.dfltWH || '';
-        item.whsCode        = toWhsCodeValue || element.dfltWH || '';
-        item.u_tipoOpT12    = element.u_tipoOpT12 || '';
-        item.u_tipoOpT12Nam = element.u_tipoOpT12Nam || '';
-        item.unitMsr        = element.invntryUom;
-        item.quantity       = 1;
-        item.openQty        = 1;
-        item.u_FIB_OpQtyPkg = 1;
-      }
+  private save(): void {
+    if (!this.validateSave()) {
+      return;
     }
 
-    this.updateHasValidLines();
-  }
+    this.isSaving = true;
 
-  setItems(data: IArticulo[]): void {
-    /** Agrega múltiples artículos como nuevas líneas en la tabla */
-    const fillerControl     = this.modeloFormDoc.controls['filler'].value;
-    const toWhsCodeControl  = this.modeloFormDoc.controls['toWhsCode'].value;
-    const fillerValue       = fillerControl?.value || fillerControl || '';
-    const toWhsCodeValue    = toWhsCodeControl?.value || toWhsCodeControl || '';
+    const modeloToSave = this.buildModelToSave();
 
-    // Si la última línea actual está vacía (sin itemCode), removerla antes de añadir nuevas
-    if (this.modeloLines.length > 0) {
-      const last = this.modeloLines[this.modeloLines.length - 1];
-      if (!last?.itemCode || (typeof last.itemCode === 'string' && last.itemCode.trim() === '')) {
-        this.modeloLines.pop();
-      }
-    }
-
-    for (let index = 0; index < data.length; index++) {
-      const element = data[index];
-      const item: IInventoryTransferRequest1 = {
-        lineStatus      : 'O',
-        itemCode        : element.itemCode,
-        dscription      : element.itemName,
-        fromWhsCod      : fillerValue || element.dfltWH || '',
-        whsCode         : toWhsCodeValue || element.dfltWH || '',
-        u_tipoOpT12     : element.u_tipoOpT12 || '',
-        u_tipoOpT12Nam  : element.u_tipoOpT12Nam || '',
-        unitMsr         : element.invntryUom,
-        quantity        : 1,
-        openQty         : 1,
-        u_FIB_OpQtyPkg  : 1,
-      };
-      this.modeloLines.push(item);
-    }
-
-    this.updateHasValidLines();
-    this.isUploadItem = false;
-  }
-
-  getListByCode(itemCode: string): void {
-    this.isDisplay = true;
-
-    this.itemsService.getListByCode(this.buildFilterParams(itemCode))
+    this.inventoryTransferRequestService.setCreate(modeloToSave)
     .pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.isDisplay = false)
+      finalize(() => { this.isSaving = false; })
     )
     .subscribe({
-      next: (data: IArticulo[]) => this.handleArticuloResponse(data),
+      next: () => {
+        this.swaCustomService.swaMsgExito(null);
+        this.onClickBack();
+      },
       error: (e) => {
-        this.utilService.handleErrorSingle(e, 'getListByCode', this.swaCustomService);
+        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
       }
     });
-  }
-
-  private buildFilterParams(itemCode: string): ItemsFindByListCodeModel {
-    return {
-      itemCode,
-      cardCode            : '',
-      currency            : '',
-      operationTypeCode   : '11',
-      warehouseProduction : 'Y',
-      warehouseLogistics  : '',
-    };
-  }
-
-  private handleArticuloResponse(data: IArticulo[]): void {
-    this.isUploadItem
-    ? this.setItems(data)
-    : this.setItem(data);
-  }
-
-  onSelectedArticulo(value: any): void {
-    /** Maneja la selección de un artículo desde el modal de búsqueda */
-    this.isVisualizarArticulo = false;
-    this.getListByCode(value.itemCode);
-  }
-
-  onClickUpload(file: any): void {
-    /** Procesa la carga de archivo con códigos de artículos */
-    this.isDisplayUpload = false;
-
-    // Aceptamos tanto File como el evento de p-fileUpload (event.files[0])
-    const fileObj: File = (file instanceof File) ? file : (file?.files ? file.files[0] : file);
-
-    if (!fileObj || !(fileObj instanceof File)) {
-      this.swaCustomService.swaMsgInfo('Archivo inválido.');
-      return;
-    }
-
-    if (fileObj.size === 0) {
-      this.swaCustomService.swaMsgInfo('El archivo está vacío.');
-      return;
-    }
-
-    // Leer archivo como texto con Promise para evitar callback nesting
-    const readFileAsText = (f: File, encoding = 'utf-8'): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (ev: any) => resolve(ev.target.result as string || '');
-        reader.onerror = (err) => reject(err);
-        try {
-          reader.readAsText(f, encoding);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    };
-
-    readFileAsText(fileObj)
-    .then((content) => {
-      // Normalizar saltos, limpiar y obtener códigos únicos
-      const codes = Array.from(new Set(
-        (content || '')
-          .split(/\r?\n/)
-          .map(s => (s || '').trim().replace(/\r/g, ''))
-          .filter(Boolean)
-          .map(s => s.replace(/^\[|\]$/g, '').replace(/^"|"$/g, '').trim())
-      ));
-
-      if (codes.length === 0) {
-        this.swaCustomService.swaMsgInfo('No se encontraron códigos válidos en el archivo.');
-        return;
-      }
-
-      // Si hay muchos códigos, podríamos hacer chunking aquí — por ahora concatenamos
-      const itemCode = codes.join(',');
-
-      // Ejecutar la búsqueda existente
-      this.getListByCode(itemCode);
-    })
-    .catch((err) => {
-      this.utilService.handleErrorSingle(err, 'onClickUpload', this.swaCustomService);
-    });
-  }
-
-  onClickCloseArticulo(): void {
-    /** Cierra el modal de búsqueda de artículos */
-    this.isVisualizarArticulo = false;
-  }
-
-  onOpenAlmacenOrigenItem(value: IInventoryTransferRequest1, index: number): void {
-    /** Abre el modal para seleccionar almacén origen de la línea indicada */
-    this.indexAlmacenOrigen = index;
-    this.itemCode = value.itemCode;
-    this.isVisualizarAlmacenOrigen = !this.isVisualizarAlmacenOrigen;
-  }
-
-  onOpenAlmacenDestinoItem(value: IInventoryTransferRequest1, index: number): void {
-    /** Abre el modal para seleccionar almacén destino de la línea indicada */
-    this.indexAlmacenDestino = index;
-    this.itemCode = value.itemCode;
-    this.isVisualizarAlmacenDestino = !this.isVisualizarAlmacenDestino;
-  }
-
-  onSelectedAlmacenOrigenItem(value: any): void {
-    /** Maneja la selección de almacén origen desde el modal */
-    const currentLine = this.modeloLines[this.indexAlmacenOrigen];
-
-    currentLine.fromWhsCod = value.whsCode;
-
-    // Actualizar modeloPickingOriginalLines relacionadas
-    if (this.modeloPickingOriginalLines.length > 0) {
-      this.modeloPickingOriginalLines
-        .filter(x => x.u_ItemCode === currentLine.itemCode && x.u_FromWhsCod === currentLine.fromWhsCod)
-        .forEach(x => x.u_FromWhsCod = value.whsCode);
-    }
-
-    this.isVisualizarAlmacenOrigen = false;
-  }
-
-  onSelectedAlmacenDestinoItem(value: any): void {
-    /** Maneja la selección de almacén destino desde el modal */
-    const currentLine = this.modeloLines[this.indexAlmacenDestino];
-
-    currentLine.whsCode = value.whsCode;
-
-    // Actualizar modeloPickingOriginalLines relacionadas
-    if (this.modeloPickingOriginalLines.length > 0) {
-      this.modeloPickingOriginalLines
-        .filter(x => x.u_ItemCode === currentLine.itemCode && x.u_FromWhsCod === currentLine.fromWhsCod)
-        .forEach(x => x.u_WhsCode = value.whsCode);
-    }
-
-    this.modeloLines[this.indexAlmacenDestino].whsCode = value.whsCode;
-    this.isVisualizarAlmacenDestino = false;
-  }
-
-  onClickCloseAlmacenOrigenItem(): void {
-    /** Cierra el modal de búsqueda de almacén origen */
-    this.isVisualizarAlmacenOrigen = false;
-  }
-
-  onClickCloseAlmacenDestinoItem(): void {
-    /** Cierra el modal de búsqueda de almacén destino */
-    this.isVisualizarAlmacenDestino = false;
-  }
-
-  //=======================================================================================================================
-  //============================= INI: TIPO DE OPERACION ==================================================================
-  //=======================================================================================================================
-  onOpenTipoOperacionItem(index: number): void {
-    /** Abre el modal para seleccionar tipo de operación de la línea indicada */
-    this.indexTipoOperacion = index;
-    this.isVisualizarTipoOperacion = true;
-  }
-
-  onSelectedTipoOperacionItem(value: any): void {
-    /** Maneja la selección de tipo de operación desde el modal */
-    const currentLine               = this.modeloLines[this.indexTipoOperacion];
-    currentLine.u_tipoOpT12         = value.code;
-    currentLine.u_tipoOpT12Nam      = value.u_descrp;
-    this.isVisualizarTipoOperacion  = false;
-  }
-
-  onClickCloseTipoOperacionItem(): void {
-    /** Cierra el modal de búsqueda de tipos de operación */
-    this.isVisualizarTipoOperacion = false;
-  }
-  //=======================================================================================================================
-  //============================= FIN: TIPO DE OPERACION ==================================================================
-  //=======================================================================================================================
-
-  onChangeQuantity(value: IInventoryTransferRequest1, index: number): void {
-    /** Actualiza cantidades en la línea con validación de decimales */
-    if (value.itemCode === '') {
-      this.modeloLines[index].quantity = 0;
-      this.modeloLines[index].openQty = 0;
-      this.modeloLines[index].u_FIB_OpQtyPkg = 0;
-      return;
-    }
-
-    const quantity = this.utilService.onRedondearDecimal(value.quantity, 3);
-    this.modeloLines[index].quantity = quantity;
-    this.modeloLines[index].openQty = quantity;
-    this.modeloLines[index].u_FIB_OpQtyPkg = quantity;
   }
 
   private validateSave(): boolean {
-    /** Valida que el documento esté completo antes de guardar */
-    const showError = (message: string): boolean => {
-      this.swaCustomService.swaMsgInfo(message);
+    const showError = (msg: string): boolean => {
+      this.swaCustomService.swaMsgInfo(msg);
       return false;
     };
 
+    const p = (v: any) => this.utilService.normalizePrimitive(v);
+    const val = (v: any) => v?.value ?? v;
+
+    const runValidations = (validations: { cond: boolean, msg: string }[]) => {
+      for (const v of validations) {
+        if (v.cond) return showError(v.msg);
+      }
+      return true;
+    };
+
     const { filler, toWhsCode } = this.modeloFormDoc.getRawValue();
-    const fillerValue = filler?.value || filler;
-    const toWhsCodeValue = toWhsCode?.value || toWhsCode;
 
-    if (fillerValue === toWhsCodeValue) {
-      return showError('El almacén de destino no puede ser idéntico al almacén de origen.');
-    }
+    const fillerValue = val(filler);
+    const toWhsCodeValue = val(toWhsCode);
 
-    if (this.modeloLines.length === 0 || this.modeloLines.some(d => d.itemCode === '')) {
-      return showError('Ingrese los datos en el detalle de la transferencia.');
-    }
+    if (!runValidations([
+      { cond: !fillerValue, msg: 'Seleccione el almacén de origen.' },
+      { cond: !toWhsCodeValue, msg: 'Seleccione el almacén de destino.' },
+      { cond: fillerValue === toWhsCodeValue, msg: 'El almacén de destino no puede ser idéntico al almacén de origen.' },
+      { cond: this.modeloLines.length === 0, msg: 'Ingrese los datos en el detalle de la transferencia.' },
+      { cond: this.modeloLines.some(d => !p(d.itemCode)), msg: 'Ingrese los datos en el detalle de la transferencia.' },
+    ])) return false;
 
-    for (const line of this.modeloLines) {
-      if (line.fromWhsCod === line.whsCode) {
-        return showError('El almacén de destino no puede ser idéntico al almacén de origen.');
-      }
-      if (!line?.u_tipoOpT12) {
-        return showError('Seleccione el tipo operación en el detalle.');
-      }
-      if (line.quantity === 0) {
-        return showError('La cantidad debe ser mayor que CERO (0).');
-      }
+    for (let i = 0; i < this.modeloLines.length; i++) {
+      const line = this.modeloLines[i];
+      const row = i + 1;
+
+      const fromWhsCod = val(line.fromWhsCod);
+      const whsCode = val(line.whsCode);
+
+      const validations = [
+        { cond: fromWhsCod === whsCode, msg: `Línea ${row}: El almacén de destino no puede ser idéntico al almacén de origen.` },
+        { cond: !p(line.u_tipoOpT12), msg: `Línea ${row}: Seleccione el tipo de operación.` },
+        { cond: Number(line.quantity) <= 0, msg: `Línea ${row}: La cantidad no debe ser menor o igual que cero (0).` },
+      ];
+
+      if (!runValidations(validations)) return false;
     }
 
     return true;
@@ -965,7 +1306,7 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
       u_BPP_MDMT      : p(val(f.u_BPP_MDMT)),
       u_BPP_MDTS      : p(val(f.u_BPP_MDTS)),
 
-      slpCode         : n(val(f.slpCode) ?? -1),
+      slpCode         : n(val(f.salesPersons) ?? -1),
       jrnlMemo        : p(f.jrnlMemo),
       comments        : p(f.comments),
 
@@ -976,54 +1317,26 @@ export class PanelSolicitudTrasladoCreateComponent implements OnInit, OnDestroy 
     };
   }
 
-  private save(): void {
-    if (!this.validateSave()) {
-      return;
-    }
+  //#endregion
 
-    this.isSaving = true;
 
-    const modeloToSave = this.buildModelToSave();
 
-    this.InventoryTransferRequestService.setCreate(modeloToSave)
-    .pipe(
-      takeUntil(this.destroy$),
-      finalize(() => { this.isSaving = false; })
-    )
-    .subscribe({
-      next: () => {
-        this.swaCustomService.swaMsgExito(null);
-        this.onClickBack();
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, 'save', this.swaCustomService);
-      }
-    });
-  }
-
-  // ===========================
-  // UI Actions
-  // ===========================
-
-  onClickSave(): void {
-    /** Muestra diálogo de confirmación antes de guardar el documento */
-    this.swaCustomService.swaConfirmation(
-      this.globalConstants.titleGrabar,
-      this.globalConstants.subTitleGrabar,
-      this.globalConstants.icoSwalQuestion
-    ).then((result) => {
-      if (result.isConfirmed) {
-        this.save();
-      }
-    });
-  }
+  //#region <<< 22. SESSION / CLEANUP >>>
 
   private clearSession(): void {
     sessionStorage.removeItem('TomaInventarioCopyTo');
   }
 
+  //#endregion
+
+
+
+  //#region <<< 23. NAVIGATION >>>
+
   onClickBack(): void {
     /** Navega de vuelta a la lista de solicitudes de traslado */
     this.router.navigate(['/main/modulo-inv/panel-solicitud-traslado-list']);
   }
+
+  //#endregion
 }

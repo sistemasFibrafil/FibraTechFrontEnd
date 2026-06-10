@@ -1,7 +1,7 @@
-import { IMoneda } from "src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/moneda.interface";
-import { IPicking } from "src/app/modulos/modulo-inventario/interfaces/picking.inteface";
-import { IAddresses } from "src/app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
-import { IAttachments2Query } from './attachments2.interface';
+import { IAttachments2Query } from "./attachments2.interface";
+import { IPicking } from "@app/modulos/modulo-inventario/interfaces/picking.inteface";
+import { IAddresses } from "@app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
+import { ICurrencyCodes } from "@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/currency-codes.interface";
 
 export interface IOrdenVenta {
   docEntry            : number;
@@ -24,7 +24,7 @@ export interface IOrdenVenta {
   cntctCode?          : number;
   numAtCard           : string;
   docCur              : string;
-  currencyList        : IMoneda[];
+  currencyList        : ICurrencyCodes[];
   docRate             : number;
 
   payToCode           : string;
@@ -262,7 +262,7 @@ export interface IOrdersQuery {
   cntctCode?          : number;
   numAtCard           : string;
   docCur              : string;
-  currencyList        : IMoneda[];
+  currencyList        : ICurrencyCodes[];
   docRate             : number;
 
   payToCode           : string;
@@ -286,6 +286,8 @@ export interface IOrdersQuery {
   u_FIB_TFLETE        : number;
   u_FIB_IMPSEG        : number;
   u_FIB_PUERTO        : string;
+  u_FIB_NEMBA         : string;
+  u_FIB_DEMBA         : string;
 
   u_STR_TVENTA        : string;
 
@@ -309,43 +311,60 @@ export interface IOrdersQuery {
 }
 
 export interface IOrdenVenta1Query {
-  docEntry?           : number;
-  lineNum?            : number;
-  lineStatus?         : string;
+  docEntry?                 : number;
+  lineNum?                  : number;
+  lineStatus?               : string;
 
-  baseEntry?          : number;
-  baseType?           : number;
-  baseLine?           : number;
+  baseEntry?                : number;
+  baseType?                 : number;
+  baseLine?                 : number;
 
-  u_FIB_FromPkg?      : string;
+  u_FIB_FromPkg?            : string;
 
-  itemCode            : string;
-  dscription          : string;
-  acctCode?           : string;
-  formatCode?         : string;
-  acctName?           : string;
-  whsCode             : string;
+  itemCode                  : string;
+  dscription                : string;
+  acctCode?                 : string;
+  formatCode?               : string;
+  acctName?                 : string;
+  whsCode                   : string;
 
 
-  unitMsr             : string;
-  onHand?             : number;
-  quantity            : number;
-  openQty             : number;
-  u_FIB_OpQtyPkg?     : number;
-  u_FIB_NBulto?       : number;
-  u_FIB_PesoKg?       : number;
+  unitMsr                   : string;
+  onHand?                   : number;
+  quantity                  : number;
+  openQty                   : number;
+  u_FIB_OpQtyPkg?           : number;
+  u_FIB_NBulto?             : number;
+  u_FIB_PesoKg?             : number;
 
-  currency            : string;
-  priceBefDi          : number;
-  discPrcnt           : number;
-  price               : number;
-  taxCode             : string;
-  vatPrcnt?           : number;
-  vatSum?             : number;
-  lineTotal?          : number;
+  currency                  : string;
+  priceBefDi                : number;
+  discPrcnt                 : number;
+  price                     : number;
+  taxCode                   : string;
+  vatPrcnt?                 : number;
+  vatSum?                   : number;
+  lineTotal?                : number;
 
-  u_FIB_LinStPkg?     : string;
-  u_tipoOpT12         : string;
-  u_tipoOpT12Nam      : string;
-  record?             : number;
+  u_FIB_LinStPkg?           : string;
+  u_S_PartAranc1?           : string;
+  u_tipoOpT12               : string;
+  u_tipoOpT12Nam            : string;
+
+  record?                   : number;
+
+  isItemCodeValidated?      : boolean,
+  validatedItemCode?        : string,
+
+  isFormatCodeValidated?    : boolean,
+  validatedFormatCode?       : string,
+
+  isWhsCodeValidated?       : boolean,
+  validatedWhsCode?         : string,
+
+  isTaxCodeValidated?       : boolean,
+  validatedTaxCode?         : string,
+
+  isOperationTypeValidated? : boolean,
+  validatedOperationType?   : string,
 }

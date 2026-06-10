@@ -24,8 +24,8 @@ import { LocalDataService } from 'src/app/services/local-data.service';
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { BusinessPartnersService } from '../../../services/business-partners.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
-import { SectorSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/sector-socio-negocio.service';
-import { ISectorSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/sector-socio-negocio-sap.interface';
+import { BusinessPartnerSectorsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/business-partner-sectors.service';
+import { IBusinessPartnerSectors } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/business-partner-sectors.interface';
 
 
 @Component({
@@ -78,11 +78,11 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
     private readonly fb: FormBuilder,
     private readonly datePipe: DatePipe,
     public  readonly utilService: UtilService,
-    private sectorSapService: SectorSapService,
     private readonly localDataService: LocalDataService,
     private readonly swaCustomService: SwaCustomService,
-    private businessPartnersService: BusinessPartnersService,
+    private readonly businessPartnersService: BusinessPartnersService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
+    private readonly businessPartnerSectorsService: BusinessPartnerSectorsService,
   ) {}
 
   /**
@@ -144,9 +144,9 @@ export class PanelClienteBySectorEstadoComponent implements OnInit, OnDestroy {
   }
 
   private loadCombos(): void {
-    this.sectorSapService.getList()
+    this.businessPartnerSectorsService.getList()
       .subscribe({
-        next: (data: ISectorSocioNegocioSap[]) => {
+        next: (data: IBusinessPartnerSectors[]) => {
           this.sectorList = data.map(item => ({ label: item.name, value: item.code }));
 
           const defaultSelectedCodes = data.map(item => item.code);

@@ -16,6 +16,7 @@ export class FacturacionElectronicaSapService {
   ) { }
 
   getListGuiaElectronicaByFiltro(value: FilterRequestModel) {
+    debugger;
     let params = new HttpParams();
     params = params.append('dat1', this.datePipe.transform(value.dat1, 'yyyy-MM-dd'));
     params = params.append('dat2', this.datePipe.transform(value.dat2, 'yyyy-MM-dd'));
@@ -24,12 +25,11 @@ export class FacturacionElectronicaSapService {
     params = params.append('text1', value.text1);
     params = params.append('text2', value.text2);
 
-    console.log("Value::", value);
-
     return this.http.get<IEntregaLocalElectronica[]>(`${environment.url_api_fib}ElectronicBilling/GetListGuiaElectronicaByFiltro/`, {params: params});
   }
 
   setEnviar(value: any) {
+    debugger;
     const param: string = JSON.stringify(value);
     return this.http.put(`${environment.url_api_fib}ElectronicBilling/SetEnviar/`, param);
   }

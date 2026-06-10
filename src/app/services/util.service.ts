@@ -1,7 +1,7 @@
 import { SelectItem } from 'primeng/api';
 import { DatePipe } from '@angular/common';
 import { Injectable } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { environment } from 'src/environments/environment.prod';
 
 @Injectable({
@@ -179,12 +179,33 @@ export class UtilService {
    * @param date Date | string
    * @returns string con formato 'yyyy-MM-dd'
    */
-  normalizeDateToApiString(date: Date | string): string {
+  // normalizeDateToApiString(date: Date | string): string {
+  //   let d: Date;
+  //   if (date instanceof Date) {
+  //     d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  //   } else {
+  //     const parsed = new Date(date);
+  //     d = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  //   }
+
+  //   const yyyy = d.getFullYear();
+  //   const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+  //   const dd = d.getDate().toString().padStart(2, '0');
+
+  //   return `${yyyy}-${mm}-${dd}`;
+  // }
+
+  normalizeDateToApiString(date: Date | string | null | undefined): string | null {
+    if (!date) return null;
+
     let d: Date;
+
     if (date instanceof Date) {
+      if (isNaN(date.getTime())) return null;
       d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     } else {
       const parsed = new Date(date);
+      if (isNaN(parsed.getTime())) return null;
       d = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
     }
 
@@ -348,27 +369,6 @@ export class UtilService {
     }
   }
 
-  onNumericInput(modeloForm: FormGroup,controlName: string, decimals: number): void {
-    const control = modeloForm.get(controlName);
-    if (!control) return;
-
-    let value = String(control.value ?? '');
-
-    // El navegador ya resolvió si fue reemplazo o escritura
-    value = value.replace(/[^0-9.]/g, '');
-
-    const parts = value.split('.');
-    if (parts.length > 2) {
-      value = parts[0] + '.' + parts.slice(1).join('');
-    }
-
-    if (parts.length === 2) {
-      value = parts[0] + '.' + parts[1].slice(0, decimals);
-    }
-
-    control.setValue(value, { emitEvent: false });
-  }
-
   filter(val, decimal){
     const preg = new RegExp('^([0-9]+\.?[0-9]{0,' + decimal + '})$');
     if ( preg.test(val) === true){
@@ -393,6 +393,10 @@ export class UtilService {
     item = item === undefined ? null : item;
 
     return item;
+  }
+
+  getSelectItemLabel(list: SelectItem[], value: any): string {
+    return list.find(x => x.value === value)?.label ?? '';
   }
 
   goOcultarParteDelCorreo(value: string) :  string{
@@ -494,7 +498,7 @@ export class UtilService {
     return errorMsg;
   }
 
-  formatNumericFormControl1(form: FormGroup, controlName: string, precision: number, emitEvent: boolean = false ): void {
+  formatNumericFormControl(form: FormGroup, controlName: string, precision: number, emitEvent: boolean = false ): void {
     const control = form.get(controlName);
     if (!control) return;
 
@@ -512,7 +516,7 @@ export class UtilService {
     control.setValue(formattedValue, { emitEvent });
   }
 
-  onNumericInput1(modeloForm: FormGroup, controlName: string, decimals: number, emitEvent: boolean = false): void {
+  onNumericInput(modeloForm: FormGroup, controlName: string, decimals: number, emitEvent: boolean = false): void {
     const control = modeloForm.get(controlName);
     if (!control) return;
 
@@ -618,6 +622,13 @@ export class UtilService {
     return false;
   }
 
+  showIconDelete(lineStatus: string, value: string): boolean {
+    const p = (v: any) => this.normalizePrimitive(v);
+
+    return p(lineStatus) !== 'C'
+      && !!p(value);
+  }
+
   mapJoin<T>(arr: T[] | null | undefined, key: keyof T): string {
     return (arr ?? [])
       .map(x => x?.[key])
@@ -651,5 +662,54 @@ export class UtilService {
     if (!cadena) return '';
     const acentos = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U' };
     return cadena.split('').map(letra => acentos[letra] || letra).join('').toString().toUpperCase();
+  }
+
+  fc(value: any = '', required = false, disabled = false): FormControl<any> {
+    return new FormControl(
+      { value, disabled },
+      required ? [Validators.required] : []
+    );
+  }
+
+
+  getHelpers() {
+    const p = (v: any) => this.normalizePrimitive(v);
+    const n = (v: any) => this.normalizeNumber(v);
+    const v = (v: any) => v?.value ?? v;
+    const l = (v: any) => v?.label ?? v ?? '';
+    const may = (v: any) => this.convertirMayuscula(p(v));
+    const d = (v: any) => this.normalizeDate(v);
+
+    const findItem = <T extends { value: any }>(
+      list: T[],
+      value: any
+    ) => this.findSelectItem(list, value);
+
+    const patch = <T>(
+      form: FormGroup,
+      data: Partial<T>
+    ) => this.patchForm<T>(form, data);
+
+    const r = (v: number, d: number) =>
+      this.onRedondearDecimalConCero(v ?? 0, d);
+
+    const fc = (
+      value: any = '',
+      required = false,
+      disabled = false
+    ) => this.fc(value, required, disabled);
+
+    return {
+      p,
+      n,
+      v,
+      l,
+      may,
+      d,
+      findItem,
+      patch,
+      r,
+      fc
+    };
   }
 }

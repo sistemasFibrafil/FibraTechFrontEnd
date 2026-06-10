@@ -17,7 +17,7 @@ import { SwaCustomService } from '../../../../../services/swa-custom.service';
 import { LogisticUserService } from '../../../services/logistic-user.service';
 import { LocationService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/location.service';
 import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -63,7 +63,7 @@ export class PersonaPermisoLogisticoComponent implements OnInit, OnDestroy {
     private warehouseService: WarehousesService,
     private readonly swaCustomService: SwaCustomService,
     private readonly logisticUserService: LogisticUserService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService
+    private readonly userDefinedFieldsService: UserDefinedFieldsService
   ) {}
 
   ngOnInit() {
@@ -151,7 +151,7 @@ export class PersonaPermisoLogisticoComponent implements OnInit, OnDestroy {
 
     forkJoin({
       location: this.locationService.getList(),
-      objectType: this.camposDefinidoUsuarioService.getList(paramObjectType),
+      objectType: this.userDefinedFieldsService.getList(paramObjectType),
       warehouses: this.warehouseService.getListByInactive(params)
     }).subscribe({
       next: (result: any) => {

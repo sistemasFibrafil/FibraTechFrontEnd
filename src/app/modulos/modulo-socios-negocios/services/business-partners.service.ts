@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
+import { SocioNegocioCreateModel } from '../models/socio-negocio.model';
 import { IBusinessPartnersQuery } from '../interfaces/business-partners.interface';
-import { SocioNegocioModel } from '../models/socio-negocio.model';
 
 
 @Injectable({providedIn: 'root'})
@@ -36,8 +36,7 @@ export class BusinessPartnersService {
 
   getBusinessPartnerByCode(cardCode: string) {
     let params = new HttpParams();
-    params = params.append('cardCode', cardCode);
-    return this.http.get<SocioNegocioModel>(`${environment.url_api_fib}BusinessPartners/GetByCode/`, {params: params});
+    return this.http.get<SocioNegocioCreateModel>(`${environment.url_api_fib}BusinessPartners/GetByCode/`, {params: params});
   }
 
   getVehicleByCode(cardCode: string) {
@@ -58,11 +57,11 @@ export class BusinessPartnersService {
     return this.http.get<any[]>(`${environment.url_api_fib}BusinessPartnerGroups/GetListByGroupType`, {params: params});
   }
 
-  setCreateBusinessPartner(data: SocioNegocioModel) {
+  setCreateBusinessPartner(data: SocioNegocioCreateModel) {
     return this.http.post(`${environment.url_api_fib}BusinessPartners/Create`, data);
   }
 
-  setUpdateBusinessPartner(data: SocioNegocioModel) {
+  setUpdateBusinessPartner(data: SocioNegocioCreateModel) {
     return this.http.put(`${environment.url_api_fib}BusinessPartners/Update`, data);
   }
 

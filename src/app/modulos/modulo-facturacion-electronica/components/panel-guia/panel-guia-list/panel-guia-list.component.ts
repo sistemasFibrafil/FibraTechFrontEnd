@@ -14,7 +14,7 @@ import { IEntregaLocalElectronica } from '../../../interfaces/entrega.interface'
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
 import { PackingListService } from '../../../services/packingList.service';
 import { FacturacionElectronicaSapService } from '../../../services/facturacion-electronica.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 interface ITipDocumento {
   code  : string,
@@ -60,7 +60,7 @@ export class PanelGuiaListComponent implements OnInit {
     private packingListService: PackingListService,
     private readonly swaCustomService: SwaCustomService,
     private readonly accesoOpcionesService: AccesoOpcionesService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     private facturacionElectronicaSapService: FacturacionElectronicaSapService,
   ) { }
 
@@ -115,7 +115,7 @@ export class PanelGuiaListComponent implements OnInit {
   getListStatusSunat() {
     this.listStatusSunat = [];
     const param: any = { tableID: 'ODLN', aliasID: 'FIB_ESTADOSUNAT' };
-    this.camposDefinidoUsuarioService.getList(param)
+    this.userDefinedFieldsService.getList(param)
     .subscribe({next:(data: any[]) =>{
         this.listStatusSunat = [];
         for (let item of data) {
@@ -151,6 +151,7 @@ export class PanelGuiaListComponent implements OnInit {
   }
 
   onListar() {
+    debugger;
     this.isDisplay = true;
     this.modelo = [];
     this.onSetParametro();
@@ -177,11 +178,12 @@ export class PanelGuiaListComponent implements OnInit {
       this.isDisplay = false;
       this.swaCustomService.swaMsgExito(null);
       this.onListar();
-    },error:(e)=>{
+    },
+    error:(e)=>{
       this.isDisplay = false;
       this.swaCustomService.swaMsgError(e.error.resultadoDescripcion);
-    }
-  });
+      }
+    });
   }
 
   onToRowSelectPrint(modelo: IEntregaLocalElectronica) {

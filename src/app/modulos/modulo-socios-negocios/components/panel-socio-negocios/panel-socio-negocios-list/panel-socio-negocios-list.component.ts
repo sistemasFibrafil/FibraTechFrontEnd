@@ -170,7 +170,7 @@ export class PanelSocioNegociosListComponent implements OnInit {
   // ===========================
 
   private loadCardTypeList(): void {
-    const cardType = this.localDataService.cardType;
+    const cardType = this.localDataService.cardType.filter(x => x.code !== 'L');;
 
     this.cardTypeList = cardType.map(s => ({ label: s.name, value: s.code }));
 

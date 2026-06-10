@@ -35,7 +35,7 @@
               <div class="col-12 md:col-6" *ngIf="!isMainCurrency">
                 <label class="label-custom" for="float-input-tipo-cambio">Tipo cambio </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docRate" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSoc, 'docRate', 3, true)">
+                  <input id="float-input-docRate" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormSoc, 'docRate', 3, true)">
                 </div>
               </div>
             </div>
@@ -184,12 +184,6 @@
                     <td class="custom-td-numero">
                       {{modelo.priceBefDi | number: '.3':'en-EN'}}
                     </td>
-                    <td class="custom-td-numero">
-                      {{modelo.discPrcnt | number: '.2':'en-EN'}}
-                    </td>
-                    <td class="custom-td-numero">
-                      {{modelo.price | number: '.3':'en-EN'}}
-                    </td>
                     <td class="p-fluid">
                       {{modelo.taxCode}}
                     </td>
@@ -199,9 +193,6 @@
                     <td class="custom-td-numero">
                       {{modelo.lineTotal | number: '.2':'en-EN'}}
                     </td>
-                    <!-- <td class="custom-td-numero">
-                      {{modelo.vatSum | number: '.2':'en-EN'}}
-                    </td> -->
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage" let-columns>
@@ -317,19 +308,19 @@
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-u_ValorFlete">Valor flete </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_ValorFlete" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Valor de flete" maxlength="20" size="50" formControlName="u_ValorFlete" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_ValorFlete', 0, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_ValorFlete', 0, true)">
+                      <input id="float-input-u_ValorFlete" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Valor de flete" maxlength="20" size="50" formControlName="u_ValorFlete" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_ValorFlete', 0, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_ValorFlete', 0, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-u_FIB_TFLETE">Total flete </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_FIB_TFLETE" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Total de flete" maxlength="20" size="50" formControlName="u_FIB_TFLETE" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_FIB_TFLETE', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_FIB_TFLETE', 2, true)">
+                      <input id="float-input-u_FIB_TFLETE" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Total de flete" maxlength="20" size="50" formControlName="u_FIB_TFLETE" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_FIB_TFLETE', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_FIB_TFLETE', 2, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-importe-seguro">Importe seguro </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_FIB_IMPSEG" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Importe de seguro" maxlength="20" size="50" formControlName="u_FIB_IMPSEG" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_FIB_IMPSEG', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_FIB_IMPSEG', 2, true)">
+                      <input id="float-input-u_FIB_IMPSEG" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Importe de seguro" maxlength="20" size="50" formControlName="u_FIB_IMPSEG" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_FIB_IMPSEG', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_FIB_IMPSEG', 2, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
@@ -337,21 +328,6 @@
                     <div class="p-inputgroup">
                       <input id="float-input-u_FIB_PUERTO" class="field-text" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Puerto" maxlength="25" size="50" formControlName="u_FIB_PUERTO" autocomplete="off" pInputText>
                     </div>
-                  </div>
-                </div>
-              </form>
-            </p-tabPanel>
-
-            <p-tabPanel>
-              <ng-template pTemplate = "header">
-                <i class="pi pi-circle-fill"></i>
-                <span>&nbsp;Otros&nbsp;</span>
-              </ng-template>
-              <form [formGroup]="modeloFormOtr">
-                <div class="p-fluid p-formgrid grid">
-                  <div class="col-12 md:col-12">
-                    <label class="label-custom" for="float-input-salesType">Tipo de venta </label>
-                    <p-dropdown id="float-input-salesType" [class.readonly-control]="true"  [readonly]="true" [attr.tabindex]="-1" [options]="salesTypeList" placeholder="Seleccione tipo de venta" formControlName="salesType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                   </div>
                 </div>
               </form>
@@ -365,10 +341,10 @@
           <form [formGroup]="modeloFormSal">
             <div class="p-fluid p-formgrid grid">
               <div class="col-12 md:col-12">
-                <label class="label-custom" for="float-input-empleado-venta">Empleado de ventas </label>
-                <p-dropdown id="float-input-salesEmployees" [class.readonly-control]="true"  [readonly]="true" [attr.tabindex]="-1" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormSal.controls['salesEmployees'].errors && modeloFormSal.controls['salesEmployees'].dirty">
-                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesEmployees'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                <p-dropdown id="float-input-salesPersons" [class.readonly-control]="true"  [readonly]="true" [attr.tabindex]="-1" [options]="salesPersonsList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesPersons" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormSal.controls['salesPersons'].errors && modeloFormSal.controls['salesPersons'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesPersons'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-6">
@@ -407,13 +383,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-discPrcnt">% Dto. </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discPrcnt', 2, true)">
+                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discPrcnt', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-discSum">Descuento </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discSum', 2, true)">
+                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discSum', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-12">
@@ -437,7 +413,7 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormOtr.valid || !modeloFormSal.valid || !hasValidLines" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormSal.valid || !hasValidLines" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
         <div class="col-12 md:col-2">
           <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>

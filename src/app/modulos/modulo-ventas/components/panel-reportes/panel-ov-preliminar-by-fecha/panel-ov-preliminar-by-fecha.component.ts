@@ -11,13 +11,14 @@ import { FilterRequestModel } from 'src/app/models/filter-request.model';
 
 import { IOrdersSeguimientoDetallado } from '../../../interfaces/sap-business-one/orders.interface';
 import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
-import { IGrupoSocioNegocioSap } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.interface';
+import { IBusinessPartnerGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/business-partner-groups.interface';
 
 import { SwaCustomService } from 'src/app/services/swa-custom.service';
 import { OrdersService } from '../../../services/sap-business-one/orders.service';
 import { AccesoOpcionesService } from 'src/app/services/acceso-opciones.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
-import { GrupoSocionegocioSapService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/grupo-socio-negocio.service';
+import { BusinessPartnerGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/business-partner-groups.service';
+
 
 
 @Component({
@@ -47,7 +48,7 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
   grupoClienteSapList: SelectItem[];
 
   empleadoVentaSelected: ISalesPersons[];
-  grupoClienteSelected: IGrupoSocioNegocioSap[];
+  grupoClienteSelected: IBusinessPartnerGroups[];
   reporteList: IOrdersSeguimientoDetallado[];
 
   modeloSave: SopCreateModel = new SopCreateModel();
@@ -71,7 +72,7 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
     private readonly accesoOpcionesService: AccesoOpcionesService,
     private readonly ordersService: OrdersService,
     private salesPersonsService: SalesPersonsService,
-    private grupoSocionegocioSapService: GrupoSocionegocioSapService
+    private readonly businessPartnerGroupsService: BusinessPartnerGroupsService,
   ) {}
 
   ngOnInit() {
@@ -95,8 +96,8 @@ export class PanelOrdenVentaPreliminarByFechaComponent implements OnInit {
 
   getListGrupoAll() {
     const param: any = { groupType: 'C' };
-    this.grupoSocionegocioSapService.getListByGroupType(param)
-    .subscribe({next:(data: IGrupoSocioNegocioSap[]) =>{
+    this.businessPartnerGroupsService.getListByGroupType(param)
+    .subscribe({next:(data: IBusinessPartnerGroups[]) =>{
         this.grupoClienteSapList = [];
         this.grupoClienteSelected = [];
 

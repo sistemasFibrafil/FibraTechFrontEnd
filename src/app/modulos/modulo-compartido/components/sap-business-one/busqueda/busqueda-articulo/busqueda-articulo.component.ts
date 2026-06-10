@@ -1,11 +1,12 @@
 import swal from 'sweetalert2';
 import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
 import { IArticulo } from 'src/app/modulos/modulo-inventario/interfaces/items.interface';
-import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
 
+import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.service';
 
 
 @Component({
@@ -13,22 +14,25 @@ import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.s
   templateUrl: './busqueda-articulo.component.html'
 })
 export class BusquedaArticuloComponent implements OnInit {
-  modeloFormBusqueda: FormGroup;
-  globalConstants: GlobalsConstantsForm = new GlobalsConstantsForm();
+  modeloForm                : FormGroup;
 
-  isDisplay: Boolean = false;
+  globalConstants           : GlobalsConstantsForm = new GlobalsConstantsForm();
 
-  columnas: any[];
-  list: IArticulo[] = [];
-  params: any;
+  isDisplay                 : boolean = false;
 
-  @Input() invntItem: string;
-  @Input() sellItem: string;
-  @Input() prchseItem: string;
+  columnas                  : any[];
 
-  @Output() eventoAceptar = new EventEmitter<IArticulo>();
-  @Output() eventoCancelar = new EventEmitter<IArticulo>();
-  @Output() eventoLimpiar = new EventEmitter<boolean>();
+  modelo                    : IArticulo[] = [];
+  modeloOriginal            : IArticulo[] = [];
+
+  @Input() sellItem         : string;
+  @Input() invntItem        : string;
+  @Input() prchseItem       : string;
+
+  @Output() eventoAceptar   = new EventEmitter<IArticulo>();
+  @Output() eventoCancelar  = new EventEmitter<IArticulo>();
+
+  @Output() eventoLimpiar   = new EventEmitter<boolean>();
 
   constructor
   (
@@ -42,9 +46,11 @@ export class BusquedaArticuloComponent implements OnInit {
   }
 
   private buildFormBusqueda() {
-    this.modeloFormBusqueda = this.fb.group({
-      'item' : new FormControl(''),
+    this.modeloForm = this.fb.group({
+      'searchText' : new FormControl(''),
     });
+
+    this.loadData();
   }
 
   onBuildColum() {
@@ -57,29 +63,71 @@ export class BusquedaArticuloComponent implements OnInit {
     ];
   }
 
-  getParams()
-  {
-    this.params = this.modeloFormBusqueda.getRawValue();
-    this.params.invntItem   = this.invntItem  === undefined ? '' : this.invntItem;
-    this.params.sellItem    = this.sellItem   === undefined ? '' : this.sellItem;
-    this.params.prchseItem  = this.prchseItem === undefined ? '' : this.prchseItem;
+  // Aplica filtro de texto en memoria sobre código o descripción
+  onFiltroTexto(): void {
+    const searchText = this.modeloForm.get('searchText')?.value?.trim();
+
+    if (!searchText) {
+      this.modelo = [...this.modeloOriginal];
+      return;
+    }
+
+    const regex = new RegExp(
+      searchText.replace(/\s+/g, '.*'),
+      'i'
+    );
+
+    this.modelo = this.modeloOriginal.filter(modelo =>
+      regex.test(modelo.itemCode ?? '') ||
+      regex.test(modelo.itemName ?? '')
+    );
   }
 
-  onToBuscar() {
+  onClickBuscar() {
+    this.loadData();
+  }
+
+  loadData(): void {
     this.isDisplay = true;
-    this.list = [];
-    this.getParams();
-    this.itemsService.getListByFilter(this.params)
-    .subscribe({next:(data: IArticulo[]) =>{
+    this.modelo = [];
+    this.modeloOriginal = [];
+
+    this.itemsService
+    .getListByFilter(this.buildFilterParams())
+    .subscribe({
+      next: (data: IArticulo[]) => {
+        this.modeloOriginal = data ?? [];
+        this.modelo = [...this.modeloOriginal];
         this.isDisplay = false;
-        this.list = data;
-      },error:(e)=>{
-        this.list = [];
+      },
+      error: (e) => {
+        this.modelo = [];
+        this.modeloOriginal = [];
         this.isDisplay = false;
-        let swalWithBootstrapButtons = swal.mixin({ customClass: { container: 'my-swal' }, target: document.getElementById('modal') });
-        swalWithBootstrapButtons.fire(this.globalConstants.msgInfoSummary, e.error.resultadoDescripcion, 'error');
+
+        const swalWithBootstrapButtons = swal.mixin({customClass: { container: 'my-swal' }, target: document.getElementById('modal')});
+        swalWithBootstrapButtons.fire(this.globalConstants.msgInfoSummary, e?.error?.resultadoDescripcion ?? 'Ocurrió un error al obtener la información.', 'error');
       }
     });
+  }
+
+  private buildFilterParams(): any {
+    this.modeloForm.patchValue({
+      searchText: ''
+    });
+
+    return {
+      item: '',
+      invntItem: this.invntItem ?? '',
+      sellItem: this.sellItem ?? '',
+      prchseItem: this.prchseItem ?? ''
+    };
+  }
+
+  getActive(modelo: IArticulo) {
+    return modelo.frozenFor === 'N'
+      ? { text: 'Sí', class: 'item-active-si' }
+      : { text: 'No', class: 'item-active-no' };
   }
 
   onToSelected(value: IArticulo) {
@@ -88,9 +136,9 @@ export class BusquedaArticuloComponent implements OnInit {
   }
 
   private setClearFiltro() {
-    this.modeloFormBusqueda.patchValue({
-      'item': ''
+    this.modeloForm.patchValue({
+      'searchText': ''
     });
-    this.list = [];
+    this.modelo = [];
   }
 }

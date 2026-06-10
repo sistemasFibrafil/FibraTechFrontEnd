@@ -17,6 +17,7 @@ import { PanelSocioNegociosEditComponent } from './components/panel-socio-negoci
 import { PanelSocioNegociosViewComponent } from './components/panel-socio-negocios/panel-socio-negocios-view/panel-socio-negocios-view.component';
 
 
+
 @NgModule({
     declarations:
     [

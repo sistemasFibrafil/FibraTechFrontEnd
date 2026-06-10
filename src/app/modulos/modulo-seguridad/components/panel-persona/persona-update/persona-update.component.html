@@ -72,10 +72,10 @@
                     </div>
                   </div>
                   <div class="col-12 md:col-6">
-                    <label class="label-custom" for="float-input-salesEmployees">Empleado de ventas </label>
-                    <p-dropdown id="float-input-salesEmployees" [options]="salesPersonsList" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" optionLabel="label" [filter]="true" [showClear]="true"></p-dropdown>
-                    <div *ngIf="modeloForm.controls['salesEmployees'].errors && modeloForm.controls['salesEmployees'].dirty">
-                      <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloForm.controls['salesEmployees'].errors['required']"></p-message>
+                    <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                    <p-dropdown id="float-input-salesPersons" [options]="salesPersonsList" placeholder="Seleccione empleado de ventas" formControlName="salesPersons" optionLabel="label" [filter]="true" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloForm.controls['salesPersons'].errors && modeloForm.controls['salesPersons'].dirty">
+                      <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloForm.controls['salesPersons'].errors['required']"></p-message>
                     </div>
                   </div>
                 </div>

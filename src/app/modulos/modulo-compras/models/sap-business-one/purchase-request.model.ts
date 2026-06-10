@@ -22,7 +22,7 @@ export class PurchaseRequestCreateModel {
 
   u_UsrCreate                 : number;
 
-  lines                       : PurchaseRequest1CreateModel[];
+  lines                       : PurchaseRequestLinesCreateModel[];
 
   constructor(){
     this.docDate              = null;
@@ -52,7 +52,7 @@ export class PurchaseRequestCreateModel {
   }
 }
 
-export class PurchaseRequest1CreateModel {
+export class PurchaseRequestLinesCreateModel {
   itemCode                    : string;
   dscription                  : string;
 
@@ -117,7 +117,7 @@ export class PurchaseRequestUpdateModel {
 
   u_UsrUpdate                 : number;
 
-  lines                       : PurchaseRequest1UpdateModel[];
+  lines                       : PurchaseRequestLinesUpdateModel[];
 
   constructor(){
     this.docEntry             = 0;
@@ -149,7 +149,7 @@ export class PurchaseRequestUpdateModel {
   }
 }
 
-export class PurchaseRequest1UpdateModel {
+export class PurchaseRequestLinesUpdateModel {
   docEntry                    : number;
   lineNum                     : number;
   lineStatus                  : string;

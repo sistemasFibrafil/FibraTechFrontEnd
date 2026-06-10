@@ -40,10 +40,10 @@
                 </div>
               </div>
               <div class="col-12 md:col-4">
-                <label class="label-custom" for="float-input-u_BPP_MDTD">Tipo </label>
-                <p-dropdown id="float-input-u_BPP_MDTD" class="field-mandatory" [options]="documentTypeSunatList" [filter]="true" placeholder="Seleccione el tipo" formControlName="u_BPP_MDTD" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeTipoDocumento($event)"></p-dropdown>
-                <div *ngIf="modeloFormDoc.controls['u_BPP_MDTD'].errors && modeloFormDoc.controls['u_BPP_MDTD'].dirty">
-                  <p-message severity="error" text="Tipo es requerido." *ngIf="modeloFormDoc.controls['u_BPP_MDTD'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-sunatDocumentsTypes">Tipo </label>
+                <p-dropdown id="float-input-sunatDocumentsTypes" class="field-mandatory" [options]="sunatDocumentsTypesList" [filter]="true" placeholder="Seleccione el tipo" formControlName="sunatDocumentsTypes" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeTipoDocumento($event)"></p-dropdown>
+                <div *ngIf="modeloFormDoc.controls['sunatDocumentsTypes'].errors && modeloFormDoc.controls['sunatDocumentsTypes'].dirty">
+                  <p-message severity="error" text="Tipo es requerido." *ngIf="modeloFormDoc.controls['sunatDocumentsTypes'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-4">
@@ -76,17 +76,17 @@
                 </div>
               </div>
               <div class="col-12 md:col-5">
-                <label class="label-custom" for="float-input-filler">De almacén </label>
-                <p-dropdown id="float-input-filler" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="filler" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormDoc.controls['filler'].errors && modeloFormDoc.controls['filler'].dirty">
-                  <p-message severity="error" text="Almacén origen es requerido." *ngIf="modeloFormDoc.controls['filler'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-originWarehouses">De almacén </label>
+                <p-dropdown id="float-input-originWarehouses" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="warehousesList" [filter]="true" placeholder="Seleccione el almacén" formControlName="originWarehouses" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormDoc.controls['originWarehouses'].errors && modeloFormDoc.controls['originWarehouses'].dirty">
+                  <p-message severity="error" text="Almacén origen es requerido." *ngIf="modeloFormDoc.controls['originWarehouses'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-7">
-                <label class="label-custom" for="float-input-toWhsCode">Almacén destino </label>
-                <p-dropdown id="float-input-toWhsCode" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="warehouseList" [filter]="true" placeholder="Seleccione el almacén" formControlName="toWhsCode" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormDoc.controls['toWhsCode'].errors && modeloFormDoc.controls['toWhsCode'].dirty">
-                  <p-message severity="error" text="Almacén destino es requerido." *ngIf="modeloFormDoc.controls['toWhsCode'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-destinationWarehouses">Almacén destino </label>
+                <p-dropdown id="float-input-destinationWarehouses" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="warehousesList" [filter]="true" placeholder="Seleccione el almacén" formControlName="destinationWarehouses" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormDoc.controls['destinationWarehouses'].errors && modeloFormDoc.controls['destinationWarehouses'].dirty">
+                  <p-message severity="error" text="Almacén destino es requerido." *ngIf="modeloFormDoc.controls['destinationWarehouses'].errors['required']"></p-message>
                 </div>
               </div>
             </div>
@@ -143,7 +143,7 @@
                       {{modelo.whsCode}}
                     </td>
                     <td class="p-fluid">
-                      {{modelo.u_tipoOpT12Nam}}
+                      {{ utilService.getSelectItemLabel(operationsTypesList, modelo.u_tipoOpT12) }}
                     </td>
                     <td class="custom-td-3">
                       {{modelo.unitMsr}}
@@ -178,16 +178,16 @@
                     <p-fieldset legend="Datos de transportista">
                       <div class="p-fluid p-formgrid grid">
                         <div class="col-12 md:col-12">
-                          <label class="label-custom" for="float-input-typeTransport">Tipo de transporte </label>
-                          <p-dropdown id="float-input-typeTransport" [options]="typeTransportList" placeholder="Seleccione el tipo de transporte" formControlName="typeTransport" optionLabel="label" [showClear]="true"></p-dropdown>
+                          <label class="label-custom" for="float-input-transportsTypes">Tipo de transporte </label>
+                          <p-dropdown id="float-input-transportsTypes" [options]="transportsTypesList" placeholder="Seleccione el tipo de transporte" formControlName="transportsTypes" optionLabel="label" [showClear]="true"></p-dropdown>
                         </div>
                         <div class="col-12 md:col-3">
                           <label class="label-custom" for="float-input-u_FIB_COD_TRA">Código </label>
                           <app-modal-socio-negocio [title]="'Transportistas'" [cardCode]="u_FIB_COD_TRA" [cardType] = "'C,S'" [transType] = "'Y'" (eventoAceptar)="onSelectedTransportista($event)"></app-modal-socio-negocio>
                         </div>
                         <div class="col-12 md:col-3">
-                          <label class="label-custom" for="float-input-typeCarrierIdentityDocument">Tipo de documento </label>
-                          <p-dropdown id="float-input-typeCarrierIdentityDocument" [options]="typeCarrierIdentityDocumentList" placeholder="Seleccione el tipo de documento" formControlName="typeCarrierIdentityDocument" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                          <label class="label-custom" for="float-input-carrierIdentityDocumentstypes">Tipo de documento </label>
+                          <p-dropdown id="float-input-carrierIdentityDocumentstypes" [options]="carrierIdentityDocumentstypesList" placeholder="Seleccione el tipo de documento" formControlName="carrierIdentityDocumentstypes" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                         </div>
                         <div class="col-12 md:col-3">
                           <label class="label-custom" for="float-input-u_BPP_MDRT">RUC </label>
@@ -212,8 +212,8 @@
                     <p-fieldset legend="Datos del conductor">
                       <div class="p-fluid p-formgrid grid">
                           <div class="col-12 md:col-6">
-                            <label class="label-custom" for="float-input-typeDriversIdentityDocument">Tipo de documento </label>
-                            <p-dropdown id="float-input-typeDriversIdentityDocument" [options]="typeDriversIdentityDocumentList" placeholder="Seleccione el tipo de documento" formControlName="typeDriversIdentityDocument" optionLabel="label" [showClear]="true"></p-dropdown>
+                            <label class="label-custom" for="float-input-driversIdentityDocumentstTypes">Tipo de documento </label>
+                            <p-dropdown id="float-input-driversIdentityDocumentstTypes" [options]="driversIdentityDocumentstTypesList" placeholder="Seleccione el tipo de documento" formControlName="driversIdentityDocumentstTypes" optionLabel="label" [showClear]="true"></p-dropdown>
                           </div>
                           <div class="col-12 md:col-6">
                             <label class="label-custom" for="float-input-u_FIB_NUMDOC_COD">Número de documento </label>
@@ -258,31 +258,30 @@
               <form [formGroup]="modeloFormOtr">
                 <div class="p-fluid p-formgrid grid">
                   <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-transferType">Tipo de traslado </label>
-                    <p-dropdown id="float-input-transferType" class="field-mandatory" [options]="transferTypeList" [filter]="true" placeholder="Seleccione el tipo de traslado" formControlName="transferType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                    <div *ngIf="modeloFormOtr.controls['transferType'].errors && modeloFormOtr.controls['transferType'].dirty">
-                      <p-message severity="error" text="Tipo de traslado es requerido." *ngIf="modeloFormOtr.controls['transferType'].errors['required']"></p-message>
+                    <label class="label-custom" for="float-input-transfersTypes">Tipo de traslado </label>
+                    <p-dropdown id="float-input-transfersTypes" class="field-mandatory" [options]="transfersTypesList" [filter]="true" placeholder="Seleccione el tipo de traslado" formControlName="transfersTypes" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['transfersTypes'].errors && modeloFormOtr.controls['transfersTypes'].dirty">
+                      <p-message severity="error" text="Tipo de traslado es requerido." *ngIf="modeloFormOtr.controls['transfersTypes'].errors['required']"></p-message>
                     </div>
                   </div>
                   <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-reasonTransfer">Motivo de traslado </label>
-                    <p-dropdown id="float-input-reasonTransfer" class="field-mandatory" [options]="reasonTransferList" [filter]="true" placeholder="Seleccione el motivo de traslado" formControlName="reasonTransfer" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                    <div *ngIf="modeloFormOtr.controls['reasonTransfer'].errors && modeloFormOtr.controls['reasonTransfer'].dirty">
-                      <p-message severity="error" text="Motivo de traslado es requerido." *ngIf="modeloFormOtr.controls['reasonTransfer'].errors['required']"></p-message>
+                    <label class="label-custom" for="float-input-reasonsTransfers">Motivo de traslado </label>
+                    <p-dropdown id="float-input-reasonsTransfers" class="field-mandatory" [options]="reasonsTransfersList" [filter]="true" placeholder="Seleccione el motivo de traslado" formControlName="reasonsTransfers" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['reasonsTransfers'].errors && modeloFormOtr.controls['reasonsTransfers'].dirty">
+                      <p-message severity="error" text="Motivo de traslado es requerido." *ngIf="modeloFormOtr.controls['reasonsTransfers'].errors['required']"></p-message>
                     </div>
                   </div>
                   <div class="col-12 md:col-4">
-                    <label class="label-custom" for="float-input-outputType">Tipo de salida </label>
-                    <p-dropdown id="float-input-outputType" class="field-mandatory" [options]="outputTypeList" [filter]="true" placeholder="Seleccione el tipo de salida" formControlName="outputType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                    <div *ngIf="modeloFormOtr.controls['outputType'].errors && modeloFormOtr.controls['outputType'].dirty">
-                      <p-message severity="error" text="Tipo de salida es requerido." *ngIf="modeloFormOtr.controls['outputType'].errors['required']"></p-message>
+                    <label class="label-custom" for="float-input-outputsTypes">Tipo de salida </label>
+                    <p-dropdown id="float-input-outputsTypes" class="field-mandatory" [options]="outputsTypesList" [filter]="true" placeholder="Seleccione el tipo de salida" formControlName="outputsTypes" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                    <div *ngIf="modeloFormOtr.controls['outputsTypes'].errors && modeloFormOtr.controls['outputsTypes'].dirty">
+                      <p-message severity="error" text="Tipo de salida es requerido." *ngIf="modeloFormOtr.controls['outputsTypes'].errors['required']"></p-message>
                     </div>
                   </div>
                 </div>
               </form>
             </p-tabPanel>
           </p-tabView>
-
         </div>
       </div>
 
@@ -291,22 +290,22 @@
           <form [formGroup]="modeloFormPie">
             <div class="p-formgrid grid">
               <div class="col-12 md:col-6">
-                <label class="label-custom" for="float-input-slpCode">Empleado de ventas </label>
-                <p-dropdown id="float-input-slpCode" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="slpCode" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormPie.controls['slpCode'].errors && modeloFormPie.controls['slpCode'].dirty">
-                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormPie.controls['slpCode'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                <p-dropdown id="float-input-salesPersons" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="salesPersonsList" [filter]="true" placeholder="Seleccione el empleado de ventas" formControlName="salesPersons" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormPie.controls['salesPersons'].errors && modeloFormPie.controls['salesPersons'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormPie.controls['salesPersons'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_NBULTOS">N° bultos </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_FIB_NBULTOS" type="text" class="field-numero" placeholder="Número de bultos" maxlength="9" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormPie, 'u_FIB_NBULTOS', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormPie, 'u_FIB_NBULTOS', 3, true)">
+                  <input id="float-input-u_FIB_NBULTOS" type="text" class="field-numero label-bold" placeholder="Número de bultos" maxlength="9" size="50" formControlName="u_FIB_NBULTOS" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormPie, 'u_FIB_NBULTOS', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormPie, 'u_FIB_NBULTOS', 3, true)">
                 </div>
               </div>
               <div class="col-12 md:col-3">
                 <label class="label-custom" for="float-input-u_FIB_KG">Total kilos </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-u_FIB_KG" type="text" class="field-numero" placeholder="Total de kilos" maxlength="9" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormPie, 'u_FIB_KG', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormPie, 'u_FIB_KG', 3, true)">
+                  <input id="float-input-u_FIB_KG" type="text" class="field-numero label-bold" placeholder="Total de kilos" maxlength="9" size="50" formControlName="u_FIB_KG" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormPie, 'u_FIB_KG', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormPie, 'u_FIB_KG', 3, true)">
                 </div>
               </div>
               <div class="col-12 md:col-6">

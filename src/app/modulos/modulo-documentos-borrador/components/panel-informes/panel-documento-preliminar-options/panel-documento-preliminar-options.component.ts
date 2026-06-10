@@ -249,8 +249,6 @@ export class PanelDocumentoPreliinarOptionsComponent implements OnInit, OnDestro
   onClickBuscar(): void {
     const filtrosInformeDocumentoPreliminar = this.buildFilterParams();
 
-    console.log("PARAMS: ", filtrosInformeDocumentoPreliminar);
-
     sessionStorage.setItem('filtrosInformeDocumentoPreliminar', JSON.stringify(filtrosInformeDocumentoPreliminar));
 
     this.router.navigate(['/main/modulo-dra/panel-documento-preliminar'], { state: { filtrosInformeDocumentoPreliminar }});

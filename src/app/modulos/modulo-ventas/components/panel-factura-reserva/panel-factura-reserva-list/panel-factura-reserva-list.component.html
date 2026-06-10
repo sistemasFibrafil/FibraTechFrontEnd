@@ -85,9 +85,6 @@
           <td class="p-fluid">
             {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
           </td>
-          <td class="p-fluid">
-            {{modelo.taxDate | date: 'dd/MM/yyyy'}}
-          </td>
           <td class="custom-td-20">
             <span class="label" [ngClass]="getGroupType(modelo).class">
               {{ getGroupType(modelo).text }}
@@ -101,9 +98,6 @@
           </td>
           <td class="p-fluid">
             {{modelo.slpName}}
-          </td>
-          <td class="p-fluid">
-            {{modelo.docCur}}
           </td>
           <td class="custom-td-numero">
             {{modelo.docTotal | number: '.2':'en-EN'}}

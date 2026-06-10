@@ -31,16 +31,20 @@ import { PanelStockGeneralDetalladoAlmacenByAlmacenComponent } from './component
 import { PanelSkuComercialUpdateComponent } from './components/panel-sku/panel-sku-comercial/panel-sku-comercial-update/panel-sku-comercial-update.component';
 import { PanelSkuProduccionUpdateComponent } from './components/panel-sku/panel-sku-produccion/panel-sku-produccion-update/panel-sku-produccion-update.component';
 
-import { PanelCargaMasivaArticuloComponent } from './components/panel-carga-masiva-articulo/panel-carga-masiva-articulo.component';
+
 import { TakeInventoryFinishedProductsCreateComponent } from './components/panel-take-inventory/panel-finished-produts/panel-finished-produts-create/panel-finished-produts-create.component';
 import { TakeInventoryFinishedProductsListComponent } from './components/panel-take-inventory/panel-finished-produts/panel-finished-produts-list/panel-finished-produts-list.component';
 import { PanelTakeInventorySparePartsListComponent } from './components/panel-take-inventory/panel-spare-parts/panel-spare-parts-list/panel-spare-parts-list.component';
 import { PanelTakeInventorySparePartsCreateComponent } from './components/panel-take-inventory/panel-spare-parts/panel-spare-parts-create/panel-spare-parts-create.component';
 
+import { PanelCreateMassiveItemsComponent } from './components/panel-load-massive-items/panel-create-massive-items/panel-create-massive-items.component';
+import { PanelUpdateMassiveItemsComponent } from './components/panel-load-massive-items/panel-update-massive-items/panel-update-massive-items.component';
+
 
 const ROUTES: Routes =
 [
-  { path: 'panel-carga-masiva-articulo',                        data: { breadcrumb: 'Carga masiva de artículos' },                      component: PanelCargaMasivaArticuloComponent },
+  { path: 'panel-create-massive-items',                         data: { breadcrumb: 'Creación masiva de artículos' },                   component: PanelCreateMassiveItemsComponent },
+  { path: 'panel-update-massive-items',                         data: { breadcrumb: 'Actualización masiva de artículos' },              component: PanelUpdateMassiveItemsComponent },
 
   { path: 'panel-picking-list',                                 data: { breadcrumb: 'Picking' },                                        component: PanelPickingListComponent },
   { path: 'panel-picking-create',                               data: { breadcrumb: 'Picking' },                                        component: PanelPickingCreateComponent },

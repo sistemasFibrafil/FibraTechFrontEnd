@@ -31,6 +31,12 @@ export class WarehousesService {
     return this.http.get<IWarehouses[]>(`${environment.url_api_fib}Warehouses/GetListByItem/`, {params: params});
   }
 
+  getByCode(code: string) {
+    let params = new HttpParams();
+    params = params.append('code', code);
+    return this.http.get<IWarehouses>(`${environment.url_api_fib}Warehouses/GetByCode/`, {params: params});
+  }
+
   getListByWhsCodeAndItemCode(value: any) {
     let params = new HttpParams();
     params = params.append('itemCode', value.itemCode);

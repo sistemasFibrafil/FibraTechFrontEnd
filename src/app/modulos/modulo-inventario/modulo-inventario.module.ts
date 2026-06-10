@@ -35,13 +35,14 @@ import { PanelArticuloByGrupoSubGrupoFiltroComponent } from './components/panel-
 import { PanelStockArticuloVentaByGrupoSubGrupoComponent } from './components/panel-reportes/panel-stock-articulo-venta-by-grupo-sub-grupo/panel-stock-articulo-venta-by-grupo-sub-grupo.component';
 import { PanelArticuloVentaByGrupoSubGrupoEstadoComponent } from './components/panel-reportes/panel-articulo-venta-by-grupo-sub-grupo-estado/panel-articulo-venta-by-grupo-sub-grupo-estado.component';
 import { PanelStockGeneralDetalladoAlmacenByAlmacenComponent } from './components/panel-reportes/panel-stock-general-detallado-almacen-by-almacen/panel-stock-general-detallado-almacen-by-almacen.component';
-import { PanelCargaMasivaArticuloComponent } from './components/panel-carga-masiva-articulo/panel-carga-masiva-articulo.component';
+
 import { TakeInventoryFinishedProductsCreateComponent } from './components/panel-take-inventory/panel-finished-produts/panel-finished-produts-create/panel-finished-produts-create.component';
 import { TakeInventoryFinishedProductsListComponent } from './components/panel-take-inventory/panel-finished-produts/panel-finished-produts-list/panel-finished-produts-list.component';
 import { PanelTakeInventorySparePartsListComponent } from './components/panel-take-inventory/panel-spare-parts/panel-spare-parts-list/panel-spare-parts-list.component';
 import { PanelTakeInventorySparePartsCreateComponent } from './components/panel-take-inventory/panel-spare-parts/panel-spare-parts-create/panel-spare-parts-create.component';
 
-
+import { PanelCreateMassiveItemsComponent } from './components/panel-load-massive-items/panel-create-massive-items/panel-create-massive-items.component';
+import { PanelUpdateMassiveItemsComponent } from './components/panel-load-massive-items/panel-update-massive-items/panel-update-massive-items.component';
 
 @NgModule({
     declarations:
@@ -81,7 +82,9 @@ import { PanelTakeInventorySparePartsCreateComponent } from './components/panel-
       PanelStockArticuloVentaByGrupoSubGrupoComponent,
       PanelArticuloVentaByGrupoSubGrupoEstadoComponent,
       PanelStockGeneralDetalladoAlmacenByAlmacenComponent,
-      PanelCargaMasivaArticuloComponent
+
+      PanelCreateMassiveItemsComponent,
+      PanelUpdateMassiveItemsComponent
 
     ],
     imports:

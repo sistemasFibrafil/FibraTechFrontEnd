@@ -1,5 +1,5 @@
-export interface  IOperationType {
-  code              : string;
-  u_descrp          : string;
-  fullDescription   : string;
+export interface  IOperationsTypes {
+  code        : string;
+  u_descrp    : string;
+  fullDescr   : string;
 }

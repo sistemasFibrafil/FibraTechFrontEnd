@@ -2,8 +2,8 @@ import Swal from 'sweetalert2';
 import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
-import {  IOperationType } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
-import { OperationTypeService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import {  IOperationsTypes } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
+import { OperationsTypesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
 
 
 
@@ -19,7 +19,7 @@ export class BusquedaTipoOperacionComponent implements OnInit {
   isDisplay: Boolean = false;
 
   columnas: any[];
-  list:  IOperationType[] = [];
+  list:  IOperationsTypes[] = [];
 
   @Input() title: string;
   @Input() nomTabla: string;
@@ -30,14 +30,14 @@ export class BusquedaTipoOperacionComponent implements OnInit {
   @Input() isHabilitarButton: boolean;
   @Input() isVisibleLimpiar: boolean = false;
 
-  @Output() eventoAceptar = new EventEmitter< IOperationType>();
-  @Output() eventoCancelar = new EventEmitter< IOperationType>();
+  @Output() eventoAceptar = new EventEmitter< IOperationsTypes>();
+  @Output() eventoCancelar = new EventEmitter< IOperationsTypes>();
   @Output() eventoLimpiar = new EventEmitter<boolean>();
 
   constructor
   (
     private readonly fb: FormBuilder,
-    private operationTypeService: OperationTypeService
+    private operationsTypesService: OperationsTypesService
   ) { }
 
   ngOnInit(): void {
@@ -65,8 +65,8 @@ export class BusquedaTipoOperacionComponent implements OnInit {
 
     const params = this.modeloFormBusqueda.getRawValue();
 
-    this.operationTypeService.getListByFilter(params)
-    .subscribe({next:(data:  IOperationType[]) =>{
+    this.operationsTypesService.getListByFilter(params)
+    .subscribe({next:(data:  IOperationsTypes[]) =>{
         this.isDisplay = false;
         this.list = data;
       },error:(e)=>{
@@ -78,7 +78,7 @@ export class BusquedaTipoOperacionComponent implements OnInit {
     });
   }
 
-  onToSelected(value:  IOperationType) {
+  onToSelected(value:  IOperationsTypes) {
     this.setClearFiltro();
     this.eventoAceptar.emit(value);
   }

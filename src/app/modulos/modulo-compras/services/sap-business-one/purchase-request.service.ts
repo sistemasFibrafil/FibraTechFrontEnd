@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
-import { IPurchaseRequest } from '../../interfaces/sap-business-one/purchase-request.interface';
+import { IPurchaseRequestLinesQuery, IPurchaseRequestQuery } from '../../interfaces/sap-business-one/purchase-request.interface';
 import { PurchaseRequestCloseModel, PurchaseRequestCreateModel, PurchaseRequestFilterModel, PurchaseRequestUpdateModel } from '../../models/sap-business-one/purchase-request.model';
 
 
@@ -21,15 +21,27 @@ export class PurchaseRequestService {
     params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
     params = params.append('docStatus', value.docStatus);
     params = params.append('searchText', value.searchText);
-    return this.http.get<IPurchaseRequest[]>(`${environment.url_api_fib}PurchaseRequest/GetListByFilter/`,{params: params});
+    return this.http.get<IPurchaseRequestQuery[]>(`${environment.url_api_fib}PurchaseRequest/GetListByFilter/`,{params: params});
   }
 
   getByDocEntry(docEntry: number) {
-    return this.http.get<IPurchaseRequest>(`${environment.url_api_fib}PurchaseRequest/GetByDocEntry/${docEntry}`);
+    return this.http.get<IPurchaseRequestQuery>(`${environment.url_api_fib}PurchaseRequest/GetByDocEntry/${docEntry}`);
   }
 
-  getDownloadFormat(){
-    return this.http.get(`${environment.url_api_fib}PurchaseRequest/GetDownloadFormat/`,{ responseType: 'arraybuffer' });
+  getDownloadItemsTemplate(){
+    return this.http.get(`${environment.url_api_fib}PurchaseRequest/GetDownloadItemsTemplate/`,{ responseType: 'arraybuffer' });
+  }
+
+  getDownloadServicesTemplate(){
+    return this.http.get(`${environment.url_api_fib}PurchaseRequest/GetDownloadServicesTemplate/`,{ responseType: 'arraybuffer' });
+  }
+
+  setValidateLinesItemsExcel(value: IPurchaseRequestLinesQuery[]) {
+    return this.http.post<IPurchaseRequestLinesQuery[]>(`${environment.url_api_fib}PurchaseRequest/SetValidateLinesItemsExcel`,value);
+  }
+
+  setValidateLinesServicesExcel(value: IPurchaseRequestLinesQuery[]) {
+    return this.http.post<IPurchaseRequestLinesQuery[]>(`${environment.url_api_fib}PurchaseRequest/SetValidateLinesServicesExcel`,value);
   }
 
   setCreate(value: PurchaseRequestCreateModel) {

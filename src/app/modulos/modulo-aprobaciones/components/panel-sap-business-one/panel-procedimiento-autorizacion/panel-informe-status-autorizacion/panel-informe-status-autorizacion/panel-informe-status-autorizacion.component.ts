@@ -48,6 +48,8 @@ export class PanelInformeStatusAutorizacionComponent implements OnInit, OnDestro
   rows                                          = 20;
   rowsPerPageOptions                            = [20, 40, 60, 80, 100];
 
+  private readonly orderLoadStateKey            = 'orderLoadState';
+
 
   constructor(
     private readonly router: Router,
@@ -144,11 +146,8 @@ export class PanelInformeStatusAutorizacionComponent implements OnInit, OnDestro
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filtros));
     }
 
-    // 🔥 Normalizar fechas
-    const normalizeDateOrToday = (d: any) => (d ? new Date(d) : null);
-
-    filtros.startDate = normalizeDateOrToday(filtros.startDate);
-    filtros.endDate   = normalizeDateOrToday(filtros.endDate);
+    filtros.startDate = this.utilService.normalizeDateToApiString(filtros.startDate);
+    filtros.endDate   = this.utilService.normalizeDateToApiString(filtros.endDate);
 
     // 🔥 Helper para construir strings tipo "W,Y,N"
     const buildString = (conditions: [boolean, string][]) =>
@@ -245,14 +244,27 @@ export class PanelInformeStatusAutorizacionComponent implements OnInit, OnDestro
   }
 
   // 🔥 métodos separados
-  private goToOrderEdit(id: number) {
-    this.router.navigate(['/main/modulo-ven/panel-orden-venta-edit', id]);
+  private goToOrderEdit(docEntry: number) {
+    this.router.navigate(['/main/modulo-ven/panel-orden-venta-edit', docEntry]);
   }
+  
+  goToOrderCreate(docEntry: number): void {
+    sessionStorage.setItem(
+      this.orderLoadStateKey,
+      JSON.stringify({
+        mode: 'sendDraft',
+        docEntry: docEntry
+      })
+    );
 
-  private goToOrderCreate(id: number) {
     this.router.navigate(
       ['/main/modulo-ven/panel-orden-venta-create'],
-      { state: { mode: 'draft', docEntry: id } }
+      {
+        state: {
+          mode: 'sendDraft',
+          docEntry: docEntry
+        }
+      }
     );
   }
 

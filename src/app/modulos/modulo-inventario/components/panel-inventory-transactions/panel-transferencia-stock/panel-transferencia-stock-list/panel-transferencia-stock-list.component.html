@@ -77,8 +77,9 @@
                 {{modelo?.u_BPP_MDSD}}-{{modelo?.u_BPP_MDCD}}
               </td>
               <td class="custom-td-20">
-                <span class="label" style="background:#17a2b8" *ngIf="modelo?.u_FIB_FromPkg === 'Y'">Sí</span>
-                <span class="label" style="background:#dc3545" *ngIf="modelo?.u_FIB_FromPkg !== 'Y'">No</span>
+                <span class="label" [ngClass]="getPickingType(modelo).class">
+                  {{ getPickingType(modelo).text }}
+                </span>
               </td>
               <td class="p-fluid">
                 {{modelo.docDate | date: 'dd/MM/yyyy'}}
@@ -92,16 +93,11 @@
               <td class="p-fluid">
                 {{modelo.toWhsCode}}
               </td>
-              <!-- <td class="p-fluid">
-                <span [ngSwitch] = "modelo.codStatusSunat">
-                  <span class="label" style="background:Blue"      *ngSwitchCase = "0">{{modelo.nomStatusSunat}}</span>
-                  <span class="label" style="background:SkyBlue"   *ngSwitchCase = "1">{{modelo.nomStatusSunat}}</span>
-                  <span class="label" style="background:green"     *ngSwitchCase = "2">{{modelo.nomStatusSunat}}</span>
-                  <span class="label" style="background:red"       *ngSwitchCase = "3">{{modelo.nomStatusSunat}}</span>
-                  <span class="label" style="background:OrangeRed" *ngSwitchCase = "4">{{modelo.nomStatusSunat}}</span>
-                  <span class="label" *ngSwitchDefault></span>
-                </span>
-              </td> -->
+              <td class="custom-td-20">
+              <span class="label" [ngClass]="getEstadoSunat(modelo).class">
+                {{ getEstadoSunat(modelo).text }}
+              </span>
+            </td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage" let-columns>

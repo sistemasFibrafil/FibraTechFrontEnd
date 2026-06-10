@@ -41,6 +41,7 @@ export class InvoiceCreateModel {
   u_FIB_TFLETE                    : number;
   u_FIB_IMPSEG                    : number;
   u_FIB_PUERTO                    : string;
+  u_FIB_EMBA                      : string;
 
   // OTROS
   u_STR_TVENTA                    : string;
@@ -70,7 +71,7 @@ export class InvoiceCreateModel {
     this.u_BPP_MDTD               = '';
     this.u_BPP_MDSD               = '';
     this.u_BPP_MDCD               = '';
-    
+
     this.u_FIB_IsPkg              = '';
 
     // SOCIO DE NEGOCIO

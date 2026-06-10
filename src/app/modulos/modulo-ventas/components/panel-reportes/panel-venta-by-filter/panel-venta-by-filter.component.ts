@@ -38,8 +38,8 @@ export class PanelVentaByFilterComponent implements OnInit {
   globalConstants         : GlobalsConstantsForm = new GlobalsConstantsForm();
   // Opcion Buscar
   isDisplay               : boolean = false;
-  salesEmployeesList      : SelectItem[];
-  salesEmployeeSelected   : ISalesPersons[];
+  salesPersonsList        : SelectItem[];
+  salesPersonsSelected   : ISalesPersons[];
   modelo                  : IVentaByFecha[];
   params                  : VentaByFilterFindModel = new VentaByFilterFindModel();
   columnas                : TableColumn[] = [];
@@ -120,12 +120,12 @@ export class PanelVentaByFilterComponent implements OnInit {
   getListEmpleadoVenta() {
     this.salesPersonsService.getList()
     .subscribe({next:(data: ISalesPersons[]) =>{
-        this.salesEmployeesList = [];
-        this.salesEmployeeSelected = [];
+        this.salesPersonsList = [];
+        this.salesPersonsSelected = [];
 
         for (let item of data) {
-          this.salesEmployeeSelected.push({ slpCode: item.slpCode, slpName: item.slpName });
-          this.salesEmployeesList.push({ label: item.slpName, value: { slpCode: item.slpCode, slpName: item.slpName } });
+          this.salesPersonsSelected.push({ slpCode: item.slpCode, slpName: item.slpName });
+          this.salesPersonsList.push({ label: item.slpName, value: { slpCode: item.slpCode, slpName: item.slpName } });
         }
       },error:(e)=>{
         this.isDisplay = false;
@@ -141,7 +141,7 @@ export class PanelVentaByFilterComponent implements OnInit {
   onSetParametro()
   {
     this.params = this.modeloForm.getRawValue();
-    this.params.salesEmployee = this.salesEmployeeSelected.map(x=> x.slpCode).join(",");;
+    this.params.salesEmployee = this.salesPersonsSelected.map(x=> x.slpCode).join(",");;
   }
 
   onListar() {

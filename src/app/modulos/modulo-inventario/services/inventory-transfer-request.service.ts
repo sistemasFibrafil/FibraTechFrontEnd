@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
 import { IPicking } from '../interfaces/picking.inteface';
-import { IInventoryTransferRequest } from '../interfaces/inventory-transfer-request.interface';
+import { IInventoryTransferRequest, IInventoryTransferRequestLinesQuery } from '../interfaces/inventory-transfer-request.interface';
 import { InventoryTransferRequestCloseModel, InventoryTransferRequestCreateModel, InventoryTransferRequestFilterModel, InventoryTransferRequestUpdateModel } from '../models/inventory-transfer-request.model';
 
 
@@ -26,7 +26,7 @@ export class InventoryTransferRequestService {
     params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
     params = params.append('docStatus', value.docStatus);
     params = params.append('searchText', value.searchText);
-    
+
     return this.http.get<IInventoryTransferRequest[]>(`${environment.url_api_fib}InventoryTransferRequest/GetListByFilter/`,{params: params});
   }
 
@@ -42,8 +42,16 @@ export class InventoryTransferRequestService {
     return this.http.get<IPicking[]>(`${environment.url_api_fib}InventoryTransferRequest/GetListNotPicking/`);
   }
 
-  getFormatoPdfByDocEntry(id: number) {
-    return this.http.get(`${environment.url_api_fib}InventoryTransferRequest/GetFormatoPdfByDocEntry/${id}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
+  getFormatoPdfByDocEntry(docEntry: number) {
+    return this.http.get(`${environment.url_api_fib}InventoryTransferRequest/GetFormatoPdfByDocEntry/${docEntry}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
+  }
+
+  getDownloadItemsTemplate(){
+    return this.http.get(`${environment.url_api_fib}InventoryTransferRequest/GetDownloadItemsTemplate/`,{ responseType: 'arraybuffer' });
+  }
+
+  setValidateLinesExcel(value: IInventoryTransferRequestLinesQuery[]) {
+    return this.http.post<IInventoryTransferRequestLinesQuery[]>(`${environment.url_api_fib}InventoryTransferRequest/SetValidateLinesExcel`,value);
   }
 
   setCreate(value: InventoryTransferRequestCreateModel) {

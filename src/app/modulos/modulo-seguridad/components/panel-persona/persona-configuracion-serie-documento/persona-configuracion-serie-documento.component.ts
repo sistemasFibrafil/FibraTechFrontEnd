@@ -15,7 +15,7 @@ import { IDocumentSeriesConfiguration1Query, IDocumentSeriesConfigurationQuery }
 import { UtilService } from '../../../../../services/util.service';
 import { SwaCustomService } from '../../../../../services/swa-custom.service';
 import { DocumentSeriesConfigurationService } from '../../../services/document-series-configuration.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -63,7 +63,7 @@ export class PersonaConfigSerieDocumentoComponent implements OnInit, OnDestroy {
     private utilService: UtilService,
     private readonly route: ActivatedRoute,
     private readonly swaCustomService: SwaCustomService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     private readonly documentSeriesConfigurationService: DocumentSeriesConfigurationService
   ) {}
 
@@ -194,7 +194,7 @@ export class PersonaConfigSerieDocumentoComponent implements OnInit, OnDestroy {
     const paramType: any = { tableID: '@FIB_CSD1', aliasID: 'type' };
 
     forkJoin({
-      objectType: this.camposDefinidoUsuarioService.getList(paramType)
+      objectType: this.userDefinedFieldsService.getList(paramType)
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({

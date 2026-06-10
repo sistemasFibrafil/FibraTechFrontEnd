@@ -65,6 +65,47 @@ export class ArticuloModel {
 }
 
 
+export class ArticuloUpdateModel {
+  itemCode        : string;
+  itemName        : string;
+  itmsGrpCod      : number;
+  salUnitMsr      : string;
+  buyUnitMsr      : string;
+  invntryUom      : string;
+  u_BPP_TIPEXIST  : string;
+  u_BPP_TIPUNMED  : string;
+  u_S_PartAranc1  : string;
+  u_S_PartAranc2  : string;
+  u_FIB_ECU       : string;
+  u_S_CCosto      : string;
+  u_FIB_PESO      : number;
+  u_FIB_SGRUP     : string;
+  u_FIB_SGRUPO2   : string;
+  u_FIB_LINNEG    : string;
+  u_UsrUpdate     : number;
+
+  constructor(){
+      this.itemCode         = '';
+      this.itemName         = '';
+      this.salUnitMsr       = '';
+      this.buyUnitMsr       = '';
+      this.invntryUom       = '';
+      this.u_BPP_TIPEXIST   = '';
+      this.u_BPP_TIPUNMED   = '';
+      this.u_S_PartAranc1   = '';
+      this.u_S_PartAranc2   = '';
+      this.u_FIB_ECU        = '';
+      this.u_S_CCosto       = '';
+      this.u_FIB_PESO       = 0;
+      this.u_FIB_SGRUP      = '';
+      this.u_FIB_SGRUPO2    = '';
+      this.u_FIB_LINNEG     = '';
+      this.u_UsrUpdate      = 0;
+  }
+}
+
+
+
 export class ArticuloFiltroFindModel {
   itemCode: string;
   itemName: string;
@@ -80,16 +121,14 @@ export class ItemsFindByListCodeModel {
   cardCode                       : string;
   currency                       : string;
   operationTypeCode              : string;
-  warehouseProduction            : string;
-  warehouseLogistics             : string;
+  warehouseType                  : string;
 
   constructor(){
       this.itemCode              = '';
       this.cardCode              = '';
       this.currency              = '';
       this.operationTypeCode     = '';
-      this.warehouseProduction   = '';
-      this.warehouseLogistics    = '';
+      this.warehouseType         = '';
   }
 }
 

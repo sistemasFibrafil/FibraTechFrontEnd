@@ -12,7 +12,7 @@
             <p-calendar formControlName="endDate" placeholder="Seleccionar fecha final" [showButtonBar]="true" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
           </div>
           <div class="col-12 md:col-2">
-            <p-multiSelect [options]="salesEmployeesList" [(ngModel)]="salesEmployeeSelected" formControlName="msSalesEmployee" defaultLabel="Seleccione el Vendedor" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+            <p-multiSelect [options]="salesPersonsList" [(ngModel)]="salesPersonsSelected" formControlName="msSalesEmployee" defaultLabel="Seleccione el Vendedor" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
           </div>
           <div class="col-12 md:col-3">
             <input id="float-input-customer" type="text" placeholder="Buscar por código o nombre de cliente" maxlength="100" size="50" formControlName="customer" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">

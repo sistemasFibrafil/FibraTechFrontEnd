@@ -27,7 +27,7 @@
               </div>
               <div [ngClass]="currencyColClass">
                 <label class="label-custom" for="float-input-docCur">Moneda </label>
-                <p-dropdown id="float-input-docCur" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="currencyList" placeholder="Seleccione moneda" formControlName="currency" [required] optionLabel="label" [showClear]="true" (onChange)="onChangeCurrency($event)"></p-dropdown>
+                <p-dropdown id="float-input-docCur" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="currencyList" placeholder="Seleccione moneda" formControlName="currency" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                 <div *ngIf="modeloFormSoc.controls['currency'].errors && modeloFormSoc.controls['currency'].dirty">
                   <p-message severity="error" text="Moneda es requerida." *ngIf="modeloFormSoc.controls['currency'].errors['required']"></p-message>
                 </div>
@@ -35,7 +35,7 @@
               <div class="col-12 md:col-6" *ngIf="!isMainCurrency">
                 <label class="label-custom" for="float-input-tipo-cambio">Tipo cambio </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-docRate" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl1(modeloFormSoc, 'docRate', 3, true)">
+                  <input id="float-input-docRate" class="field-numero" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="Tipo de cambio" maxlength="21" size="50" formControlName="docRate" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormSoc, 'docRate', 3, false)" (blur)="utilService.formatNumericFormControl(modeloFormSoc, 'docRate', 3, true)">
                 </div>
               </div>
             </div>
@@ -120,10 +120,10 @@
               <form [formGroup]="modeloFormCon">
                 <div class="p-formgrid grid">
                   <div class="col-12 md:col-12">
-                    <label class="label-custom" for="float-input-docType">Clase de artículo/servicio </label>
-                    <p-dropdown id="float-input-docType" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="docTypesList" placeholder="Seleccione la clase de artículo/servicio" formControlName="docType" [required] optionLabel="label"></p-dropdown>
-                    <div *ngIf="modeloFormCon.controls['docType'].errors && modeloFormCon.controls['docType'].dirty">
-                      <p-message severity="error" text="Clase de artículo/servicio es requerido." *ngIf="modeloFormCon.controls['docType'].errors['required']"></p-message>
+                    <label class="label-custom" for="float-input-docTypes">Clase de artículo/servicio </label>
+                    <p-dropdown id="float-input-docTypes" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="docTypesList" placeholder="Seleccione la clase de artículo/servicio" formControlName="docTypes" [required] optionLabel="label"></p-dropdown>
+                    <div *ngIf="modeloFormCon.controls['docTypes'].errors && modeloFormCon.controls['docTypes'].dirty">
+                      <p-message severity="error" text="Clase de artículo/servicio es requerido." *ngIf="modeloFormCon.controls['docTypes'].errors['required']"></p-message>
                     </div>
                   </div>
                   <div class="col-12 md:col-10"></div>
@@ -157,51 +157,42 @@
                       <p-splitButton [disabled]="true" icon="pi pi-cog">
                       </p-splitButton>
                     </td>
-                    <td class="p-fluid" *ngIf="docTypeSelected?.value === 'I'">
+                    <td class="p-fluid" *ngIf="isItem">
                       {{modelo.itemCode}}
                     </td>
-                    <td class="p-fluid" *ngIf="docTypeSelected?.value === 'I'">
+                    <td class="p-fluid">
                       {{modelo.dscription}}
                     </td>
-                    <td class="p-fluid" *ngIf="docTypeSelected?.value === 'S'">
+                    <td class="p-fluid" *ngIf="isService">
                       {{modelo.formatCode}}
                     </td>
-                    <td class="p-fluid" *ngIf="docTypeSelected?.value === 'S'">
+                    <td class="p-fluid" *ngIf="isService">
                       {{modelo.acctName}}
                     </td>
-                    <td class="p-fluid" *ngIf="docTypeSelected?.value === 'I'">
+                    <td class="p-fluid" *ngIf="isItem">
                       {{modelo.whsCode}}
                     </td>
-                    <td class="custom-td-8" *ngIf="docTypeSelected?.value === 'I'">
+                    <td class="p-fluid" *ngIf="isItem">
                       {{modelo.unitMsr}}
                     </td>
-                    <td class="custom-td-numero" *ngIf="docTypeSelected?.value === 'I'">
+                    <td class="p-fluid" *ngIf="isItem">
                       {{modelo.onHand | number: '.3':'en-EN'}}
                     </td>
-                    <td class="custom-td-numero" *ngIf="docTypeSelected?.value === 'I'">
+                    <td class="p-fluid" *ngIf="isItem">
                       {{modelo.quantity | number: '.3':'en-EN'}}
                     </td>
                     <td class="custom-td-numero">
                       {{modelo.priceBefDi | number: '.3':'en-EN'}}
                     </td>
-                    <td class="custom-td-numero">
-                      {{modelo.discPrcnt | number: '.2':'en-EN'}}
-                    </td>
-                    <td class="custom-td-numero">
-                      {{modelo.price | number: '.3':'en-EN'}}
-                    </td>
                     <td class="p-fluid">
                       {{modelo.taxCode}}
                     </td>
                     <td class="p-fluid">
-                      {{modelo.u_tipoOpT12Nam}}
+                      {{ utilService.getSelectItemLabel(operationsTypesList, modelo.u_tipoOpT12) }}
                     </td>
                     <td class="custom-td-numero">
                       {{modelo.lineTotal | number: '.2':'en-EN'}}
                     </td>
-                    <!-- <td class="custom-td-numero">
-                      {{modelo.vatSum | number: '.2':'en-EN'}}
-                    </td> -->
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="emptymessage" let-columns>
@@ -221,7 +212,7 @@
                 <div class="p-fluid p-formgrid grid">
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-shipAddress">Destino de entrega </label>
-                    <p-dropdown id="float-input-shipAddress" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="shipAddressList" placeholder="Seleccione dirección" formControlName="shipAddress" optionLabel="label" [showClear]="true" (onChange)="onChangeShipAddress($event)"></p-dropdown>
+                    <p-dropdown id="float-input-shipAddress" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" [options]="shipAddressList" placeholder="Seleccione dirección" formControlName="shipAddress" optionLabel="label" [showClear]="true"></p-dropdown>
                   </div>
                   <div class="col-12 md:col-9">
                     <label class="label-custom" for="float-input-address2">Dirección de entrega </label>
@@ -312,24 +303,24 @@
                 <div class="p-fluid p-formgrid grid">
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-freightType">Tipo flete </label>
-                    <p-dropdown id="float-input-freightType" [options]="freightTypeList" placeholder="Seleccione tipo de flete" formControlName="freightType" optionLabel="label" [showClear]="true"></p-dropdown>
+                    <p-dropdown id="float-input-freightType" [options]="freightTypesList" placeholder="Seleccione tipo de flete" formControlName="freightType" optionLabel="label" [showClear]="true"></p-dropdown>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-u_ValorFlete">Valor flete </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_ValorFlete" class="field-numero" type="text" placeholder="Valor de flete" maxlength="20" size="50" formControlName="u_ValorFlete" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_ValorFlete', 0, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_ValorFlete', 0, true)">
+                      <input id="float-input-u_ValorFlete" class="field-numero" type="text" placeholder="Valor de flete" maxlength="20" size="50" formControlName="u_ValorFlete" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_ValorFlete', 0, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_ValorFlete', 0, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-u_FIB_TFLETE">Total flete </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_FIB_TFLETE" class="field-numero" type="text" placeholder="Total de flete" maxlength="20" size="50" formControlName="u_FIB_TFLETE" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_FIB_TFLETE', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_FIB_TFLETE', 2, true)">
+                      <input id="float-input-u_FIB_TFLETE" class="field-numero" type="text" placeholder="Total de flete" maxlength="20" size="50" formControlName="u_FIB_TFLETE" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_FIB_TFLETE', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_FIB_TFLETE', 2, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-3">
                     <label class="label-custom" for="float-input-importe-seguro">Importe seguro </label>
                     <div class="p-inputgroup">
-                      <input id="float-input-u_FIB_IMPSEG" class="field-numero" type="text" placeholder="Importe de seguro" maxlength="20" size="50" formControlName="u_FIB_IMPSEG" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormExp, 'u_FIB_IMPSEG', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormExp, 'u_FIB_IMPSEG', 2, true)">
+                      <input id="float-input-u_FIB_IMPSEG" class="field-numero" type="text" placeholder="Importe de seguro" maxlength="20" size="50" formControlName="u_FIB_IMPSEG" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormExp, 'u_FIB_IMPSEG', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormExp, 'u_FIB_IMPSEG', 2, true)">
                     </div>
                   </div>
                   <div class="col-12 md:col-12">
@@ -337,21 +328,6 @@
                     <div class="p-inputgroup">
                       <input id="float-input-u_FIB_PUERTO" type="text" placeholder="Puerto" maxlength="25" size="50" formControlName="u_FIB_PUERTO" autocomplete="off" pInputText>
                     </div>
-                  </div>
-                </div>
-              </form>
-            </p-tabPanel>
-
-            <p-tabPanel>
-              <ng-template pTemplate = "header">
-                <i class="pi pi-circle-fill"></i>
-                <span>&nbsp;Otros&nbsp;</span>
-              </ng-template>
-              <form [formGroup]="modeloFormOtr">
-                <div class="p-fluid p-formgrid grid">
-                  <div class="col-12 md:col-12">
-                    <label class="label-custom" for="float-input-salesType">Tipo de venta </label>
-                    <p-dropdown id="float-input-salesType" class="field-mandatory" [options]="salesTypeList" placeholder="Seleccione tipo de venta" formControlName="salesType" [required] optionLabel="label" [showClear]="true"></p-dropdown>
                   </div>
                 </div>
               </form>
@@ -365,10 +341,10 @@
           <form [formGroup]="modeloFormSal">
             <div class="p-fluid p-formgrid grid">
               <div class="col-12 md:col-12">
-                <label class="label-custom" for="float-input-empleado-venta">Empleado de ventas </label>
-                <p-dropdown id="float-input-salesEmployees" class="field-mandatory" [options]="salesEmployeesList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesEmployees" [required] optionLabel="label" [showClear]="true"></p-dropdown>
-                <div *ngIf="modeloFormSal.controls['salesEmployees'].errors && modeloFormSal.controls['salesEmployees'].dirty">
-                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesEmployees'].errors['required']"></p-message>
+                <label class="label-custom" for="float-input-salesPersons">Empleado de ventas </label>
+                <p-dropdown id="float-input-salesPersons" class="field-mandatory" [options]="salesPersonsList" [filter]="true" placeholder="Seleccione empleado de ventas" formControlName="salesPersons" [required] optionLabel="label" [showClear]="true"></p-dropdown>
+                <div *ngIf="modeloFormSal.controls['salesPersons'].errors && modeloFormSal.controls['salesPersons'].dirty">
+                  <p-message severity="error" text="Empleado de ventas es requerido." *ngIf="modeloFormSal.controls['salesPersons'].errors['required']"></p-message>
                 </div>
               </div>
               <div class="col-12 md:col-6">
@@ -407,13 +383,13 @@
               <div class="col-12 md:col-5">
                 <label class="label-custom" for="float-input-discPrcnt">% Dto. </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discPrcnt', 2, true)">
+                  <input id="float-input-discPrcnt" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" placeholder="% Descuento" maxlength="20" size="50" formControlName="discPrcnt" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormTot, 'discPrcnt', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discPrcnt', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-7">
                 <label class="label-custom" for="float-input-discSum">Descuento </label>
                 <div class="p-inputgroup">
-                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="utilService.onNumericInput1(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl1(modeloFormTot, 'discSum', 2, true)">
+                  <input id="float-input-discSum" class="field-numero label-bold" [class.readonly-control]="true" [readonly]="true" [attr.tabindex]="-1" type="text" type="text" placeholder="Descuento" maxlength="20" size="50" formControlName="discSum" autocomplete="off" pInputText (input)="utilService.onNumericInput(modeloFormTot, 'discSum', 2, false)" (blur)="utilService.formatNumericFormControl(modeloFormTot, 'discSum', 2, true)">
                 </div>
               </div>
               <div class="col-12 md:col-12">
@@ -437,7 +413,7 @@
     <p-footer>
       <div class="grid p-fluid">
         <div class="col-12 md:col-2">
-          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormOtr.valid || !modeloFormSal.valid || !hasValidLines" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
+          <button pButton type="submit" [disabled]="!hasRealChanges || !modeloFormSoc.valid || !modeloFormDoc.valid || !modeloFormFin.valid || !modeloFormSal.valid || !hasValidLines" label="{{globalConstants.cActualizar}}" icon="{{globalConstants.icoGrabar}}" (click)="onClickSave()"></button>
         </div>
         <div class="col-12 md:col-2">
           <button pButton type="button" label="{{globalConstants.cRegresar}}" icon="{{globalConstants.icoRegresar}}" (click)="onClickBack()" class="{{globalConstants.cStyleButtonBack}}"></button>

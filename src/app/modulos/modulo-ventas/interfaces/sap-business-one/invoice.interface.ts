@@ -1,6 +1,5 @@
-import { IMoneda } from "src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/moneda.interface";
-import { IAddresses } from "src/app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
-
+import { IAddresses } from "@app/modulos/modulo-socios-negocios/interfaces/addresses.interface";
+import { ICurrencyCodes } from "@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/currency-codes.interface";
 
 export interface IInvoice {
   docEntry            : number;
@@ -52,7 +51,7 @@ export interface IInvoiceQuery {
   cntctCode?          : number;
   numAtCard           : string;
   docCur              : string;
-  currencyList        : IMoneda[];
+  currencyList        : ICurrencyCodes[];
   docRate             : number;
 
   // FINANZAS
@@ -129,10 +128,10 @@ export interface IInvoiceQuery {
 }
 
 export interface IInvoice1Query {
-  docEntry            : number;
+  docEntry?           : number;
   objType?            : string;
-  lineNum             : number;
-  lineStatus          : string;
+  lineNum?            : number;
+  lineStatus?         : string;
 
   baseEntry?          : number;
   baseType?           : number;
@@ -168,7 +167,7 @@ export interface IInvoice1Query {
   vatPrcnt?           : number;
   vatSum?             : number;
   lineTotal?          : number;
-  record              : number;
+  record?             : number;
 }
 
 

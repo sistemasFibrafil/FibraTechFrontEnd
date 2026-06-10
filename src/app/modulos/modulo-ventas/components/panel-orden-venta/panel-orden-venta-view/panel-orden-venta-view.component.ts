@@ -1,26 +1,29 @@
 import { SelectItem } from 'primeng/api';
+import { FormGroup, FormBuilder } from '@angular/forms';
 import { Subject, forkJoin, of, takeUntil } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ButtonAcces } from 'src/app/models/acceso-button.model';
-import { catchError, switchMap, finalize, tap } from 'rxjs/operators';
-import { FormGroup, FormBuilder, FormControl, Validators } from '@angular/forms';
-import { GlobalsConstantsForm } from '../../../../../constants/globals-constants-form';
+import { catchError, switchMap, finalize } from 'rxjs/operators';
 
-import { TableColumn } from 'src/app/interface/common-ui.interface';
-import { IOrdenVenta1Query, IOrdersQuery } from '../../../interfaces/sap-business-one/orders.interface';
-import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
-import { IUserDefinedFields } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
-import { IPaymentTermsTypes } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/condicion-pago-sap.interface';
+import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
-import { UtilService } from 'src/app/services/util.service';
-import { LocalDataService } from 'src/app/services/local-data.service';
-import { UserContextService } from 'src/app/services/user-context.service';
-import { SwaCustomService } from '../../../../../services/swa-custom.service';
-import { OrdersService } from '../../../services/sap-business-one/orders.service';
-import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
-import { PaymentTermsTypesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/paymentTerms-types.service';
+import { TableColumn } from '@app/interface/common-ui.interface';
+import { IAttachments2LinesQuery } from '../../../interfaces/sap-business-one/attachments2.interface';
+import { IOrdenVenta1Query, IOrdersQuery } from '@app/modulos/modulo-ventas/interfaces/sap-business-one/orders.interface';
+import { ISalesPersons } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
+import { IUserDefinedFields } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
+import { IPaymentTermsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/payment-terms-types.interface';
+import { PaymentTermsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/payment-terms-types.service';
+
+import { UtilService } from '@app/services/util.service';
+import { LocalDataService } from '@app/services/local-data.service';
+import { SwaCustomService } from '@app/services/swa-custom.service';
+import { UserContextService } from '@app/services/user-context.service';
+import { OrdersService } from '@app/modulos/modulo-ventas/services/sap-business-one/orders.service';
+import { SalesPersonsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 
@@ -30,17 +33,21 @@ import { PaymentTermsTypesService } from 'src/app/modulos/modulo-gestion/service
   styleUrls: ['./panel-orden-venta-view.component.css']
 })
 export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
-
-  isLoadingInitialData                          : boolean = false;
-  // Lifecycle management
+  // ===========================
+  // 🔹 1. LIFECYCLE / CORE
+  // ===========================
   private readonly destroy$                     = new Subject<void>();
 
-  // Titulo del componente
-  titulo                                        = 'Orden de Venta';
-  // Acceso de botones
-  buttonAccess                                  : ButtonAcces = new ButtonAcces();
+
+  // ===========================
+  // 🔹 2. CONFIG / CONSTANTS
+  // ===========================
   globalConstants                               : GlobalsConstantsForm = new GlobalsConstantsForm();
 
+
+  // ===========================
+  // 🔹 3. FORMS
+  // ===========================
   modeloFormSoc                                 : FormGroup;
   modeloFormDoc                                 : FormGroup;
   modeloFormCon                                 : FormGroup;
@@ -48,37 +55,68 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
   modeloFormFin                                 : FormGroup;
   modeloFormAge                                 : FormGroup;
   modeloFormExp                                 : FormGroup;
-  modeloFormOtr                                 : FormGroup;
   modeloFormSal                                 : FormGroup;
   modeloFormTot                                 : FormGroup;
 
+
+  // ===========================
+  // 🔹 4. UI STATE
+  // ===========================
+  isDisplay                                     : boolean = false;
+  isLoadingInitialData                          : boolean = false;
+
+
+  // ===========================
+  // 🔹 5. TABLE CONFIG
+  // ===========================
+  columnas                                      : TableColumn[];
+
+  columnasAttachments                           : TableColumn[];
+
+
+  // ===========================
+  // 🔹 6. DATA (CORE)
+  // ===========================
+  modeloLines                                   : IOrdenVenta1Query[] = [];
+  modeloLinesAttachments                        : IAttachments2LinesQuery[] = [];
+
+
+  // ===========================
+  // 🔹 7. COMBOS / LISTS
+  // ===========================
+  currencyList                                  : SelectItem[] = [];
+  docTypesList                                  : SelectItem[] = [];
+  payAddressList                                : SelectItem[] = [];
+  shipAddressList                               : SelectItem[] = [];
+  freightTypeList                               : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
+  agencyAddressList                             : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
+  paymentsTermsTypesList                        : SelectItem[] = [];
+
+
+  // ===========================
+  // 🔹 8. DOC TYPE CONTROL
+  // ===========================
+  docTypeSelected                               : any;
+
+
+  // ===========================
+  // 🔹 9. INDEXES (UI CONTROL)
+  // ===========================
   id                                            : number = 0;
   docEntry                                      : number = 0;
   cntctCode                                     : number = 0;
 
+
+  // ===========================
+  // 🔹 10. AUX / FILTERS
+  // ===========================
+  titulo                                        : string = 'Orden de Venta';
   cardCode                                      : string = '';
   currency                                      : string = '';
   mainCurncy                                    : string = '';
   u_BPP_MDCT                                    : string = '';
-
-  docTypeSelected                               : any;
-
-  currencyList                                  : SelectItem[] = [];
-  docTypesList                                  : SelectItem[] = [];
-  salesTypeList                                 : SelectItem[] = [];
-  payAddressList                                : SelectItem[] = [];
-  shipAddressList                               : SelectItem[] = [];
-  freightTypeList                               : SelectItem[] = [];
-  agencyAddressList                             : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
-  paymentsTermsTypesList                        : SelectItem[] = [];
-
-  // Progreso
-  isDisplay                                     : boolean = false;
-
-  // modeloLines
-  columnas                                      : TableColumn[];
-  modeloLines                                   : IOrdenVenta1Query[] = [];
 
 
   constructor(
@@ -90,10 +128,15 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
     private readonly localDataService: LocalDataService,
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly paymentTermsTypesService: PaymentTermsTypesService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     public  readonly utilService: UtilService,
   ) {}
+
+
+
+  //#region <<< 1. LIFECYCLE >>>
 
   ngOnInit() {
     this.initializeComponent();
@@ -104,94 +147,99 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ===========================
-  // 2. Initialization
-  // ===========================
+  //#endregion
+
+
+
+  //#region <<< 2. INITIALIZATION >>>
+
   private initializeComponent(): void {
-    // Construir formularios y configuración básica
+    // 1️⃣ Crear formularios
     this.buildForms();
+
+    // 2️⃣ Cargar datos base
     this.onBuildColumn();
+    this.onBuildColumnAttachments();
+
+    // 3️⃣ Inicializar UI
     this.loadAllCombos();
   }
 
-  buildForms() {
-    // CABECERA - Datos del cliente y moneda
+  private buildForms(): void {
+    const r = (value: number, dec: number) => this.utilService.onRedondearDecimalConCero(value, dec);
+
+    const fc = this.utilService.fc.bind(this.utilService);
+
     this.modeloFormSoc = this.fb.group({
-      cardCode            : new FormControl({ value: '', disabled: false }, Validators.required),
-      cardName            : new FormControl({ value: '', disabled: false }, Validators.required),
-      cntctCode           : new FormControl({ value: '', disabled: false }),
-      numAtCard           : new FormControl({ value: '', disabled: false }),
-      docCur              : new FormControl({ value: '', disabled: false }, Validators.required),
-      docRate             : new FormControl({ value: this.utilService.onRedondearDecimalConCero(0,3), disabled: false }, Validators.required),
-    });
-    // CABECERA 2 - Números, estado y fechas
-    this.modeloFormDoc = this.fb.group({
-      docNum              : new FormControl({ value: '', disabled: false }),
-      docStatus           : new FormControl({ value: 'Abierto', disabled: false }, Validators.required),
-      docDate             : new FormControl({ value: null, disabled: false }, Validators.required),
-      docDueDate          : new FormControl({ value: null, disabled: false }, Validators.required),
-      taxDate             : new FormControl({ value: null, disabled: false }, Validators.required),
-    });
-    // FINANZAS
-    this.modeloFormCon = this.fb.group({
-      docType             : new FormControl({ value: '', disabled: false }, Validators.required),
-    });
-    // LOGÍSTICA - Direcciones
-    this.modeloFormLog = this.fb.group({
-      shipAddress         : new FormControl({ value: '', disabled: false }),
-      address2            : new FormControl({ value: '', disabled: false }),
-      payAddress          : new FormControl({ value: '', disabled: false }),
-      address             : new FormControl({ value: '', disabled: false }),
-    });
-    // FINANZAS
-    this.modeloFormFin = this.fb.group({
-      paymentsTermsTypes  : new FormControl({ value: '', disabled: false }, Validators.required),
-    });
-    // AGENCIA
-    this.modeloFormAge = this.fb.group({
-      u_BPP_MDCT          : new FormControl({ value: '', disabled: false }),
-      u_BPP_MDRT          : new FormControl({ value: '', disabled: false }),
-      u_BPP_MDNT          : new FormControl({ value: '', disabled: false }),
-      agencyAddress       : new FormControl({ value: '', disabled: false }),
-      u_BPP_MDDT          : new FormControl({ value: '', disabled: false }),
-    });
-    // EXPORTACIÓN
-    this.modeloFormExp = this.fb.group({
-      freightType         : new FormControl({ value: '', disabled: false }),
-      u_ValorFlete        : new FormControl({ value: this.utilService.onRedondearDecimalConCero(0,0), disabled: false }),
-      u_FIB_TFLETE        : new FormControl({ value: this.utilService.onRedondearDecimalConCero(0,2), disabled: false }),
-      u_FIB_IMPSEG        : new FormControl({ value: this.utilService.onRedondearDecimalConCero(0,2), disabled: false }),
-      u_FIB_PUERTO        : new FormControl({ value: '', disabled: false }),
-    });
-    // OTROS
-    this.modeloFormOtr = this.fb.group({
-      salesType           : new FormControl({ value: '', disabled: false }, Validators.required),
-    });
-    // PIE - Información adicional y totales
-    this.modeloFormSal = this.fb.group({
-      salesEmployees      : new FormControl({ value: '', disabled: false }, Validators.required),
-      u_NroOrden          : new FormControl({ value: '', disabled: false }),
-      u_OrdenCompra       : new FormControl({ value: '', disabled: false }),
-      comments            : new FormControl({ value: '', disabled: false }),
-    });
-    this.modeloFormTot = this.fb.group({
-      subTotal            : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
-      discPrcnt           : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
-      discSum             : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
-      vatSum              : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
-      docTotal            : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
+      cardCode  : fc('', true),
+      cardName  : fc('', true),
+      cntctCode : fc(),
+      numAtCard : fc(),
+      docCur    : fc('', true),
+      docRate   : fc(r(0, 3), true),
     });
 
-    // Moneda principal del usuario
+    this.modeloFormDoc = this.fb.group({
+      docNum     : fc(),
+      docStatus  : fc('Abierto', true),
+      docDate    : fc(null, true),
+      docDueDate : fc(null, true),
+      taxDate    : fc(null, true),
+    });
+
+    this.modeloFormCon = this.fb.group({
+      docType: fc('', true),
+    });
+
+    this.modeloFormLog = this.fb.group({
+      shipAddress : fc(),
+      address2    : fc(),
+      payAddress  : fc(),
+      address     : fc(),
+    });
+
+    this.modeloFormFin = this.fb.group({
+      paymentsTermsTypes: fc('', true),
+    });
+
+    this.modeloFormAge = this.fb.group({
+      u_BPP_MDCT    : fc(),
+      u_BPP_MDRT    : fc(),
+      u_BPP_MDNT    : fc(),
+      agencyAddress : fc(),
+      u_BPP_MDDT    : fc(),
+    });
+
+    this.modeloFormExp = this.fb.group({
+      freightType  : fc(),
+      u_ValorFlete : fc(r(0, 0)),
+      u_FIB_TFLETE : fc(r(0, 2)),
+      u_FIB_IMPSEG : fc(r(0, 2)),
+      u_FIB_PUERTO : fc(),
+      u_FIB_NEMBA  : fc(),
+      u_FIB_DEMBA  : fc(),
+    });
+
+    this.modeloFormSal = this.fb.group({
+      salesPersons   : fc('', true),
+      u_NroOrden     : fc(),
+      u_OrdenCompra  : fc(),
+      comments       : fc(),
+    });
+
+    this.modeloFormTot = this.fb.group({
+      subTotal  : fc(r(0, 2)),
+      discPrcnt : fc(r(0, 2)),
+      discSum   : fc(r(0, 2)),
+      vatSum    : fc(r(0, 2)),
+      docTotal  : fc(r(0, 2)),
+    });
+
     this.mainCurncy = this.userContextService.getMainCurncy();
   }
 
-  onBuildColumn() {
-    // Usar docTypeSelected si está disponible, sino leer del formulario
-    const docTypeValue = this.modeloFormCon.get('docType')?.value?.value;
-    const isItemDoc         = docTypeValue === 'I';
-
-    if(isItemDoc){
+  private onBuildColumn() {
+    if(this.isItem){
       this.columnas = [
         { field: 'itemCode',        header: 'Código' },
         { field: 'dscription',      header: 'Descripción' },
@@ -200,12 +248,9 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
         { field: 'onHand',          header: 'Stock' },
         { field: 'quantity',        header: 'Cantidad' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
-        { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
+        { field: 'u_tipoOpT12',     header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
     else{
@@ -214,57 +259,102 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
         { field: 'formatCode',      header: 'Cuenta mayor' },
         { field: 'acctName',        header: 'Nombre de la cuenta de mayor' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
-        { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
+        { field: 'u_tipoOpT12',     header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
   }
 
+  private onBuildColumnAttachments() {
+    this.columnasAttachments = [
+      { field: 'trgtPath',        header: 'Vía de acceso destino' },
+      { field: 'fileName',        header: 'Nombre de archivo' },
+      { field: 'date',            header: 'Fecha del anexo' },
+    ];
+  }
+
   private loadAllCombos(): void {
-    const paramTipoFlete  : any = { tableID: 'ORDR', aliasID: 'TipoFlete' };
-    const paramTipoVenta  : any = { tableID: 'ORDR', aliasID: 'STR_TVENTA' };
+    const paramTipoFlete = { tableID: 'ORDR', aliasID: 'TipoFlete' };
 
-    // Mostrar spinner mientras cargan los combos
     this.isDisplay = true;
-
-    const docTypes = this.localDataService.docTypes;
-    this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
-
-    const defaultDocType = this.docTypesList.find(x => x.value === 'I');
-    if (defaultDocType) {
-      this.docTypeSelected   = defaultDocType;
-      this.modeloFormCon.get('docType').setValue(defaultDocType, { emitEvent: false });
-      this.onBuildColumn();
-    }
+    this.loadLocalCombos();
 
     forkJoin({
-      groups    : this.paymentTermsTypesService.getList().pipe(catchError(() => of([] as IPaymentTermsTypes[]))),
-      employees : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
-      tipoFlete : this.camposDefinidoUsuarioService.getList(paramTipoFlete).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      tipoVenta : this.camposDefinidoUsuarioService.getList(paramTipoVenta).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      groups          : this.paymentTermsTypesService.getList().pipe(catchError(() => of([] as IPaymentTermsTypes[]))),
+      tipoFlete       : this.userDefinedFieldsService.getList(paramTipoFlete).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      salesPersons    : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      operationsTypes : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
     })
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => { this.isDisplay = false; })
-      )
-      .subscribe({
-        next: (res) => {
-          this.paymentsTermsTypesList = (res.groups || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
-          this.salesEmployeesList     = (res.employees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
-          this.freightTypeList        = (res.tipoFlete || []).map(item => ({ label: item.descr, value: item.fldValue }));
-          this.salesTypeList          = (res.tipoVenta || []).map(item => ({ label: item.descr, value: item.fldValue }));
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isDisplay = false)
+    )
+    .subscribe({
+      next: (res) => {
+        this.freightTypeList        = (res.tipoFlete || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.salesPersonsList       = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+        this.operationsTypesList    = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
+        this.paymentsTermsTypesList = (res.groups || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
 
-          this.loadData();
-        },
-        error: (e) => {
-          this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
-        }
-      });
+        this.loadData(); // separado, como en tus otros componentes
+      },
+      error: (e) => {
+        this.utilService.handleErrorSingle(e, 'loadAllCombos', this.swaCustomService);
+      }
+    });
   }
+
+  private loadLocalCombos(): void {
+    this.docTypesList = this.localDataService.docTypes
+      .map(s => ({ label: s.name, value: s.code }));
+
+    const defaultDocType = this.docTypesList.find(x => x.value === 'I');
+
+    if (defaultDocType) {
+      this.docTypeSelected = defaultDocType;
+      this.modeloFormCon.get('docType')?.setValue(defaultDocType, { emitEvent: false });
+      this.onBuildColumn();
+    }
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 3. GETTERS >>>
+
+  private get docType(): string {
+    return this.modeloFormCon.get('docType')?.value?.value;
+  }
+
+  get isItem(): boolean {
+    return this.docType === 'I';
+  }
+
+  get isService(): boolean {
+    return this.docType === 'S';
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 4. CURRENCY / TIPO CAMBIO >>>
+
+  get isMainCurrency(): boolean {
+    return !this.currency || this.currency === '##' || this.currency === this.mainCurncy;
+  }
+
+  get currencyColClass(): string {
+    return this.isMainCurrency ? 'col-12 md:col-12' : 'col-12 md:col-6';
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 5. LOAD DATA (EDICIÓN) >>>
 
   private loadData(): void {
     this.route.params
@@ -273,15 +363,12 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
       switchMap(params => {
         this.id = +params['id'];
 
-        // 🔥 aquí sí se activa de forma confiable
         this.isDisplay = true;
 
         return this.ordersService
           .getByDocEntry(this.id)
           .pipe(
-            finalize(() => {
-              this.isDisplay = false;
-            })
+            finalize(() => { this.isDisplay = false; })
           );
       })
     )
@@ -296,208 +383,193 @@ export class PanelOrdenVentaViewComponent implements OnInit, OnDestroy {
   }
 
   private setFormValues(value: IOrdersQuery): void {
-    // Activar flag de carga inicial para evitar que onChange events
-    // modifiquen el modeloLines durante la carga
     this.isLoadingInitialData = true;
 
-    // =========================================================================
-    // PRIMER BLOQUE: Cargar formularios y propiedades del componente
-    // =========================================================================
+    const h = this.getHelpers();
 
-    const statusMap =
-    {
+    this.setHeader(value, h);
+    this.setSocioForm(value, h);
+    this.setDocumentoForm(value, h);
+    this.setCondicionesForm(value, h);
+    this.setDireccionesForm(value, h);
+    this.setAgenciaForm(value, h);
+    this.setExportacionForm(value, h);
+    this.setVendedorForm(value, h);
+    this.setTotalesForm(value, h);
+    this.setLines(value, h);
+
+    this.isLoadingInitialData = false;
+  }
+
+  private getHelpers() {
+    const {
+      normalizePrimitive: n,
+      onRedondearDecimalConCero,
+      normalizeDate: toDate,
+      findSelectItem: findItem,
+      patchForm: patch
+    } = this.utilService;
+
+    const r = (v: number, d: number) =>
+      onRedondearDecimalConCero(v ?? 0, d);
+
+    return { n, toDate, findItem, patch, r };
+  }
+
+  private setHeader(value: IOrdersQuery, h: any): void {
+    const statusMap: Record<string, string> = {
       A: '[Autorizado]',
       P: '[Autorizado]',
       Y: '[Autorizado]',
       W: '[Pendiente]'
     };
 
-    const statusName = statusMap[value.wddStatus] || '';
+    const wddStatus  = h.n(value.wddStatus);
+    const statusName = statusMap[wddStatus] || '';
 
-    // Asignar propiedades del componente
-    if (value.wddStatus !== '-') {
-      this.titulo += ` ${statusName}`;
+    if (wddStatus !== '-') {
+      this.titulo = `Orden de Venta ${statusName}`.trim();
     }
+
     this.docEntry   = value.docEntry;
-    this.cardCode   = value.cardCode;
+    this.cardCode   = h.n(value.cardCode);
     this.cntctCode  = value.cntctCode;
-    this.currency   = value.docCur || '';
-    this.u_BPP_MDCT = value.u_BPP_MDCT || '';
+    this.currency   = h.n(value.docCur);
+    this.u_BPP_MDCT = h.n(value.u_BPP_MDCT);
+  }
 
-    // Listar monedas
-    this.currencyList = (value.currencyList || []).map(m => ({ label: m.currName, value: m.currCode }));
+  private setSocioForm(value: IOrdersQuery, h: any): void {
+    this.currencyList = (value.currencyList || [])
+      .map(m => ({ label: m.currName, value: m.currCode }));
 
-    // Buscar y asignar valores como SelectItem para campo de moneda
-    const currencyItem = this.currencyList.find(item => item.value === value.docCur);
+    const currencyItem = h.findItem(this.currencyList, value.docCur);
 
-    // Actualizar formulario Socio de Negocio
-    this.modeloFormSoc.patchValue(
-      {
-        cardCode : this.utilService.normalizePrimitive(value.cardCode),
-        cardName : this.utilService.normalizePrimitive(value.cardName),
-        cntctCode: value.cntctCode,
-        numAtCard: this.utilService.normalizePrimitive(value.numAtCard),
-        docCur   : currencyItem || null,
-        docRate  : this.utilService.onRedondearDecimalConCero(value.docRate ?? 0, 3),
-      },
-      { emitEvent: false }
-    );
+    h.patch(this.modeloFormSoc, {
+      cardCode : h.n(value.cardCode),
+      cardName : h.n(value.cardName),
+      cntctCode: value.cntctCode,
+      numAtCard: h.n(value.numAtCard),
+      docCur   : currencyItem,
+      docRate  : h.r(value.docRate, 3),
+    });
+  }
 
-    // Actualizar formulario de Documento
-    this.modeloFormDoc.patchValue(
-      {
-        docNum    : value.docNum,
-        docStatus : value.docStatus === 'O' ? 'Abierto' : 'Cerrado',
-        docDate   : value.docDate ? new Date(value.docDate) : null,
-        docDueDate: value.docDueDate ? new Date(value.docDueDate) : null,
-        taxDate   : value.taxDate ? new Date(value.taxDate) : null,
-      },
-      { emitEvent: false }
-    );
+  private setDocumentoForm(value: IOrdersQuery, h: any): void {
+    const docStatus = h.n(value.docStatus);
 
-    // DocType
-    const docTypeItem    = this.docTypesList.find(item => item.value === value.docType);
+    h.patch(this.modeloFormDoc, {
+      docNum    : h.n(value.docNum),
+      docStatus : docStatus === 'O' ? 'Abierto' : 'Cerrado',
+      docDate   : h.toDate(value.docDate),
+      docDueDate: h.toDate(value.docDueDate),
+      taxDate   : h.toDate(value.taxDate),
+    });
+
+    const docTypeItem = h.findItem(this.docTypesList, value.docType);
     this.docTypeSelected = docTypeItem;
 
-    this.modeloFormCon.patchValue(
-      { docType: docTypeItem || null },
-      { emitEvent: false }
-    );
+    h.patch(this.modeloFormCon, {
+      docType: docTypeItem
+    });
+  }
 
-    // Condición de pago
-    const paymentsTermsTypesItem = this.paymentsTermsTypesList.find(item => item.value === value.groupNum);
+  private setCondicionesForm(value: IOrdersQuery, h: any): void {
+    const payment = h.findItem(this.paymentsTermsTypesList, value.groupNum);
 
-    this.modeloFormFin.patchValue(
-      { paymentsTermsTypes: paymentsTermsTypesItem || null },
-      { emitEvent: false }
-    );
+    h.patch(this.modeloFormFin, {
+      paymentsTermsTypes: payment
+    });
+  }
 
-    // Direcciones (OJO: aquí estás guardando value=d.address)
-    this.shipAddressList = (value.shipAddressList || []).map(d => ({ label: d.address, value: d.address }));
-    this.payAddressList  = (value.payAddressList  || []).map(d => ({ label: d.address, value: d.address }));
+  private setDireccionesForm(value: IOrdersQuery, h: any): void {
+    this.shipAddressList = (value.shipAddressList || [])
+      .map(d => ({ label: d.address, value: d.address }));
 
-    const shipAddressItem = this.shipAddressList.find(item => item.label === value.shipToCode);
-    const payAddressItem  = this.payAddressList.find(item => item.label === value.payToCode);
+    this.payAddressList = (value.payAddressList || [])
+      .map(d => ({ label: d.address, value: d.address }));
 
-    this.modeloFormLog.patchValue(
-      {
-        shipAddress: shipAddressItem || null,
-        address    : this.utilService.normalizePrimitive(value.address),
-        payAddress : payAddressItem || null,
-        address2   : this.utilService.normalizePrimitive(value.address2)
-      },
-      { emitEvent: false }
-    );
+    const ship = h.findItem(this.shipAddressList, value.shipToCode);
+    const pay  = h.findItem(this.payAddressList, value.payToCode);
 
-    // Agencia
-    this.agencyAddressList = (value.agencyAddressList || []).map(d => ({ label: d.address, value: d }));
-    const agencyAddressItem = this.agencyAddressList.find(item => item.label === value.u_FIB_CODT);
+    h.patch(this.modeloFormLog, {
+      shipAddress: ship,
+      address    : h.n(value.address),
+      payAddress : pay,
+      address2   : h.n(value.address2)
+    });
+  }
 
-    this.modeloFormAge.patchValue(
-      {
-        u_BPP_MDCT   : value.u_BPP_MDCT,
-        u_BPP_MDRT   : this.utilService.normalizePrimitive(value.u_BPP_MDRT),
-        u_BPP_MDNT   : this.utilService.normalizePrimitive(value.u_BPP_MDNT),
-        agencyAddress: agencyAddressItem || null,
-        u_BPP_MDDT   : this.utilService.normalizePrimitive(value.u_BPP_MDDT)
-      },
-      { emitEvent: false }
-    );
+  private setAgenciaForm(value: IOrdersQuery, h: any): void {
+    this.agencyAddressList = (value.agencyAddressList || [])
+      .map(d => ({ label: d.address, value: d }));
 
-    // Exportación
-    const freightTypeItem = this.freightTypeList.find(item => item.value === value.u_TipoFlete);
+    const agency = this.agencyAddressList
+      .find(x => x.label === value.u_FIB_CODT) || null;
 
-    this.modeloFormExp.patchValue(
-      {
-        freightType : freightTypeItem || null,
-        u_ValorFlete: this.utilService.onRedondearDecimalConCero(value.u_ValorFlete ?? 0, 0),
-        u_FIB_TFLETE: this.utilService.onRedondearDecimalConCero(value.u_FIB_TFLETE ?? 0, 2),
-        u_FIB_IMPSEG: this.utilService.onRedondearDecimalConCero(value.u_FIB_IMPSEG ?? 0, 2),
-        u_FIB_PUERTO: this.utilService.normalizePrimitive(value.u_FIB_PUERTO)
-      },
-      { emitEvent: false }
-    );
+    h.patch(this.modeloFormAge, {
+      u_BPP_MDCT   : h.n(value.u_BPP_MDCT),
+      u_BPP_MDRT   : h.n(value.u_BPP_MDRT),
+      u_BPP_MDNT   : h.n(value.u_BPP_MDNT),
+      agencyAddress: agency,
+      u_BPP_MDDT   : h.n(value.u_BPP_MDDT)
+    });
+  }
 
-    // Otros
-    const salesTypeItem = this.salesTypeList.find(item => item.value === value.u_STR_TVENTA);
+  private setExportacionForm(value: IOrdersQuery, h: any): void {
+    const freight = h.findItem(this.freightTypeList, value.u_TipoFlete);
 
-    this.modeloFormOtr.patchValue(
-      { salesType: salesTypeItem || null },
-      { emitEvent: false }
-    );
+    h.patch(this.modeloFormExp, {
+      freightType : freight,
+      u_ValorFlete: h.r(value.u_ValorFlete, 0),
+      u_FIB_TFLETE: h.r(value.u_FIB_TFLETE, 2),
+      u_FIB_IMPSEG: h.r(value.u_FIB_IMPSEG, 2),
+      u_FIB_PUERTO: h.n(value.u_FIB_PUERTO),
+      u_FIB_NEMBA : h.n(value.u_FIB_NEMBA),
+      u_FIB_DEMBA : h.n(value.u_FIB_DEMBA),
+    });
+  }
 
-    // Vendedor
-    const slpCodeItem = this.salesEmployeesList.find(item => item.value === value.slpCode);
+  private setVendedorForm(value: IOrdersQuery, h: any): void {
+    const employee = h.findItem(this.salesPersonsList, value.slpCode);
 
-    // ✅ PATCH SAL (tu bloque original)
-    this.modeloFormSal.patchValue(
-      {
-        salesEmployees: slpCodeItem || null,
-        u_NroOrden    : this.utilService.normalizePrimitive(value.u_NroOrden),
-        u_OrdenCompra : this.utilService.normalizePrimitive(value.u_OrdenCompra),
-        comments      : this.utilService.normalizePrimitive(value.comments)
-      },
-      { emitEvent: false }
-    );
+    h.patch(this.modeloFormSal, {
+      salesPersons  : employee,
+      u_NroOrden    : h.n(value.u_NroOrden),
+      u_OrdenCompra : h.n(value.u_OrdenCompra),
+      comments      : h.n(value.comments)
+    });
+  }
 
-    // Totales
-    this.modeloFormTot.patchValue(
-      {
-        subTotal : this.utilService.onRedondearDecimalConCero(value.subTotal, 2),
-        discPrcnt: this.utilService.onRedondearDecimalConCero(value.discPrcnt, 2),
-        discSum  : this.utilService.onRedondearDecimalConCero(value.discSum, 2),
-        vatSum   : this.utilService.onRedondearDecimalConCero(value.vatSum, 2),
-        docTotal : this.utilService.onRedondearDecimalConCero(value.docTotal, 2),
-      },
-      { emitEvent: false }
-    );
+  private setTotalesForm(value: IOrdersQuery, h: any): void {
+    h.patch(this.modeloFormTot, {
+      subTotal : h.r(value.subTotal, 2),
+      discPrcnt: h.r(value.discPrcnt, 2),
+      discSum  : h.r(value.discSum, 2),
+      vatSum   : h.r(value.vatSum, 2),
+      docTotal : h.r(value.docTotal, 2),
+    });
+  }
 
-    // =========================================================================
-    // SEGUNDO BLOQUE: Cargar modeloLines después de que los formularios estén actualizados
-    // =========================================================================
+  private setLines(value: IOrdersQuery, h: any): void {
     this.onBuildColumn();
-    this.modeloLines = value.lines || [];
-    this.isLoadingInitialData = false;
-  }
 
-  //#region <<< MODAL: CLIENTE >>>
+    const wddStatus = h.n(value.wddStatus);
 
-  get isMainCurrency(): boolean {
-    return !this.currency || this.currency === '##' || this.currency === this.mainCurncy;
-  }
+    this.modeloLines = (value.lines || [])
+    .map(line => this.utilService.mapLine(line, wddStatus));
 
-  get currencyColClass(): string {
-    return this.isMainCurrency ? 'col-12 md:col-12' : 'col-12 md:col-6';
+    this.modeloLinesAttachments = value.attachments2?.lines ?? [];
   }
 
   //#endregion
 
 
-  //#region <<< CONTENIDO >>>
-  //#endregion
 
-
-  //#region <<< LOGÍSTICA >>>
-  //#endregion
-
-
-  //#region <<< AGENCIA >>>
-  //#endregion
-
-
-  //#region << EXPORTACIÓN >>>
-  //#endregion
-
-
-  //#region <<< TOTALES >>>
-  //#endregion
-
-
-  //#region <<< SAVE >>>
-  //#endregion
-
+  //#region <<< 6. NAVIGATION >>>
 
   onClickBack() {
     this.router.navigate(['/main/modulo-ven/panel-orden-venta-list']);
   }
+
+  //#endregion
 }

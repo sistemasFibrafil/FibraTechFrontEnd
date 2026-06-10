@@ -1,5 +1,10 @@
 <div class="card card-w-title">
-  <p-panel header="Editar {{ titulo }}">
+  <p-contextMenu
+    #cmf
+    [model]="itemsForm"
+    (onShow)="onContextMenuShowForm()">
+  </p-contextMenu>
+  <p-panel header="Editar {{ titulo }}" (contextmenu)="onPanelContextMenu($event, cmf)">
     <div class="grid p-fluid">
       <div class="col-12 md:col-6">
         <div class="card no-margin">
@@ -211,13 +216,25 @@
                   <i *ngIf="showIcon(modelo)" class="pi pi-search" (click)="onOpenAlmacen(modelo, ri)"></i>
                   {{modelo.whsCode}}
                 </td>
-                <td class="p-fluid">
-                  <i *ngIf="showIcon(modelo)" class="pi pi-search" (click)="onOpenTipoOperacion(ri)"></i>
-                  {{modelo?.u_tipoOpT12Nam}}
+                <td class="p-fluid" pEditableColumn>
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <p-dropdown [options]="operationsTypesList" [(ngModel)]="modelo.u_tipoOpT12" optionLabel="label" optionValue="value" appendTo="body" [filter]="true" [style]="{ width: '100%' }"></p-dropdown>
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{ utilService.getSelectItemLabel(operationsTypesList, modelo.u_tipoOpT12) }}
+                    </ng-template>
+                  </p-cellEditor>
                 </td>
-                <td class="p-fluid">
-                  <i *ngIf="showIcon(modelo)" class="pi pi-search" (click)="onOpenTipoCompra(ri)"></i>
-                  {{modelo?.u_FF_TIP_COM_NAM}}
+                <td class="p-fluid" pEditableColumn>
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <p-dropdown [options]="purchasesTypesList" [(ngModel)]="modelo.u_FF_TIP_COM" optionLabel="label" optionValue="value" appendTo="body" [filter]="true" [style]="{ width: '100%' }"></p-dropdown>
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{ utilService.getSelectItemLabel(purchasesTypesList, modelo.u_FF_TIP_COM) }}
+                    </ng-template>
+                  </p-cellEditor>
                 </td>
                 <td class="custom-td-8" *ngIf="isItem">
                   {{modelo.unitMsr}}
@@ -334,21 +351,6 @@
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseAlmacen()"></p-button>
   </ng-template>
 </p-dialog>
-
-<p-dialog *ngIf="isVisualizarTipoOperacion" header="Tipo de operación" [(visible)]="isVisualizarTipoOperacion" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
-  <app-busqueda-tipo-operacion [title]="'Tipo de Operación'" [placeholder]="'Tipo de operación'" [nomTabla]="'OWTR'" [nomCampo]="'U_tipoOpT12'" (eventoAceptar)="onSelectedTipoOperacion($event)"></app-busqueda-tipo-operacion>
-  <ng-template pTemplate="footer">
-    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoOperacion()"></p-button>
-  </ng-template>
-</p-dialog>
-
-<p-dialog *ngIf="isVisualizarTipoCompra" header="Tipo de compra" [(visible)]="isVisualizarTipoCompra" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
-  <app-busqueda-campo-definido-usuario [title]="'Tipo de compra'" [placeholder]="'Tipo de compra'" [tableID]="'PRQ1'" [aliasID]="'FF_TIP_COM'" (eventoAceptar)="onClickSelectedTipoCompra($event)"></app-busqueda-campo-definido-usuario>
-  <ng-template pTemplate="footer">
-    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoCompra()"></p-button>
-  </ng-template>
-</p-dialog>
-
 
 
 <!-- MODAL: Proceso -->

@@ -75,7 +75,7 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
         'numeroDocumento'   : new FormControl('', Validators.compose([Validators.required])),
         'numeroTelefono'    : new FormControl(''),
         'userSap'           : new FormControl('', Validators.compose([Validators.required])),
-        'salesEmployees'    : new FormControl('', Validators.compose([Validators.required])),
+        'salesPersons'      : new FormControl('', Validators.compose([Validators.required])),
         'activo'            : new FormControl({value: true, disabled: true}, Validators.compose([Validators.required])),
         'usuario'           : new FormControl('', Validators.compose([Validators.required, Validators.maxLength(20), Validators.minLength(2)])),
         'password'          : new FormControl('', Validators.compose([Validators.maxLength(15), Validators.minLength(4)])),
@@ -142,50 +142,92 @@ export class PersonaCreateComponent implements OnInit, OnDestroy {
     this.sellersPermitString = '';
   }
 
-  onClickSave() {
-    this.modelo.apellidoPaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoPaterno'].value);
-    this.modelo.apellidoMaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoMaterno'].value);
-    this.modelo.nombre = this.utilService.convertirMayuscula(this.modeloForm.controls['nombre'].value);
-    this.modelo.nroDocumento = this.modeloForm.controls['numeroDocumento'].value.toString();
-    this.modelo.nroTelefono = this.modeloForm.controls['numeroTelefono'].value.toString();
+  // onClickSave() {
+  //   this.modelo.apellidoPaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoPaterno'].value);
+  //   this.modelo.apellidoMaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoMaterno'].value);
+  //   this.modelo.nombre = this.utilService.convertirMayuscula(this.modeloForm.controls['nombre'].value);
+  //   this.modelo.nroDocumento = this.modeloForm.controls['numeroDocumento'].value.toString();
+  //   this.modelo.nroTelefono = this.modeloForm.controls['numeroTelefono'].value.toString();
 
-    if (this.modeloForm.controls['userSap'].value) {
-      let itemUserSap = this.modeloForm.controls['userSap'].value;
-      this.modelo.idUserSap = itemUserSap.value;
-    }
+  //   this.modelo.idUserSap = this.modeloForm.controls['userSap'].value || 0;
+  //   this.modelo.SlpCode = this.modeloForm.controls['salesPersons'].value || 0;
 
-    this.modelo.activo = this.modeloForm.controls['activo'].value;
+  //   this.modelo.activo = this.modeloForm.controls['activo'].value;
 
-    this.modelo.imagen = this.modeloForm.controls['foto'].value;
-    this.modelo.usuario = this.utilService.convertirMayuscula(this.modeloForm.controls['usuario'].value);
+  //   this.modelo.imagen = this.modeloForm.controls['foto'].value;
+  //   this.modelo.usuario = this.utilService.convertirMayuscula(this.modeloForm.controls['usuario'].value);
 
-    this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
+  //   this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
 
-    this.modelo.email = this.utilService.convertirMayuscula(this.modeloForm.controls['email'].value);
+  //   this.modelo.email = this.utilService.convertirMayuscula(this.modeloForm.controls['email'].value);
 
-    if (this.modeloForm.controls['perfil'].value) {
-      let itemPerfil = this.modeloForm.controls['perfil'].value;
-      this.modelo.idPerfil = itemPerfil.value;
-    }
+  //   if (this.modeloForm.controls['perfil'].value) {
+  //     let itemPerfil = this.modeloForm.controls['perfil'].value;
+  //     this.modelo.idPerfil = itemPerfil.value;
+  //   }
 
-    if(this.modelo.imagen === '' || this.modelo.imagen === null || this.modelo.imagen === undefined) {
-      this.modelo.imagen = ConstantesVarios._IMAGEDEFAULT;
-    } else {
-      this.modelo.imagen = this.modeloForm.controls['foto'].value;
-    }
+  //   if(this.modelo.imagen === '' || this.modelo.imagen === null || this.modelo.imagen === undefined) {
+  //     this.modelo.imagen = ConstantesVarios._IMAGEDEFAULT;
+  //   } else {
+  //     this.modelo.imagen = this.modeloForm.controls['foto'].value;
+  //   }
 
-    this.modelo.themeDark = Boolean(this.modeloForm.controls['dark'].value);
-    this.modelo.typeMenu = this.modeloForm.controls['menu'].value;
-    this.modelo.themeColor = this.modeloForm.controls['theme'].value;
+  //   this.modelo.themeDark = Boolean(this.modeloForm.controls['dark'].value);
+  //   this.modelo.typeMenu = this.modeloForm.controls['menu'].value;
+  //   this.modelo.themeColor = this.modeloForm.controls['theme'].value;
 
-    this.subscription = new Subscription();
+  //   this.subscription = new Subscription();
+  //   this.subscription = this.usuarioService.setCreate(this.modelo)
+  //   .subscribe(
+  //     () =>  {
+  //     this.swaCustomService.swaMsgExito(null);
+  //     this.back(); },
+  //     (error) => {
+  //       this.swaCustomService.swaMsgError(error.error.resultadoDescripcion);
+  //   });
+  // }
+
+  onClickSave(): void {
+    const f = this.modeloForm.getRawValue();
+
+    const p = (v: any) => this.utilService.normalizePrimitive(v);
+    const may = (v: any) => this.utilService.convertirMayuscula(p(v));
+    const val = (v: any) => v?.value ?? v;
+
+    this.modelo = {
+      ...this.modelo,
+
+      apellidoPaterno : may(f.apellidoPaterno),
+      apellidoMaterno : may(f.apellidoMaterno),
+      nombre          : may(f.nombre),
+      nroDocumento    : p(f.numeroDocumento).toString(),
+      nroTelefono     : p(f.numeroTelefono).toString(),
+
+      idUserSap       : Number(val(f.userSap)) || 0,
+      slpCode         : Number(val(f.salesPersons)) || 0,
+
+      activo          : f.activo,
+      imagen          : p(f.foto) || ConstantesVarios._IMAGEDEFAULT,
+      usuario         : may(f.usuario),
+      clave           : this.cifrarDataService.encrypt(p(f.password)),
+      email           : may(f.email),
+
+      idPerfil        : Number(val(f.perfil)) || 0,
+
+      themeDark       : Boolean(f.dark),
+      typeMenu        : f.menu,
+      themeColor      : f.theme
+    };
+
     this.subscription = this.usuarioService.setCreate(this.modelo)
-    .subscribe(
-      () =>  {
-      this.swaCustomService.swaMsgExito(null);
-      this.back(); },
-      (error) => {
+    .subscribe({
+      next: () => {
+        this.swaCustomService.swaMsgExito(null);
+        this.back();
+      },
+      error: (error) => {
         this.swaCustomService.swaMsgError(error.error.resultadoDescripcion);
+      }
     });
   }
 

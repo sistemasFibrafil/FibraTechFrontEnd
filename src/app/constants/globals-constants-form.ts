@@ -50,6 +50,8 @@ export class GlobalsConstantsForm {
     cEnviar: string;
     cPDF: string;
     cEXCEL: string;
+    cFijarComoStandar: string;
+
     // Modulos
     cModuloRequerimiento: string;
 
@@ -121,6 +123,7 @@ export class GlobalsConstantsForm {
     icoDataBase: string;
     icoUser: string;
     icoEnviar: string;
+    icoFijarComoStandar: string;
 
     // Icon SWAL
     icoSwalSuccess: any;
@@ -166,6 +169,9 @@ export class GlobalsConstantsForm {
 
     titleChangeTaxGroup: string;
     subTitleChangeTaxGroup: string;
+
+    titleDownload: string;
+    subTitleDownload: string;
 
     // Variables mensaje
     msgExitoSummary: string;
@@ -237,6 +243,7 @@ export class GlobalsConstantsForm {
         this.cEnviar = 'Enviar'
         this.cPDF = 'PDF';
         this.cEXCEL = 'Excel';
+        this.cFijarComoStandar = 'Fijar como estándar';
         // Módulos
         this.cModuloRequerimiento = 'Gestión Requerimiento';
 
@@ -304,6 +311,7 @@ export class GlobalsConstantsForm {
         this.icoDataBase = 'pi pi-database';
         this.icoUser = 'pi pi-user'
         this.icoEnviar = 'pi pi-send'
+        this.icoFijarComoStandar = 'pi pi-check'
 
         // Icon Swal
         this.icoSwalSuccess = 'success';
@@ -349,6 +357,11 @@ export class GlobalsConstantsForm {
 
         this.titleChangeTaxGroup = 'Confirmación actualización de impuesto';
         this.subTitleChangeTaxGroup = '¿Desea actualizar filas existentes?';
+
+        this.titleDownload = 'Confirmación de la descarga';
+        this.subTitleDownload = '¿Desea descargar la plantilla?';
+
+
 
         // Msg Prime Ng
         this.msgExitoSummary = 'Mensaje de éxito : ';

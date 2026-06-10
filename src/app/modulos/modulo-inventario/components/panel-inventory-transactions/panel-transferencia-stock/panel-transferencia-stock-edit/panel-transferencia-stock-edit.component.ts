@@ -1,8 +1,8 @@
 import { SelectItem } from 'primeng/api';
 import Swal from 'sweetalert2';
-import { Subject, forkJoin, merge } from 'rxjs';
+import { Subject, forkJoin, merge, of } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
@@ -20,8 +20,14 @@ import { StockTransfersService } from 'src/app/modulos/modulo-inventario/service
 import { WarehousesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/inventario/warehouses.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
 import { DocumentTypeSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-type-sunat.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 import { DocumentNumberingSeriesSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-numbering-series-sunat.service';
+import { IWarehouses } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
+import { IUserDefinedFields } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
+import { ISalesPersons } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
+import { IOperationsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/operation-type.interface';
+import { IDocumentTypeSunat } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/inicializacion-sistema/document-type-sunat.interface';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
 
 
 @Component({
@@ -33,7 +39,6 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
   // Lifecycle management
   /** Gestión de ciclo de vida y estado inicial */
   private readonly destroy$                     = new Subject<void>();
-  private isLoadingInitialData                  = false;
 
   // Forms
   /** Formularios reactivos de la vista */
@@ -52,22 +57,23 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
 
   // Combos
   /** Listas de soporte para dropdowns */
-  warehouseList                                 : SelectItem[] = [];
-  outputTypeList                                : SelectItem[] = [];
-  transferTypeList                              : SelectItem[] = [];
-  typeTransportList                             : SelectItem[] = [];
-  reasonTransferList                            : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
-  documentTypeSunatList                         : SelectItem[] = [];
-  typeCarrierIdentityDocumentList               : SelectItem[] = [];
-  typeDriversIdentityDocumentList               : SelectItem[] = [];
-  typeIdentityDocumentTransportList             : SelectItem[] = [];
+  warehousesList                                : SelectItem[] = [];
+  outputsTypesList                              : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
+  transfersTypesList                            : SelectItem[] = [];
+  operationsTypesList                           : SelectItem[] = [];
+  transportsTypesList                           : SelectItem[] = [];
+  reasonsTransfersList                          : SelectItem[] = [];
+  sunatDocumentsTypesList                       : SelectItem[] = [];
+  carrierIdentityDocumentstypesList             : SelectItem[] = [];
+  driversIdentityDocumentstTypesList            : SelectItem[] = [];
 
   // UI State
   /** Estados de overlays y modales */
   isSaving                                      = false;
   isDisplay                                     = false;
   isVisualizarCodebar                           = false;
+  isLoadingInitialData                          = false;
 
   // Table configuration
   /** Configuración de tabla y listas relacionadas */
@@ -116,8 +122,9 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
     private readonly userContextService: UserContextService,
     private readonly salesPersonsService: SalesPersonsService,
     private readonly stockTransfersService: StockTransfersService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly documentTypeSunatService: DocumentTypeSunatService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     private readonly DocumentNumberingSeriesSunatService: DocumentNumberingSeriesSunatService,
     public  readonly utilService: UtilService,
   ) { }
@@ -152,55 +159,55 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
   // ===========================
   private buildForms(): void {
     this.modeloFormSn = this.fb.group({
-      cardCode            : [{ value: '', disabled: false }],
-      cardName            : [{ value: '', disabled: false }],
-      cntctCode           : [{ value: '', disabled: false }],
-      address             : [{ value: '', disabled: false }]
+      cardCode                        : [{ value: '', disabled: false }],
+      cardName                        : [{ value: '', disabled: false }],
+      cntctCode                       : [{ value: '', disabled: false }],
+      address                         : [{ value: '', disabled: false }]
     });
 
     this.modeloFormDoc = this.fb.group({
-      docNum              : [{ value: '', disabled: false }],
-      u_BPP_MDTD          : [{ value: '', disabled: false }, [Validators.required]],
-      u_BPP_MDSD          : [{ value: '', disabled: false }, [Validators.required]],
-      u_BPP_MDCD          : [{ value: '', disabled: false }, [Validators.required]],
-      docDate             : [{ value: '', disabled: false }, [Validators.required]],
-      taxDate             : [{ value: '', disabled: false }, [Validators.required]],
-      filler              : [{ value: '', disabled: false }, [Validators.required]],
-      toWhsCode           : [{ value: '', disabled: false }, [Validators.required]]
+      docNum                          : [{ value: '', disabled: false }],
+      sunatDocumentsTypes             : [{ value: '', disabled: false }, [Validators.required]],
+      u_BPP_MDSD                      : [{ value: '', disabled: false }, [Validators.required]],
+      u_BPP_MDCD                      : [{ value: '', disabled: false }, [Validators.required]],
+      docDate                         : [{ value: '', disabled: false }, [Validators.required]],
+      taxDate                         : [{ value: '', disabled: false }, [Validators.required]],
+      originWarehouses                : [{ value: '', disabled: false }, [Validators.required]],
+      destinationWarehouses           : [{ value: '', disabled: false }, [Validators.required]]
     });
 
     this.modeloFormTra = this.fb.group({
-      typeTransport               : [{ value: '', disabled: false }],
-      u_FIB_COD_TRA               : [{ value: '', disabled: false }],
-      typeCarrierIdentityDocument : [{ value: '', disabled: false }],
-      u_BPP_MDRT                  : [{ value: '', disabled: false }],
-      u_BPP_MDNT                  : [{ value: '', disabled: false }],
-      u_BPP_MDVC                  : [{ value: '', disabled: false }],
+      transportsTypes                  : [{ value: '', disabled: false }],
+      u_FIB_COD_TRA                   : [{ value: '', disabled: false }],
+      carrierIdentityDocumentstypes   : [{ value: '', disabled: false }],
+      u_BPP_MDRT                      : [{ value: '', disabled: false }],
+      u_BPP_MDNT                      : [{ value: '', disabled: false }],
+      u_BPP_MDVC                      : [{ value: '', disabled: false }],
 
-      typeDriversIdentityDocument : [{ value: '', disabled: false }],
-      u_FIB_NUMDOC_COD            : [{ value: '', disabled: false }],
-      u_FIB_NOM_COND              : [{ value: '', disabled: false }],
-      u_FIB_APE_COND              : [{ value: '', disabled: false }],
-      u_BPP_MDFN                  : [{ value: '', disabled: true }],
-      u_BPP_MDFC                  : [{ value: '', disabled: false }]
+      driversIdentityDocumentstTypes  : [{ value: '', disabled: false }],
+      u_FIB_NUMDOC_COD                : [{ value: '', disabled: false }],
+      u_FIB_NOM_COND                  : [{ value: '', disabled: false }],
+      u_FIB_APE_COND                  : [{ value: '', disabled: false }],
+      u_BPP_MDFN                      : [{ value: '', disabled: true }],
+      u_BPP_MDFC                      : [{ value: '', disabled: false }]
     });
 
     this.modeloFormOtr = this.fb.group({
-      transferType              : [{ value: '', disabled: false }, [Validators.required]],
-      reasonTransfer            : [{ value: '', disabled: false }, [Validators.required]],
-      outputType                : [{ value: '', disabled: false }, [Validators.required]]
+      transfersTypes                  : [{ value: '', disabled: false }, [Validators.required]],
+      reasonsTransfers                : [{ value: '', disabled: false }, [Validators.required]],
+      outputsTypes                    : [{ value: '', disabled: false }, [Validators.required]]
     });
 
     this.modeloFormPie = this.fb.group({
-      slpCode             : [{ value: '', disabled: false }, [Validators.required]],
-      u_FIB_NBULTOS       : [{ value: this.utilService.onRedondearDecimalConCero(0,3), disabled: false }, [Validators.required]],
-      u_FIB_KG            : [{ value: this.utilService.onRedondearDecimalConCero(0,3), disabled: false }, [Validators.required]],
-      jrnlMemo            : [this.jrnlMemo],
-      comments            : ['']
+      salesPersons                    : [{ value: '', disabled: false }, [Validators.required]],
+      u_FIB_NBULTOS                   : [{ value: this.utilService.onRedondearDecimalConCero(0,3), disabled: false }, [Validators.required]],
+      u_FIB_KG                        : [{ value: this.utilService.onRedondearDecimalConCero(0,3), disabled: false }, [Validators.required]],
+      jrnlMemo                        : [this.jrnlMemo],
+      comments                        : ['']
     });
 
     this.modeloFormBar = this.fb.group({
-      u_CodeBar           : ['']
+      u_CodeBar                       : ['']
     });
   }
 
@@ -210,7 +217,7 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
       { field: 'itemName',        header: 'Descripción' },
       { field: 'fromWhsCod',      header: 'De almacén' },
       { field: 'whsCode',         header: 'Almacén destino' },
-      { field: 'u_tipoOpT12Nam',  header: 'Tipo operación' },
+      { field: 'u_tipoOpT12',     header: 'Tipo operación' },
       { field: 'unitMsr',         header: 'UM' },
       { field: 'u_FIB_NBulto',    header: 'N° bulto' },
       { field: 'u_FIB_PesoKg',    header: 'Kg' },
@@ -239,29 +246,28 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
   private loadAllCombos(): void {
     this.idUsuario                            = this.userContextService.getIdUsuario();
     const paramWarehouses                     : any = { inactive: 'N' };
-    const paramOutputType                     : any = { tableID: 'OWTR', aliasID: 'BPP_MDTS' };
-    const paramTransferType                   : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRAS' };
-    const paramTypeTransport                  : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRANS' };
-    const paramReasonTransfer                 : any = { tableID: 'OWTR', aliasID: 'BPP_MDMT' };
-    const paramDocumentTypeSunat              : any = { u_FIB_ENTR: '', u_FIB_FAVE: '', u_FIB_TRAN: 'Y' };
-    const paramTypeDriverIdentityDocument     : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_COND' };
-    const paramTypeCarrierIdentityDocument    : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_TRA' };
-    const paramTypeIdentityDocumentTransport  : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_TRA' };
+    const paramOutputsTypes                   : any = { tableID: 'OWTR', aliasID: 'BPP_MDTS' };
+    const paramTransfersTypes                 : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRAS' };
+    const paramTransportsTypes                : any = { tableID: 'OWTR', aliasID: 'FIB_TIP_TRANS' };
+    const paramReasonsTransfers               : any = { tableID: 'OWTR', aliasID: 'BPP_MDMT' };
+    const paramSunatDocumentsTypes            : any = { u_FIB_ENTR: '', u_FIB_FAVE: '', u_FIB_TRAN: 'Y' };
+    const paramCarrierIdentityDocumentstypes  : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_TRA' };
+    const paramDriversIdentityDocumentstTypes : any = { tableID: 'OWTR', aliasID: 'FIB_TIPDOC_COND' };
 
     // Mostrar spinner mientras se cargan los combos
     this.isDisplay = true;
 
     forkJoin({
-      warehouses                      : this.warehousesService.getListByInactive(paramWarehouses),
-      outputType                      : this.camposDefinidoUsuarioService.getList(paramOutputType),
-      transferType                    : this.camposDefinidoUsuarioService.getList(paramTransferType),
-      typeTransport                   : this.camposDefinidoUsuarioService.getList(paramTypeTransport),
-      reasonTransfer                  : this.camposDefinidoUsuarioService.getList(paramReasonTransfer),
-      salesEmployees                  : this.salesPersonsService.getList(),
-      documentTypeSunat               : this.documentTypeSunatService.getListByType(paramDocumentTypeSunat),
-      typeDriverIdentityDocument      : this.camposDefinidoUsuarioService.getList(paramTypeDriverIdentityDocument),
-      typeCarrierIdentityDocument     : this.camposDefinidoUsuarioService.getList(paramTypeCarrierIdentityDocument),
-      typeIdentityDocumentTransport   : this.camposDefinidoUsuarioService.getList(paramTypeIdentityDocumentTransport),
+      warehouses                      : this.warehousesService.getListByInactive(paramWarehouses).pipe(catchError(() => of([] as IWarehouses[]))),
+      outputsTypes                    : this.userDefinedFieldsService.getList(paramOutputsTypes).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      salesPersons                    : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      transfersTypes                  : this.userDefinedFieldsService.getList(paramTransfersTypes).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      transportsTypes                 : this.userDefinedFieldsService.getList(paramTransportsTypes).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      operationsTypes                 : this.operationsTypesService.getList().pipe(catchError(() => of([] as IOperationsTypes[]))),
+      reasonsTransfers                : this.userDefinedFieldsService.getList(paramReasonsTransfers).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      sunatDocumentsTypes             : this.documentTypeSunatService.getListByType(paramSunatDocumentsTypes).pipe(catchError(() => of([] as IDocumentTypeSunat[]))),
+      carrierIdentityDocumentstypes   : this.userDefinedFieldsService.getList(paramCarrierIdentityDocumentstypes).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      driversIdentityDocumentstTypes  : this.userDefinedFieldsService.getList(paramDriversIdentityDocumentstTypes).pipe(catchError(() => of([] as IUserDefinedFields[]))),
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -269,48 +275,48 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
     )
     .subscribe({
       next: (res) => {
-        this.warehouseList = (res.warehouses || []).map(item => ({ label: item.fullDescr, value: item.whsCode }));
-        this.outputTypeList = (res.outputType || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.transferTypeList = (res.transferType || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.typeTransportList = (res.typeTransport || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.reasonTransferList = (res.reasonTransfer || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.salesEmployeesList = (res.salesEmployees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
-        this.documentTypeSunatList = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
-        this.typeDriversIdentityDocumentList = (res.typeDriverIdentityDocument || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.typeCarrierIdentityDocumentList = (res.typeCarrierIdentityDocument || []).map(item => ({ label: item.descr, value: item.fldValue }));
-        this.typeIdentityDocumentTransportList = (res.typeIdentityDocumentTransport || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.warehousesList                     = (res.warehouses || []).map(item => ({ label: item.fullDescr, value: item.whsCode }));
+        this.outputsTypesList                   = (res.outputsTypes || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.salesPersonsList                   = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+        this.transfersTypesList                 = (res.transfersTypes || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.transportsTypesList                = (res.transportsTypes || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.operationsTypesList                = (res.operationsTypes || []).map(item => ({ label: item.fullDescr, value: item.code }));
+        this.reasonsTransfersList               = (res.reasonsTransfers || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.sunatDocumentsTypesList            = (res.sunatDocumentsTypes || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
+        this.carrierIdentityDocumentstypesList  = (res.carrierIdentityDocumentstypes || []).map(item => ({ label: item.descr, value: item.fldValue }));
+        this.driversIdentityDocumentstTypesList = (res.driversIdentityDocumentstTypes || []).map(item => ({ label: item.descr, value: item.fldValue }));
 
 
-        const defaultTipoDoc = res.documentTypeSunat.find(item => item.u_BPP_TDTD === '09');
-        if (defaultTipoDoc) {
-          this.u_BPP_NDTD = defaultTipoDoc.u_BPP_TDTD;
-          this.modeloFormDoc.get('u_BPP_MDTD').setValue({
-            label: defaultTipoDoc.u_BPP_TDDD,
-            value: defaultTipoDoc.u_BPP_TDTD
+        const sunatDocumentsTypesDefault = this.sunatDocumentsTypesList.find(item => item.value === '09');
+        if (sunatDocumentsTypesDefault) {
+          this.u_BPP_NDTD = sunatDocumentsTypesDefault.value;
+          this.modeloFormDoc.get('sunatDocumentsTypes').setValue({
+            label: sunatDocumentsTypesDefault.value,
+            value: sunatDocumentsTypesDefault.value
           });
         }
 
-        const defaultTipoTraslado = res.transferType.find(item => item.fldValue === '01');
-        if (defaultTipoTraslado) {
-          this.modeloFormOtr.get('transferType').setValue({
-            label: defaultTipoTraslado.descr,
-            value: defaultTipoTraslado.fldValue
+        const transfersTypesDefault = this.transfersTypesList.find(item => item.value === '01');
+        if (transfersTypesDefault) {
+          this.modeloFormOtr.get('transfersTypes').setValue({
+            label: transfersTypesDefault.value,
+            value: transfersTypesDefault.value
           });
         }
 
-        const defaultMotivo = res.reasonTransfer.find(item => item.fldValue === '04');
-        if (defaultMotivo) {
-          this.modeloFormOtr.get('reasonTransfer').setValue({
-            label: defaultMotivo.descr,
-            value: defaultMotivo.fldValue
+        const reasonsTransfersDefault = this.reasonsTransfersList.find(item => item.value === '04');
+        if (reasonsTransfersDefault) {
+          this.modeloFormOtr.get('reasonsTransfers').setValue({
+            label: reasonsTransfersDefault.value,
+            value: reasonsTransfersDefault.value
           });
         }
 
-        const defaultTipoSalida = res.outputType.find(item => item.fldValue === 'TSI');
-        if (defaultTipoSalida) {
-          this.modeloFormOtr.get('outputType').setValue({
-            label: defaultTipoSalida.descr,
-            value: defaultTipoSalida.fldValue
+        const outputsTypesDefault = this.outputsTypesList.find(item => item.value === 'TSI');
+        if (outputsTypesDefault) {
+          this.modeloFormOtr.get('outputsTypes').setValue({
+            label: outputsTypesDefault.value,
+            value: outputsTypesDefault.value
           });
         }
 
@@ -386,19 +392,19 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
   }
 
   resetTransportista(): void {
-    const typeTransport = this.modeloFormTra.get('typeTransport')?.value;
+    const transfersTypes = this.modeloFormTra.get('transfersTypes')?.value;
 
     this.u_FIB_COD_TRA = '';
 
     this.modeloFormTra.reset({
-      typeTransport: typeTransport,   // ← se mantiene
+      transfersTypes: transfersTypes,   // ← se mantiene
       u_FIB_COD_TRA: '',
-      typeCarrierIdentityDocument: '',
+      carrierIdentityDocumentstypes: '',
       u_FIB_RUC_TRANS2: '',
       u_FIB_TRANS2: '',
       u_BPP_MDVC: '',
 
-      typeDriversIdentityDocument: '',
+      driversIdentityDocumentstTypes: '',
       u_FIB_NUMDOC_COD: '',
       u_FIB_NOM_COND: '',
       u_FIB_APE_COND: '',
@@ -412,11 +418,11 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
 
     this.u_FIB_COD_TRA = value.cardCode;
 
-    const typeCarrierIdentityDocumentItem = this.typeCarrierIdentityDocumentList.find(item => item.value === value.u_BPP_BPTD);
+    const typeCarrierIdentityDocumentItem = this.carrierIdentityDocumentstypesList.find(item => item.value === value.u_BPP_BPTD);
 
     this.modeloFormTra.patchValue({
       'u_FIB_COD_TRA'               : this.utilService.normalizePrimitive(value.cardCode),
-      'typeCarrierIdentityDocument' : typeCarrierIdentityDocumentItem || null,
+      'carrierIdentityDocumentstypes' : typeCarrierIdentityDocumentItem || null,
       'u_BPP_MDRT'                  : this.utilService.normalizePrimitive(value.licTradNum),
       'u_BPP_MDNT'                  : this.utilService.normalizePrimitive(value.cardName)
     }, { emitEvent: false });
@@ -429,10 +435,10 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
   }
 
   onSelectedConductor(value) {
-    const typeDriversIdentityDocumentItem = this.typeDriversIdentityDocumentList.find(item => item.value === value.u_FIB_CHTD);
+    const typeDriversIdentityDocumentItem = this.driversIdentityDocumentstTypesList.find(item => item.value === value.u_FIB_CHTD);
 
     this.modeloFormTra.patchValue({
-      typeDriversIdentityDocument   : typeDriversIdentityDocumentItem || null,
+      driversIdentityDocumentstTypes   : typeDriversIdentityDocumentItem || null,
       u_FIB_NUMDOC_COD              : this.utilService.normalizePrimitive(value.u_FIB_CHND),
       u_FIB_NOM_COND                : this.utilService.normalizePrimitive(value.u_BPP_CHNO),
       u_FIB_APE_COND                : this.utilService.normalizePrimitive(value.u_FIB_CHAP),
@@ -612,11 +618,11 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
     this.modeloFormSn.patchValue(value, { emitEvent: false });
 
     // Buscar y asignar valores como SelectItem para tipo y serie de documento
-    const tipoDocItem             = this.documentTypeSunatList.find(item => item.value === value.u_BPP_MDTD);
+    const tipoDocItem             = this.sunatDocumentsTypesList.find(item => item.value === value.u_BPP_MDTD);
 
     // Buscar y asignar valores como SelectItem para los dropdowns de Almacenes
-    const fillerItem              = this.warehouseList.find(item => item.value === value.filler);
-    const toWhsCodeItem           = this.warehouseList.find(item => item.value === value.toWhsCode);
+    const fillerItem              = this.warehousesList.find(item => item.value === value.filler);
+    const toWhsCodeItem           = this.warehousesList.find(item => item.value === value.toWhsCode);
 
     // Actualizar formulario de Documento
     this.modeloFormDoc.patchValue(
@@ -624,31 +630,31 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
         docNum                    : value.docNum,
         docDate                   : value.docDate ? new Date(value.docDate) : null,
         taxDate                   : value.taxDate ? new Date(value.taxDate) : null,
-        u_BPP_MDTD                : tipoDocItem || null,
+        sunatDocumentsTypes                : tipoDocItem || null,
         u_BPP_MDSD                : this.utilService.normalizePrimitive(value.u_BPP_MDSD),
         u_BPP_MDCD                : this.utilService.normalizePrimitive(value.u_BPP_MDCD),
-        filler                    : fillerItem || null,
-        toWhsCode                 : toWhsCodeItem || null
+        originWarehouses                    : fillerItem || null,
+        destinationWarehouses                 : toWhsCodeItem || null
       },
       { emitEvent: false }
     );
 
     // Buscar y asignar valores como SelectItem para transporte
-    const tipoTransporteItem          = this.typeTransportList.find(item => item.value === value.u_FIB_TIP_TRANS);
-    const tipoDocIdentidadTranItem    = this.typeIdentityDocumentTransportList.find(item => item.value === value.u_FIB_TIPDOC_TRA);
-    const tipoDocIdentidadCondItem    = this.typeDriversIdentityDocumentList.find(item => item.value === value.u_FIB_TIPDOC_COND);
+    const tipoTransporteItem          = this.transportsTypesList.find(item => item.value === value.u_FIB_TIP_TRANS);
+    const tipoDocIdentidadTranItem    = this.carrierIdentityDocumentstypesList.find(item => item.value === value.u_FIB_TIPDOC_TRA);
+    const tipoDocIdentidadCondItem    = this.driversIdentityDocumentstTypesList.find(item => item.value === value.u_FIB_TIPDOC_COND);
 
     // Actualizar formulario Transportista
     this.modeloFormTra.patchValue(
       {
-        typeTransport               : tipoTransporteItem || null,
+        transfersTypes               : tipoTransporteItem || null,
         u_FIB_COD_TRA               : this.utilService.normalizePrimitive(value.u_FIB_COD_TRA),
-        typeCarrierIdentityDocument : tipoDocIdentidadTranItem || null,
+        carrierIdentityDocumentstypes : tipoDocIdentidadTranItem || null,
         u_BPP_MDRT                  : this.utilService.normalizePrimitive(value.u_BPP_MDRT),
         u_BPP_MDNT                  : this.utilService.normalizePrimitive(value.u_BPP_MDNT),
         u_BPP_MDVC                  : this.utilService.normalizePrimitive(value.u_BPP_MDVC),
 
-        typeDriversIdentityDocument : tipoDocIdentidadCondItem || null,
+        driversIdentityDocumentstTypes : tipoDocIdentidadCondItem || null,
         u_FIB_NUMDOC_COD            : this.utilService.normalizePrimitive(value.u_FIB_NUMDOC_COD),
         u_FIB_NOM_COND              : this.utilService.normalizePrimitive(value.u_FIB_NOM_COND),
         u_FIB_APE_COND              : this.utilService.normalizePrimitive(value.u_FIB_APE_COND),
@@ -659,27 +665,27 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
     );
 
     // Buscar y asignar valores como SelectItem para campos definidos por usuario
-    const tipoTrasladoItem        = this.transferTypeList.find(item => item.value === value.u_FIB_TIP_TRAS);
-    const motivoTrasladoItem      = this.reasonTransferList.find(item => item.value === value.u_BPP_MDMT);
-    const tipoSalidaItem          = this.outputTypeList.find(item => item.value === value.u_BPP_MDTS);
+    const tipoTrasladoItem        = this.transfersTypesList.find(item => item.value === value.u_FIB_TIP_TRAS);
+    const motivoTrasladoItem      = this.reasonsTransfersList.find(item => item.value === value.u_BPP_MDMT);
+    const tipoSalidaItem          = this.outputsTypesList.find(item => item.value === value.u_BPP_MDTS);
 
     // Actualizar formulario Otros
     this.modeloFormOtr.patchValue(
       {
-        transferType              : tipoTrasladoItem || null,
-        reasonTransfer            : motivoTrasladoItem || null,
-        outputType                : tipoSalidaItem || null
+        transfersTypes              : tipoTrasladoItem || null,
+        reasonsTransfers            : motivoTrasladoItem || null,
+        outputsTypes                : tipoSalidaItem || null
       },
       { emitEvent: false }
     );
 
     // Buscar y asignar valor como SelectItem para empleado de ventas
-    const slpCodeItem             = this.salesEmployeesList.find(item => item.value === value.slpCode);
+    const salesPersonsItem        = this.salesPersonsList.find(item => item.value === value.slpCode);
 
     // Actualizar formulario Pie
     this.modeloFormPie.patchValue(
       {
-        slpCode                   : slpCodeItem || null,
+        salesPersons              : salesPersonsItem || null,
         u_FIB_NBULTOS             : this.utilService.onRedondearDecimalConCero(value.u_FIB_NBULTOS, 3),
         u_FIB_KG                  : this.utilService.onRedondearDecimalConCero(value.u_FIB_KG, 3),
         jrnlMemo                  : this.utilService.normalizePrimitive(value.jrnlMemo),
@@ -720,9 +726,9 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
       return false;
     };
 
-    const { filler, toWhsCode } = this.modeloFormDoc.getRawValue();
-    const fillerValue = filler?.value || filler;
-    const toWhsCodeValue = toWhsCode?.value || toWhsCode;
+    const { originWarehouses, destinationWarehouses } = this.modeloFormDoc.getRawValue();
+    const fillerValue = originWarehouses?.value || originWarehouses;
+    const toWhsCodeValue = destinationWarehouses?.value || destinationWarehouses;
 
     if (fillerValue === toWhsCodeValue) {
       return showError('El almacén de destino no puede ser idéntico al almacén de origen.');
@@ -795,7 +801,7 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
 
       docEntry          : this.docEntry,
 
-      u_BPP_MDTD        : p(val(f.u_BPP_MDTD)),
+      u_BPP_MDTD        : p(val(f.sunatDocumentsTypes)),
       u_BPP_MDSD        : p(val(f.u_BPP_MDSD)),
       u_BPP_MDCD        : p(f.u_BPP_MDCD),
 
@@ -803,25 +809,25 @@ export class PanelPanelTransferenciaStockEditComponent implements OnInit, OnDest
 
       cardCode          : p(f.cardCode),
 
-      u_FIB_TIP_TRANS   : p(val(f.typeTransport)),
+      u_FIB_TIP_TRANS   : p(val(f.transfersTypes)),
       u_FIB_COD_TRA     : p(f.u_FIB_COD_TRA),
-      u_FIB_TIPDOC_TRA  : p(val(f.typeCarrierIdentityDocument)),
+      u_FIB_TIPDOC_TRA  : p(val(f.carrierIdentityDocumentstypes)),
       u_BPP_MDRT        : p(f.u_BPP_MDRT),
       u_BPP_MDNT        : p(f.u_BPP_MDNT),
       u_BPP_MDVC        : p(f.u_BPP_MDVC),
 
-      u_FIB_TIPDOC_COND : p(val(f.typeDriversIdentityDocument)),
+      u_FIB_TIPDOC_COND : p(val(f.driversIdentityDocumentstTypes)),
       u_FIB_NUMDOC_COD  : p(f.u_FIB_NUMDOC_COD),
       u_FIB_NOM_COND    : p(f.u_FIB_NOM_COND),
       u_FIB_APE_COND    : p(f.u_FIB_APE_COND),
       u_BPP_MDFN        : p(f.u_BPP_MDFN),
       u_BPP_MDFC        : p(f.u_BPP_MDFC),
 
-      u_FIB_TIP_TRAS    : p(val(f.transferType)),
-      u_BPP_MDMT        : p(val(f.reasonTransfer)),
-      u_BPP_MDTS        : p(val(f.outputType)),
+      u_FIB_TIP_TRAS    : p(val(f.transfersTypes)),
+      u_BPP_MDMT        : p(val(f.reasonsTransfers)),
+      u_BPP_MDTS        : p(val(f.outputsTypes)),
 
-      slpCode           : n(val(f.slpCode) ?? -1),
+      slpCode           : n(val(f.salesPersons) ?? -1),
 
       u_FIB_NBULTOS     : n(f.u_FIB_NBULTOS),
       u_FIB_KG          : n(f.u_FIB_KG),

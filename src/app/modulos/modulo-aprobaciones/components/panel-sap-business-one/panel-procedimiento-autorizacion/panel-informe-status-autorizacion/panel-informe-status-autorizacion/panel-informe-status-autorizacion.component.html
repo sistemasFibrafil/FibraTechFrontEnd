@@ -34,7 +34,7 @@
           <ng-template pTemplate = "groupheader" let-modelo let-ri = "rowIndex" let-expanded="expanded">
             <tr (click)="onRowGroupHeaderClick()">
               <td class="custom-td-20">
-                <div class="td-flex">
+                <div class="custom-td-flex">
                   <button
                     type="button"
                     pButton
@@ -49,7 +49,7 @@
                 </div>
               </td>
               <td class="custom-td-10">
-                <div class="td-flex" *ngIf="modelo.isDraft === 'N'">
+                <div class="custom-td-flex" *ngIf="modelo.isDraft === 'N'">
                   <button
                     type="button"
                     pButton
@@ -62,7 +62,7 @@
                 </div>
               </td>
               <td class="custom-td-10">
-                <div class="td-flex" *ngIf="modelo.isDraft === 'Y'">
+                <div class="custom-td-flex" *ngIf="modelo.isDraft === 'Y'">
                   <button
                     type="button"
                     pButton
@@ -113,7 +113,7 @@
                 </div>
               </td>
               <td class="custom-td-10">
-                <div class="td-flex" *ngIf="line.isDraft === 'N'">
+                <div class="custom-td-flex" *ngIf="line.isDraft === 'N'">
                   <button
                     type="button"
                     pButton
@@ -126,7 +126,7 @@
                 </div>
               </td>
               <td class="custom-td-10">
-                <div class="td-flex" *ngIf="line.isDraft === 'Y'">
+                <div class="custom-td-flex" *ngIf="line.isDraft === 'Y'">
                   <button
                     type="button"
                     pButton

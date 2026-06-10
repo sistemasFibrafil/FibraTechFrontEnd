@@ -49,9 +49,16 @@ export class DraftsService {
     return this.http.post(`${environment.url_api_fib}Drafts/SetCreate/`, formData,{ reportProgress: true, observe: 'events'});
   }
 
-  setSaveDraftToDocument(value: any) {
-    const param: string = JSON.stringify(value);
-    return this.http.post<any[]>(`${environment.url_api_fib}Drafts/SetSaveDraftToDocument/`, param);
+  setSaveDraftToDocument(value: any, files: any[]) {
+    let formData: FormData = new FormData();
+
+    formData.append('value', JSON.stringify(value));
+
+    files.forEach((element: any) => {
+      formData.append('files', element);
+    });
+
+    return this.http.post(`${environment.url_api_fib}Drafts/SetSaveDraftToDocument/`, formData,{ reportProgress: true, observe: 'events'});
   }
 
   setUpdate(value: any, files: any[]) {
@@ -64,5 +71,18 @@ export class DraftsService {
     });
 
     return this.http.put(`${environment.url_api_fib}Drafts/SetUpdate/`, formData,{ reportProgress: true, observe: 'events'});
+  }
+
+
+  getPrintNationalDocEntry(docEntry: number) {
+    return this.http.get(`${environment.url_api_fib}Drafts/GetPrintNationalDocEntry/${docEntry}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
+  }
+
+  getPrintExportPlantaDocEntry(docEntry: number) {
+    return this.http.get(`${environment.url_api_fib}Drafts/GetPrintExportPlantaDocEntry/${docEntry}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
+  }
+
+  getPrintExportClienteDocEntry(docEntry: number) {
+    return this.http.get(`${environment.url_api_fib}Drafts/GetPrintExportClienteDocEntry/${docEntry}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
   }
 }

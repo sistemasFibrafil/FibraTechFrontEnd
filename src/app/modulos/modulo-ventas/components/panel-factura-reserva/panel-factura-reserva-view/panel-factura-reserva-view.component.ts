@@ -15,11 +15,11 @@ import { IAddresses } from 'src/app/modulos/modulo-socios-negocios/interfaces/ad
 import { IInvoice1Query, IInvoiceQuery } from '../../../interfaces/sap-business-one/invoice.interface';
 import { IExchangeRates } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/exchange-rates.interface';
 import { IBusinessPartnersQuery } from 'src/app/modulos/modulo-socios-negocios/interfaces/business-partners.interface';
-import { ITaxGroups } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/impuesto-sap.iterface';
+import { ITaxGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/tax-groups.iterface';
 import { IWarehouses } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/inventario/warehouses.interface';
 import { ISalesPersons } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/sales-persons.interface';
 import { IUserDefinedFields } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
-import { IPaymentTermsTypes } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/condicion-pago-sap.interface';
+import { IPaymentTermsTypes } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/socio-negocios/payment-terms-types.interface';
 
 import { UtilService } from 'src/app/services/util.service';
 import { LocalDataService } from 'src/app/services/local-data.service';
@@ -30,11 +30,11 @@ import { ItemsService } from 'src/app/modulos/modulo-inventario/services/items.s
 import { AddressesService } from 'src/app/modulos/modulo-socios-negocios/services/addresses.service';
 import { BusinessPartnersService } from 'src/app/modulos/modulo-socios-negocios/services/business-partners.service';
 import { ExchangeRatesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/exchange-rates.service';
-import { TaxGroupsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/impuesto-sap.service';
+import { TaxGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/tax-groups.service';
 import { SalesPersonsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/sales-persons.service';
 import { DocumentTypeSunatService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/inicializacion-sistema/document-type-sunat.service';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
-import { PaymentTermsTypesService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/paymentTerms-types.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { PaymentTermsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/socio-negocios/payment-terms-types.service';
 
 
 
@@ -64,7 +64,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
   modeloFormFin                                 : FormGroup;
   modeloFormAge                                 : FormGroup;
   modeloFormExp                                 : FormGroup;
-  modeloFormOtr                                 : FormGroup;
   modeloFormSal                                 : FormGroup;
   modeloFormTot                                 : FormGroup;
 
@@ -90,12 +89,11 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
 
   currencyList                                  : SelectItem[] = [];
   docTypesList                                  : SelectItem[] = [];
-  salesTypeList                                 : SelectItem[] = [];
   payAddressList                                : SelectItem[] = [];
   shipAddressList                               : SelectItem[] = [];
   freightTypeList                               : SelectItem[] = [];
   agencyAddressList                             : SelectItem[] = [];
-  salesEmployeesList                            : SelectItem[] = [];
+  salesPersonsList                              : SelectItem[] = [];
   documentTypeSunatList                         : SelectItem[] = [];
   paymentsTermsTypesList                        : SelectItem[] = [];
 
@@ -142,7 +140,7 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
     private readonly businessPartnersService: BusinessPartnersService,
     private readonly paymentTermsTypesService: PaymentTermsTypesService,
     private readonly documentTypeSunatService: DocumentTypeSunatService,
-    private readonly camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     public  readonly utilService: UtilService,
   ) {}
 
@@ -219,13 +217,9 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       u_FIB_IMPSEG        : new FormControl(this.utilService.onRedondearDecimalConCero(0,2)),
       u_FIB_PUERTO        : new FormControl(''),
     });
-    // OTROS
-    this.modeloFormOtr = this.fb.group({
-      salesType           : new FormControl('', Validators.required),
-    });
     // PIE - Información adicional y totales
     this.modeloFormSal = this.fb.group({
-      salesEmployees      : new FormControl('', Validators.required),
+      salesPersons        : new FormControl('', Validators.required),
       u_NroOrden          : new FormControl(''),
       u_OrdenCompra       : new FormControl(''),
       comments            : new FormControl(''),
@@ -256,12 +250,9 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
         { field: 'onHand',          header: 'Stock' },
         { field: 'quantity',        header: 'Cantidad' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
         { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
     else{
@@ -270,12 +261,9 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
         { field: 'formatCode',      header: 'Cuenta mayor' },
         { field: 'acctName',        header: 'Nombre de la cuenta de mayor' },
         { field: 'priceBefDi',      header: 'Precio' },
-        { field: 'discPrcnt',       header: '% de descuento' },
-        { field: 'price',           header: 'Precio tras el descuento' },
         { field: 'taxCode',         header: 'Impuesto' },
         { field: 'u_tipoOpT12Nam',  header: 'Tipo de operación' },
         { field: 'lineTotal',       header: 'Total' },
-        // { field: 'vatSum',          header: 'Importe del impuesto' },
       ];
     }
   }
@@ -299,7 +287,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
 
   private loadAllCombos(): void {
     this.idUsuario                         = this.userContextService.getIdUsuario();
-    const paramSalesType                    : any = { tableID: 'ORDR', aliasID: 'STR_TVENTA' };
     const paramFreightType                  : any = { tableID: 'OINV', aliasID: 'TipoFlete' };
     const paramdocumentTypeSunat            : any = { u_FIB_ENTR: '', u_FIB_FAVE: 'Y', u_FIB_TRAN: '' };
 
@@ -317,9 +304,8 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
     }
 
     forkJoin({
-      salesType                     : this.camposDefinidoUsuarioService.getList(paramSalesType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      freightType                   : this.camposDefinidoUsuarioService.getList(paramFreightType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
-      salesEmployees                : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
+      freightType                   : this.userDefinedFieldsService.getList(paramFreightType).pipe(catchError(() => of([] as IUserDefinedFields[]))),
+      salesPersons                  : this.salesPersonsService.getList().pipe(catchError(() => of([] as ISalesPersons[]))),
       documentTypeSunat             : this.documentTypeSunatService.getListByType(paramdocumentTypeSunat),
       paymentsTermsTypes            : this.paymentTermsTypesService.getList().pipe(catchError(() => of([] as IPaymentTermsTypes[]))),
     })
@@ -329,9 +315,8 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          this.salesTypeList                    = (res.salesType || []).map(item => ({ label: item.descr, value: item.fldValue }));
           this.freightTypeList                  = (res.freightType || []).map(item => ({ label: item.descr, value: item.fldValue }));
-          this.salesEmployeesList               = (res.salesEmployees || []).map(item => ({ label: item.slpName, value: item.slpCode }));
+          this.salesPersonsList                 = (res.salesPersons || []).map(item => ({ label: item.slpName, value: item.slpCode }));
           this.documentTypeSunatList            = (res.documentTypeSunat || []).map(item => ({ label: item.u_BPP_TDDD, value: item.u_BPP_TDTD }));
           this.paymentsTermsTypesList           = (res.paymentsTermsTypes || []).map(item => ({ label: item.pymntGroup, value: item.groupNum }));
 
@@ -492,22 +477,13 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       },
       { emitEvent: false }
     );
-
-    // OTROS
-    const salesTypeItem = this.salesTypeList.find(item => item.value === value.u_STR_TVENTA);
-
-    this.modeloFormOtr.patchValue(
-      { salesType: salesTypeItem || null },
-      { emitEvent: false }
-    );
-
     // EMPLEADO
-    const slpCodeItem = this.salesEmployeesList.find(item => item.value === value.slpCode);
+    const salesPersonsItem = this.salesPersonsList.find(item => item.value === value.slpCode);
 
     // ✅ PATCH SAL (tu bloque original)
     this.modeloFormSal.patchValue(
       {
-        salesEmployees: slpCodeItem || null,
+        salesPersons  : salesPersonsItem || null,
         u_NroOrden    : this.utilService.normalizePrimitive(value.u_NroOrden),
         u_OrdenCompra : this.utilService.normalizePrimitive(value.u_OrdenCompra),
         comments      : this.utilService.normalizePrimitive(value.comments)
@@ -569,7 +545,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       fin  : this.modeloFormFin.getRawValue(),
       age  : this.modeloFormAge.getRawValue(),
       exp  : this.modeloFormExp.getRawValue(),
-      otr  : this.modeloFormOtr.getRawValue(),
       sal  : this.modeloFormSal.getRawValue(),
       tot  : this.modeloFormTot.getRawValue(),
       lines: structuredClone(this.modeloLines)
@@ -582,7 +557,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
     this.modeloFormFin.markAsPristine();
     this.modeloFormAge.markAsPristine();
     this.modeloFormExp.markAsPristine();
-    this.modeloFormOtr.markAsPristine();
     this.modeloFormSal.markAsPristine();
     this.modeloFormTot.markAsPristine();
 
@@ -604,7 +578,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       this.modeloFormFin.valueChanges,
       this.modeloFormAge.valueChanges,
       this.modeloFormExp.valueChanges,
-      this.modeloFormOtr.valueChanges,
       this.modeloFormSal.valueChanges,
       this.modeloFormTot.valueChanges
     )
@@ -623,7 +596,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
     this.modeloFormFin.valid &&
     this.modeloFormAge.valid &&
     this.modeloFormExp.valid &&
-    this.modeloFormOtr.valid &&
     this.modeloFormSal.valid &&
     this.modeloFormTot.valid &&
     this.modeloLines.length > 0;
@@ -666,11 +638,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       this.initialSnapshot.exp
     );
 
-    const otrChanged = this.utilService.hasFormChanged(
-      this.modeloFormOtr,
-      this.initialSnapshot.otr
-    );
-
     const salChanged = this.utilService.hasFormChanged(
       this.modeloFormSal,
       this.initialSnapshot.sal
@@ -681,7 +648,7 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       this.initialSnapshot.tot
     );
 
-    const formChanged = socChanged || docChanged || logChanged || finChanged || ageChanged || expChanged || otrChanged || salChanged || totChanged;
+    const formChanged = socChanged || docChanged || logChanged || finChanged || ageChanged || expChanged || salChanged || totChanged;
 
      // =========================
     // 2️⃣ LÍNEAS NUEVAS (record = 1)
@@ -883,9 +850,9 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
 
   onOpenArticulo(): boolean {
     const cardCodeValid = !!this.cardCode;
-    const salesEmployeeSelected = !!this.modeloFormSal.get('salesEmployees')?.value;
+    const salesPersonsSelected = !!this.modeloFormSal.get('salesPersons')?.value;
 
-    return cardCodeValid && salesEmployeeSelected;
+    return cardCodeValid && salesPersonsSelected;
   }
 
   onClickOpenArticulo(index: number) {
@@ -956,7 +923,7 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
     const formValue = this.modeloFormSal.getRawValue();
 
     const salesEmployeeValue =
-      formValue.salesEmployees?.value ?? formValue.salesEmployees ?? '';
+      formValue.salesPersons?.value ?? formValue.salesPersons ?? '';
 
     return {
       itemCode,
@@ -1288,7 +1255,7 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
 
   private loadTaxGroup(cardCode: string, address: string): Observable<ITaxGroups | null> {
     const formConValues = this.modeloFormSal.getRawValue();
-    const slpCode = formConValues.salesEmployees?.value || formConValues.salesEmployees || -1;
+    const slpCode = formConValues.salesPersons?.value || formConValues.salesPersons || -1;
 
     const params = { cardCode, address, slpCode };
 
@@ -1371,7 +1338,7 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       }),
       map((agencia: IBusinessPartnersQuery) => ({
         agencia,
-        shipAddr: agencia.linesShipAddress ?? []
+        shipAddr: agencia.shipAddressLines ?? []
       })),
       // Actualizamos listas y preselecciones sin disparar eventos
       tap(({ shipAddr, agencia }) => {
@@ -1670,7 +1637,6 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       ...this.modeloFormFin.getRawValue(),
       ...this.modeloFormAge.getRawValue(),
       ...this.modeloFormExp.getRawValue(),
-      ...this.modeloFormOtr.getRawValue(),
       ...this.modeloFormSal.getRawValue(),
       ...this.modeloFormTot.getRawValue(),
     };
@@ -1732,12 +1698,8 @@ export class PanelFacturaReservaViewComponent implements OnInit, OnDestroy {
       u_FIB_TFLETE    : n(f.u_FIB_TFLETE),
       u_FIB_IMPSEG    : n(f.u_FIB_IMPSEG),
       u_FIB_PUERTO    : p(f.u_FIB_PUERTO),
-
-      // OTROS
-      u_STR_TVENTA    : p(val(f.salesType)),
-
       // VENDEDOR
-      slpCode         : n(val(f.salesEmployees) ?? -1),
+      slpCode         : n(val(f.salesPersons) ?? -1),
 
       u_NroOrden      : p(f.u_NroOrden),
       u_OrdenCompra   : p(f.u_OrdenCompra),

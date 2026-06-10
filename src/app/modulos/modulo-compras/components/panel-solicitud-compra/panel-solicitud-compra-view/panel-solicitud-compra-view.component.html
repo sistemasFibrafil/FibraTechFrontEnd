@@ -146,11 +146,25 @@
                 <td class="p-fluid" *ngIf="isItem">
                   {{modelo.whsCode}}
                 </td>
-                <td class="p-fluid">
-                  {{modelo?.u_tipoOpT12Nam}}
+                <td class="p-fluid" pEditableColumn>
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <p-dropdown [options]="operationsTypesList" [(ngModel)]="modelo.u_tipoOpT12" optionLabel="label" optionValue="value" appendTo="body" [filter]="true" [style]="{ width: '100%' }"></p-dropdown>
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{ utilService.getSelectItemLabel(operationsTypesList, modelo.u_tipoOpT12) }}
+                    </ng-template>
+                  </p-cellEditor>
                 </td>
-                <td class="p-fluid">
-                  {{modelo?.u_FF_TIP_COM_NAM}}
+                <td class="p-fluid" pEditableColumn>
+                  <p-cellEditor>
+                    <ng-template pTemplate="input">
+                      <p-dropdown [options]="purchasesTypesList" [(ngModel)]="modelo.u_FF_TIP_COM" optionLabel="label" optionValue="value" appendTo="body" [filter]="true" [style]="{ width: '100%' }"></p-dropdown>
+                    </ng-template>
+                    <ng-template pTemplate="output">
+                      {{ utilService.getSelectItemLabel(purchasesTypesList, modelo.u_FF_TIP_COM) }}
+                    </ng-template>
+                  </p-cellEditor>
                 </td>
                 <td class="custom-td-8" *ngIf="isItem">
                   {{modelo.unitMsr}}

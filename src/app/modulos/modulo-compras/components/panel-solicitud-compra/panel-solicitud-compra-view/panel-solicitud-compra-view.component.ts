@@ -9,16 +9,18 @@ import { LayoutComponent } from '@app/layout/layout.component';
 import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
 import { TableColumn } from '@app/interface/common-ui.interface';
-import { IPurchaseRequest, IPurchaseRequest1 } from '../../../interfaces/sap-business-one/purchase-request.interface';
+import { IPurchaseRequestLinesQuery, IPurchaseRequestQuery } from '@app/modulos/modulo-compras/interfaces/sap-business-one/purchase-request.interface';
 
 import { UtilService } from '@app/services/util.service';
 import { SwaCustomService } from '@app/services/swa-custom.service';
 import { LocalDataService } from '@app/services/local-data.service';
-import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
 import { EmployeesInfoService } from '@app/modulos/modulo-recursos-humanos/services/employees-info.service';
 import { UsersService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { PurchaseRequestService } from '@app/modulos/modulo-compras/services/sap-business-one/purchase-request.service';
 import { BranchesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/branchs.service';
 import { DepartmentsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/departments.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -69,7 +71,7 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
   // ===========================
   // 🔹 6. DATA (CORE)
   // ===========================
-  modeloLines                                  : IPurchaseRequest1[] = [];
+  modeloLines                                  : IPurchaseRequestLinesQuery[] = [];
 
 
   // ===========================
@@ -78,10 +80,12 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
   reqTypesList                                 : SelectItem[] = [];
   docTypesList                                 : SelectItem[] = [];
   branchesList                                 : SelectItem[] = [];
-  departmentsList                              : SelectItem[] = [];
   docStatusList                                : SelectItem[] = [];
   requesterList                                : SelectItem[] = [];
+  departmentsList                              : SelectItem[] = [];
   employeesInfoList                            : SelectItem[] = [];
+  purchasesTypesList                           : SelectItem[] = [];
+  operationsTypesList                          : SelectItem[] = [];
 
 
   // ===========================
@@ -107,7 +111,9 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     private readonly localDataService: LocalDataService,
     private readonly departmentsService: DepartmentsService,
     private readonly employeesInfoService: EmployeesInfoService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly purchaseRequestService: PurchaseRequestService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     public  readonly utilService: UtilService,
   ) {}
 
@@ -214,6 +220,7 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
   }
 
   private loadAllCombos(): void {
+    const parampurchasesTypes : any = { tableID: 'PRQ1', aliasID: 'FF_TIP_COM' };
 
     // Cargar datos síncronos (LocalDataService)
     const reqTypes = this.localDataService.reqTypes;
@@ -223,10 +230,12 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
 
     forkJoin({
-      requesterList     : this.usersService.getList(),
-      branchesList      : this.branchesService.getList(),
-      departmentsList   : this.departmentsService.getList(),
-      employeesInfoList : this.employeesInfoService.getList()
+      requesterList       : this.usersService.getList(),
+      branchesList        : this.branchesService.getList(),
+      departmentsList     : this.departmentsService.getList(),
+      employeesInfoList   : this.employeesInfoService.getList(),
+      purchasesTypesList  : this.userDefinedFieldsService.getList(parampurchasesTypes),
+      operationsTypesList : this.operationsTypesService.getList(),
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
@@ -280,8 +289,8 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
         { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
         { field: 'ocrCode',           header: 'Centro de costos' },
         { field: 'whsCode',           header: 'Almacén' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+        { field: 'u_tipoOpT12',       header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM',      header: 'Tipo de compra' },
         { field: 'unitMsr',           header: 'UM' },
         { field: 'onHand',            header: 'Stock' },
         { field: 'quantity',          header: 'Cantidad' },
@@ -295,8 +304,8 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
         { field: 'formatCode',        header: 'Cuenta mayor' },
         { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
         { field: 'ocrCode',           header: 'Centro de costos' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+        { field: 'u_tipoOpT12',       header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM',      header: 'Tipo de compra' },
       ];
     }
   }
@@ -355,7 +364,7 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
       })
     )
     .subscribe({
-      next: (data: IPurchaseRequest) => {
+      next: (data: IPurchaseRequestQuery) => {
         const normalizedLines = data.lines.map(line => ({
           ...line,
           pqtReqDate: this.utilService.normalizeDateOrToday(line.pqtReqDate)
@@ -374,7 +383,7 @@ export class PanelSolicitudCompraViewComponent implements OnInit, OnDestroy, Aft
     });
   }
 
-  private setFormValues(value: IPurchaseRequest): void {
+  private setFormValues(value: IPurchaseRequestQuery): void {
     // Activar flag de carga inicial para evitar que onChange events
     // modifiquen el modeloLines durante la carga
     this.isLoadingInitialData = true;

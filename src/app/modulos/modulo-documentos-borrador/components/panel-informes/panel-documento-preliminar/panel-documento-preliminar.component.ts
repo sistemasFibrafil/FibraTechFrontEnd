@@ -1,4 +1,4 @@
-import { Subject, Observable, map, catchError, of } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Router } from '@angular/router';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -9,7 +9,7 @@ import { ButtonAcces } from 'src/app/models/acceso-button.model';
 import { DraftsDocumentReportFilterModel } from '@app/modulos/modulo-documentos-borrador/models/drafts.model';
 
 import { TableColumn } from '@app/interface/common-ui.interface';
-import { IDraftsDocumentReportQuery, IDraftsStatusQuery } from '@app/modulos/modulo-documentos-borrador/interfaces/drafts.interface';
+import { IDraftsDocumentReportQuery } from '@app/modulos/modulo-documentos-borrador/interfaces/drafts.interface';
 
 import { UtilService } from '@app/services/util.service';
 import { SwaCustomService } from '@app/services/swa-custom.service';
@@ -43,6 +43,8 @@ export class PanelDocumentoPreliminarComponent implements OnInit, OnDestroy {
   // Paginación de la tabla
   rows                                          = 20;
   rowsPerPageOptions                            = [20, 40, 60, 80, 100];
+
+  private readonly orderLoadStateKey            = 'orderLoadState';
 
 
   constructor(
@@ -128,11 +130,8 @@ export class PanelDocumentoPreliminarComponent implements OnInit, OnDestroy {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filtros));
     }
 
-    // 🔥 Normalizar fechas
-    const normalizeDateOrToday = (d: any) => (d ? new Date(d) : null);
-
-    filtros.startDate = normalizeDateOrToday(filtros.startDate);
-    filtros.endDate   = normalizeDateOrToday(filtros.endDate);
+    filtros.startDate = this.utilService.normalizeDateToApiString(filtros.startDate);
+    filtros.endDate   = this.utilService.normalizeDateToApiString(filtros.endDate);
 
     return filtros
   }
@@ -146,10 +145,23 @@ export class PanelDocumentoPreliminarComponent implements OnInit, OnDestroy {
     return estados[status] ?? { text: '', class: '' };
   }
 
-  onClickGoTo(modelo: any) {
+  onClickGoTo(modelo: any): void {
+    sessionStorage.setItem(
+      this.orderLoadStateKey,
+      JSON.stringify({
+        mode: 'sendDraft',
+        docEntry: modelo.docEntry
+      })
+    );
+
     this.router.navigate(
       ['/main/modulo-ven/panel-orden-venta-create'],
-      { state: { mode: 'draft', docEntry: modelo.docEntry } }
+      {
+        state: {
+          mode: 'sendDraft',
+          docEntry: modelo.docEntry
+        }
+      }
     );
   }
 

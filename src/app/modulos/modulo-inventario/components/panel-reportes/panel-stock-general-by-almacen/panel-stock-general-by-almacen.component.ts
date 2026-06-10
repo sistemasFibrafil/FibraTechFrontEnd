@@ -228,19 +228,21 @@ export class PanelStockGeneralByAlmacenComponent implements OnInit, OnDestroy {
 
   // Aplica filtro de texto en memoria sobre código o descripción
   onFiltroTexto(valor: string): void {
-    // Si no hay texto, restaurar lista completa
-    if (!valor || !valor.trim()) {
+    const filtro = valor?.trim();
+
+    if (!filtro) {
       this.list = [...this.listOriginal];
       return;
     }
 
-    // Reemplaza espacios por .* (similar a %texto%texto%)
-    const regexTexto = valor.trim().replace(/\s+/g, '.*');
-    const regex = new RegExp(regexTexto, 'i');
+    const regex = new RegExp(
+      filtro.replace(/\s+/g, '.*'),
+      'i'
+    );
 
-    this.list = this.listOriginal.filter(n =>
-      regex.test(n.itemName) ||
-      regex.test(n.itemCode)
+    this.list = this.listOriginal.filter(item =>
+      regex.test(item.itemCode ?? '') ||
+      regex.test(item.itemName ?? '')
     );
   }
 

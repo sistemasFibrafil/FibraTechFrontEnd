@@ -215,6 +215,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.sessionService.setItemEncrypt('mainCurncy', res.mainCurncy);
     this.sessionService.setItemEncrypt('sysCurrncy', res.sysCurrncy);
     this.sessionService.setItemEncrypt('dfltWhs', res.dfltWhs);
+    this.sessionService.setItemEncrypt('dfltSlp', res.dfltSlp);
+    this.sessionService.setItemEncrypt('dfCustTerm', res.dfCustTerm);
     this.sessionService.setItemEncrypt('srcCarpetaAnexos', res.attachPath);
     this.sessionService.setItemEncrypt('whsCodeSpaPar', res.whsCodeSpaPar);
     this.sessionService.setItemEncrypt('codGrpSuppNat', res.codGrpSuppNat);

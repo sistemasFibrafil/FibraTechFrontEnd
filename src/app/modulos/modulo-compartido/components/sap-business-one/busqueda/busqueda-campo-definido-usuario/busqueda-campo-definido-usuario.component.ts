@@ -3,7 +3,7 @@ import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 import { IUserDefinedFields } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/general/user-defined-fields.interface';
-import { CamposDefinidoUsuarioService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
+import { UserDefinedFieldsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 import { UserDefinedFieldsFilterModel } from 'src/app/modulos/modulo-gestion/models/sap-business-one/definiciones/general/user-defined-fields.model';
 
 
@@ -35,7 +35,7 @@ export class BusquedaCampoDefinidoUsuarioComponent implements OnInit {
   constructor
   (
     private readonly fb: FormBuilder,
-    private camposDefinidoUsuarioService: CamposDefinidoUsuarioService,
+    private userDefinedFieldsService: UserDefinedFieldsService,
   ) { }
 
   ngOnInit(): void {
@@ -69,7 +69,7 @@ export class BusquedaCampoDefinidoUsuarioComponent implements OnInit {
       aliasID: this.aliasID,
     };
 
-    this.camposDefinidoUsuarioService.getListByFilter(params)
+    this.userDefinedFieldsService.getListByFilter(params)
     .subscribe({next:(data: IUserDefinedFields[]) =>{
         this.isDisplay = false;
         this.list = data;

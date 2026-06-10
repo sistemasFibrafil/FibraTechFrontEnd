@@ -1,7 +1,15 @@
 <form [formGroup]="modeloFormVisor">
   <div class="p-inputgroup">
     <input id="float-input-cardCode" type="text" placeholder="Socio de negocio" maxlength="50" size="100" formControlName="cardCode" autocomplete="off" pInputText readonly>
-    <button pButton type="button" [disabled]="isHabilitarButton" icon="{{globalConstants.icoBuscar}}" (click)="isVisualizar = true"></button>
+    <!-- <button pButton type="button" [disabled]="isHabilitarButton" icon="{{globalConstants.icoBuscar}}" (click)="isVisualizar = true"></button> -->
+
+    <button
+      pButton
+      type="button"
+      [disabled]="isHabilitarButton"
+      icon="{{globalConstants.icoBuscar}}"
+      (click)="onOpenModal()">
+    </button>
   </div>
 </form>
 <p-dialog header="{{title}}" [(visible)]="isVisualizar" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
@@ -10,18 +18,18 @@
       <div class="grid p-fluid">
         <div class="col-12 md:col-6">
           <div class="p-inputgroup">
-            <input id="float-input-businessPartner" type="text" placeholder="Buscar por código, número de documento o nombre" maxlength="100" size="50" formControlName="businessPartner" autocomplete="off" pInputText (keyup.enter)="onToBuscar()">
+            <input id="float-input-businessPartner" type="text" placeholder="Buscar por código, número de documento o nombre" maxlength="100" size="50" formControlName="businessPartner" autocomplete="off" pInputText (input)="onFiltroTexto()">
           </div>
         </div>
         <div class="col-12 md:col-6">
-          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onToBuscar()"></button>
+          <button pButton type="button" label="{{globalConstants.cBuscar}}" icon="{{globalConstants.icoBuscar}}" (click)="onClickBuscar()"></button>
         </div>
       </div>
     </form>
   </p-panel>
   <p-panel header="Lista de {{title}}" [toggleable]="true">
     <p-table
-      [value]="list"
+      [value]="modelo"
       [columns]="columnas"
       [rowHover]="true"
       [paginator]="true"
@@ -63,6 +71,7 @@
     </p-table>
   </p-panel>
   <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cNuevo}}" icon="{{globalConstants.icoNuevo}}" styleClass="p-button-success" (onClick)="onClickNew()"></p-button>
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickClose()"></p-button>
   </ng-template>
 </p-dialog>

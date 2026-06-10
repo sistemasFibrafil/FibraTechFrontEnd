@@ -174,10 +174,10 @@ export class InventoryTransferRequestFilterModel {
 
 export class InventoryTransferRequestCloseModel {
   docEntry                    : number;
-  u_UsrUpdate                 : number;
+  u_UsrClose                 : number;
 
   constructor(){
     this.docEntry             = 0;
-    this.u_UsrUpdate          = 0;
+    this.u_UsrClose           = 0;
   }
 }

@@ -39,6 +39,7 @@ export class OrdersCreateModel {
   u_FIB_TFLETE        : number;
   u_FIB_IMPSEG        : number;
   u_FIB_PUERTO        : string;
+  u_FIB_EMBA          : string;
 
   u_STR_TVENTA        : string;
 
@@ -93,6 +94,7 @@ export class OrdersCreateModel {
     this.u_FIB_TFLETE        = 0;
     this.u_FIB_IMPSEG        = 0;
     this.u_FIB_PUERTO        = '';
+    this.u_FIB_EMBA          = '';
 
     this.u_STR_TVENTA        = '';
 
@@ -162,6 +164,8 @@ export class OrdersUpdateModel {
   taxDate             : Date;
 
   docType             : string;
+  docStatus           : string;
+  wddStatus           : string;
 
   cardCode            : string;
   cardName            : string;
@@ -193,6 +197,8 @@ export class OrdersUpdateModel {
   u_FIB_TFLETE        : number;
   u_FIB_IMPSEG        : number;
   u_FIB_PUERTO        : string;
+  u_FIB_NEMBA         : string;
+  u_FIB_DEMBA         : string;
 
   u_STR_TVENTA        : string;
 
@@ -220,6 +226,9 @@ export class OrdersUpdateModel {
     this.taxDate             = null;
 
     this.docType             = '';
+    this.docStatus           = '';
+    this.wddStatus           = '';
+
 
     this.cardCode            = '';
     this.cardName            = '';
@@ -246,6 +255,8 @@ export class OrdersUpdateModel {
     this.u_FIB_TFLETE        = 0;
     this.u_FIB_IMPSEG        = 0;
     this.u_FIB_PUERTO        = '';
+    this.u_FIB_NEMBA         = '';
+    this.u_FIB_DEMBA         = '';
 
     this.u_STR_TVENTA        = '';
 
@@ -322,14 +333,12 @@ export class Orders1UpdateModel {
 
 
 export class OrdersCloseModel {
-  id                         : number;
   docEntry                    : number;
-  idUsuarioClose              : number;
+  u_UsrClose                  : number;
 
   constructor(){
-    this.id                   = 0;
     this.docEntry             = 0;
-    this.idUsuarioClose       = 0;
+    this.u_UsrClose           = 0;
   }
 }
 

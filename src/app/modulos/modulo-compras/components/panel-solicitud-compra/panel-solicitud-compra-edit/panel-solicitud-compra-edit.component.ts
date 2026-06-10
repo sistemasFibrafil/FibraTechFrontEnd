@@ -9,22 +9,24 @@ import { LayoutComponent } from '@app/layout/layout.component';
 import { GlobalsConstantsForm } from '@app/constants/globals-constants-form';
 
 import { ItemsFindByListCodeModel } from '@app/modulos/modulo-inventario/models/items.model';
-import { PurchaseRequest1UpdateModel, PurchaseRequestUpdateModel } from '../../../models/sap-business-one/purchase-request.model';
+import { PurchaseRequestLinesUpdateModel, PurchaseRequestUpdateModel } from '@app/modulos/modulo-compras/models/sap-business-one/purchase-request.model';
 
 import { MenuItem, TableColumn } from '@app/interface/common-ui.interface';
 import { IArticuloQuery } from '@app/modulos/modulo-inventario/interfaces/items.interface';
-import { IPurchaseRequest, IPurchaseRequest1 } from '../../../interfaces/sap-business-one/purchase-request.interface';
+import { IPurchaseRequestLinesQuery, IPurchaseRequestQuery } from '@app/modulos/modulo-compras/interfaces/sap-business-one/purchase-request.interface';
 
 import { UtilService } from '@app/services/util.service';
 import { SwaCustomService } from '@app/services/swa-custom.service';
 import { LocalDataService } from '@app/services/local-data.service';
 import { UserContextService } from '@app/services/user-context.service';
 import { ItemsService } from '@app/modulos/modulo-inventario/services/items.service';
-import { PurchaseRequestService } from '../../../services/sap-business-one/purchase-request.service';
 import { EmployeesInfoService } from '@app/modulos/modulo-recursos-humanos/services/employees-info.service';
 import { UsersService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/users.service';
+import { PurchaseRequestService } from '@app/modulos/modulo-compras/services/sap-business-one/purchase-request.service';
 import { BranchesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/branchs.service';
 import { DepartmentsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/departments.service';
+import { OperationsTypesService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/operation-type.service';
+import { UserDefinedFieldsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/general/user-defined-fields.service';
 
 
 @Component({
@@ -37,6 +39,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   // 🔹 1. LIFECYCLE / CORE
   // ===========================
   private readonly destroy$                    = new Subject<void>();
+  private readonly h                           = this.utilService.getHelpers();
   private resizeObserver!                      : ResizeObserver;
 
   @ViewChild('notifyLabel') notifyLabel!       : ElementRef<HTMLElement>;
@@ -67,14 +70,11 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   isDisplay                                    = false;
   hasValidLines                                = false;
   hasRealChanges                               = false;
-  sLoadingInitialData                          = false;
-  isLoadingInitialData                         = false;
   isVisualizarAlmacen                          = false;
+  isLoadingInitialData                         = false;
   isVisualizarArticulo                         = false;
   isVisualizarProveedor                        = false;
-  isVisualizarTipoCompra                       = false;
   isVisualizarCentroCosto                      = false;
-  isVisualizarTipoOperacion                    = false;
   isVisualizarCuentaContable                   = false;
 
 
@@ -82,6 +82,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   // 🔹 5. TABLE CONFIG
   // ===========================
   items                                        : MenuItem[];
+  itemsForm                                    : MenuItem[];
   columnas                                     : TableColumn[] = [];
   opciones                                     : MenuItem[];
 
@@ -89,13 +90,14 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   // ===========================
   // 🔹 6. DATA (CORE)
   // ===========================
-  modelo                                       : IPurchaseRequest;
-  modeloLinesSelected                          : IPurchaseRequest1;
-  modeloLinesSelectedContext                   : IPurchaseRequest1;
+  private initialSnapshot!                     : any;
+  modelo                                       : IPurchaseRequestQuery;
+  modeloLinesSelected                          : IPurchaseRequestLinesQuery;
+  modeloLinesSelectedContext                   : IPurchaseRequestLinesQuery;
 
-  modeloLines                                  : IPurchaseRequest1[] = [];
-  modeloLinesEliminar                          : IPurchaseRequest1[] = [];
-  modeloLinesOriginal                          : IPurchaseRequest1[] = [];
+  modeloLines                                  : IPurchaseRequestLinesQuery[] = [];
+  modeloLinesEliminar                          : IPurchaseRequestLinesQuery[] = [];
+  modeloLinesOriginal                          : IPurchaseRequestLinesQuery[] = [];
 
 
   // ===========================
@@ -108,30 +110,23 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   requesterList                                : SelectItem[] = [];
   departmentsList                              : SelectItem[] = [];
   employeesInfoList                            : SelectItem[] = [];
+  purchasesTypesList                           : SelectItem[] = [];
+  operationsTypesList                          : SelectItem[] = [];
 
 
   // ===========================
-  // 🔹 8. DOC TYPE CONTROL
+  // 🔹 8. INDEXES (UI CONTROL)
   // ===========================
-  initialSnapshot!                             : any;
-
-
-  // ===========================
-  // 🔹 9. INDEXES (UI CONTROL)
-  // ===========================
-  id                                           = 0;
   docEntry                                     = 0;
   indexAlmacen                                 = 0;
   indexArticulo                                = 0;
-  indexTipoCompra                              = 0;
+  indexProveedor                               = 0;
   indexCentroCosto                             = 0;
-  indexTipoOperacion                           = 0;
-  indexCentroProveedor                         = 0;
-  indexCentroCuentaContable                    = 0;
+  indexCuentaContable                          = 0;
 
 
   // ===========================
-  // 🔹 10. AUX / FILTERS
+  // 🔹 9. AUX / FILTERS
   // ===========================
   filler                                       = '';
   itemCode                                     = '';
@@ -154,7 +149,9 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     private readonly userContextService: UserContextService,
     private readonly departmentsService: DepartmentsService,
     private readonly employeesInfoService: EmployeesInfoService,
+    private readonly operationsTypesService: OperationsTypesService,
     private readonly purchaseRequestService: PurchaseRequestService,
+    private readonly userDefinedFieldsService: UserDefinedFieldsService,
     public  readonly utilService: UtilService,
   ) {}
 
@@ -234,9 +231,10 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.subscribeReqDate();
 
     // 4️⃣ Inicializar UI
-    this.onBuildColumn();
+    this.buildColumns();
     this.opcionesTabla();
-    this.buildContextMenu();
+    this.buildContextMenuOptions();
+    this.buildContextMenuOptionsForm();
   }
 
   private buildForms(): void {
@@ -270,6 +268,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   }
 
   private loadAllCombos(): void {
+    const parampurchasesTypes : any = { tableID: 'PRQ1', aliasID: 'FF_TIP_COM' };
 
     // Cargar datos síncronos (LocalDataService)
     const reqTypes = this.localDataService.reqTypes;
@@ -279,38 +278,51 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.docTypesList = docTypes.map(s => ({ label: s.name, value: s.code }));
 
     forkJoin({
-      requesterList     : this.usersService.getList(),
-      branchesList      : this.branchesService.getList(),
-      departmentsList   : this.departmentsService.getList(),
-      employeesInfoList : this.employeesInfoService.getList()
+      requesterList       : this.usersService.getList(),
+      branchesList        : this.branchesService.getList(),
+      departmentsList     : this.departmentsService.getList(),
+      employeesInfoList   : this.employeesInfoService.getList(),
+      purchasesTypesList  : this.userDefinedFieldsService.getList(parampurchasesTypes),
+      operationsTypesList : this.operationsTypesService.getList(),
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (result: any) => {
+      next: (res: any) => {
         // Mapear requester list
-        this.requesterList = result.requesterList.map(item => ({
+        this.requesterList = res.requesterList.map(item => ({
           label: item.userName,
           value: item.userCode
         }));
 
         // Mapear branches list
-        this.branchesList = result.branchesList.map(item => ({
+        this.branchesList = res.branchesList.map(item => ({
           label: item.name,
           value: item.code
         }));
 
 
         // Mapear departments list
-        this.departmentsList = result.departmentsList.map(item => ({
+        this.departmentsList = res.departmentsList.map(item => ({
           label: item.name,
           value: item.code
         }));
 
 
         // Mapear employees info list
-        this.employeesInfoList =  result.employeesInfoList.map(item => ({
+        this.employeesInfoList =  res.employeesInfoList.map(item => ({
           label: item.fullName,
           value: item.empID
+        }));
+
+        this.operationsTypesList = res.operationsTypesList.map(item => ({
+          label: item.fullDescr,
+          value: item.code
+        }));
+
+
+        this.purchasesTypesList = res.purchasesTypesList.map(item => ({
+          label: item.fullDescr,
+          value: item.fldValue
         }));
 
         // 3. AHORA SÍ cargar datos - los combos están listos
@@ -322,7 +334,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     });
   }
 
-  private onBuildColumn(): void {
+  private buildColumns(): void {
     // Usar docTypeSelected si está disponible, sino leer del formulario
     const docTypeValue = this.modeloFormCon.get('docType')?.value?.value;
     const isItemDoc         = docTypeValue === 'I';
@@ -337,8 +349,8 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
         { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
         { field: 'ocrCode',           header: 'Centro de costos' },
         { field: 'whsCode',           header: 'Almacén' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+        { field: 'u_tipoOpT12',       header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM',      header: 'Tipo de compra' },
         { field: 'unitMsr',           header: 'UM' },
         { field: 'onHand',            header: 'Stock' },
         { field: 'quantity',          header: 'Cantidad' },
@@ -352,29 +364,35 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
         { field: 'formatCode',        header: 'Cuenta mayor' },
         { field: 'acctName',          header: 'Nombre de la cuenta de mayor' },
         { field: 'ocrCode',           header: 'Centro de costos' },
-        { field: 'u_tipoOpT12Nam',    header: 'Tipo de operación' },
-        { field: 'u_FF_TIP_COM_NAM',  header: 'Tipo de compra' },
+        { field: 'u_tipoOpT12',       header: 'Tipo de operación' },
+        { field: 'u_FF_TIP_COM',      header: 'Tipo de compra' },
       ];
     }
   }
 
   private opcionesTabla(): void {
-    // Acciones del split-button para operaciones de fila
     this.opciones = [
-      { value: '1', label: 'Añadir línea', icon: 'pi pi-pencil',  command: () => this.onClickAddLine() },
-      { value: '2', label: 'Borrar línea', icon: 'pi pi-times',   command: () => this.onClickDelete() }
+      { value: '1', label: 'Añadir línea', icon: 'pi pi-plus',  command: () => this.onClickAddLine() },
+      { value: '2', label: 'Borrar línea', icon: 'pi pi-trash',   command: () => this.onClickDelete() }
     ];
   }
 
-  private buildContextMenu(): void {
-    // Acciones del menú contextual asociadas a la fila seleccionada
+  private buildContextMenuOptions(): void {
     this.items = [
       { value: '1', label: 'Añadir línea', icon: 'pi pi-plus',   command: () => this.onClickContextMenuAddLine(this.modeloLinesSelectedContext) },
       { value: '2', label: 'Borrar línea', icon: 'pi pi-trash',  command: () => this.onClickContextMenuDelete(this.modeloLinesSelectedContext) }
     ];
   }
 
-  /** Se suscribe a cambios en la fecha de requerimiento para aplicarlos a todas las líneas */
+  private buildContextMenuOptionsForm(): void {
+    this.itemsForm = [
+      { value: '1', label: 'Cerrar',                              icon: 'pi pi-times',                  command: () => {} },
+      { value: '2', label: 'Duplicar',                            icon: 'pi pi-copy',                   command: () => { this.onClickDuplicate() } },
+      { value: '3', label: 'Comentarios iniciales y final',       icon: 'pi pi-check',                  command: () => {} },
+      { value: '4', label: 'Mapa de relaciones',                  icon: 'pi pi-eye',                    command: () => {} },
+    ];
+  }
+
   private subscribeReqDate(): void {
     this.modeloFormDoc.get('reqDate')!
     .valueChanges
@@ -421,8 +439,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.updateMenuContextVisibility();
   }
 
-  /** Agrega una nueva línea después de la línea seleccionada en el menú contextual */
-  onClickContextMenuAddLine(modelo: IPurchaseRequest1): void {
+  onClickContextMenuAddLine(modelo: IPurchaseRequestLinesQuery): void {
     // Manejar casos donde el objeto 'modelo' no es pasado correctamente
     const target = modelo || this.modeloLinesSelectedContext;
 
@@ -435,8 +452,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.addLine(insertIndex);
   }
 
-  /** Elimina la línea seleccionada en el menú contextual */
-  onClickContextMenuDelete(modelo: IPurchaseRequest1): void {
+  onClickContextMenuDelete(modelo: IPurchaseRequestLinesQuery): void {
     if (modelo.record === 2) {
       modelo.record = 3;
       this.modeloLinesEliminar.push(modelo);
@@ -455,9 +471,13 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
+  onContextMenuShowForm(): void {
+    this.updateMenuContextVisibility();
+  }
 
-  /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
-  onSelectedItem(modelo: IPurchaseRequest1): void {
+
+
+  onSelectedItem(modelo: IPurchaseRequestLinesQuery): void {
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility();
   }
@@ -524,6 +544,33 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     if (deleteLineOption) deleteLineOption.visible = hasLines;
   }
 
+  onPanelContextMenu(event: MouseEvent, cm: any): void {
+    const target = event.target as HTMLElement;
+
+    const isControl = !!target.closest(`
+      label,
+      input,
+      textarea,
+      select,
+      button,
+      p-table,
+      p-tabView,
+      .p-inputtext,
+      .p-dropdown,
+      .p-calendar,
+      .p-button,
+      .p-splitbutton,
+      .p-dialog
+    `);
+
+    if (isControl) {
+      event.stopPropagation();
+      return;
+    }
+
+    cm.show(event);
+  }
+
   //#endregion
 
 
@@ -531,7 +578,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
   //#region <<< 5. LINES (CORE) >>>
 
   private addLine(index: number): void {
-    const newLine: IPurchaseRequest1 = {
+    const newLine: IPurchaseRequestLinesQuery = {
       lineStatus        : 'O',
       itemCode          : '',
       dscription        : '',
@@ -571,6 +618,8 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.modeloLines.filter(line => line.dscription !== '').forEach(line => {
       line.pqtReqDate = date;
     });
+
+    this.updateHasValidLines();
   }
 
   // Verifica si todas las líneas son válidas según el tipo de documento
@@ -591,12 +640,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 6. DOC TYPE >>>
-  //#endregion
-
-
-
-  //#region <<< 7. ICONS >>>
+  //#region <<< 6. ICONS >>>
 
   showIcon(modelo: any): boolean {
     const u = this.utilService;
@@ -632,7 +676,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 8. ARTÍCULO >>>
+  //#region <<< 7. ARTÍCULO >>>
 
   onOpenArticulo(index: number): void {
     this.indexArticulo        = index;
@@ -648,7 +692,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.isVisualizarArticulo = !this.isVisualizarArticulo;
   }
 
-  private mapToPurchaseRequest(element: IArticuloQuery, date: Date): IPurchaseRequest1 {
+  private mapToPurchaseRequest(element: IArticuloQuery, date: Date): IPurchaseRequestLinesQuery {
     /** helpers para evitar repetición */
     const u       = this.utilService;
     const p       = (v:any)=>u.normalizePrimitive(v);
@@ -724,8 +768,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
       cardCode            : '',
       currency            : '',
       operationTypeCode   : '02',
-      warehouseProduction : '',
-      warehouseLogistics  : 'Y',
+      warehouseType       : 'L'
     };
   }
 
@@ -738,15 +781,15 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 9. PROVEEDOR >>>
+  //#region <<< 8. PROVEEDOR >>>
 
   onOpenProveedor(index: number): void {
-    this.indexCentroProveedor = index;
+    this.indexProveedor = index;
     this.isVisualizarProveedor = !this.isVisualizarProveedor;
   }
 
   onSelectedProveedor(value: any): void {
-    const currentLine          = this.modeloLines[this.indexCentroProveedor];
+    const currentLine          = this.modeloLines[this.indexProveedor];
     currentLine.lineVendor     = value.cardCode;
     this.isVisualizarProveedor = !this.isVisualizarProveedor;
 
@@ -776,15 +819,15 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 10. CUENTA CONTABLE >>>
+  //#region <<< 9. CUENTA CONTABLE >>>
 
   onOpenCuentaContable(index: number): void {
-    this.indexCentroCuentaContable = index;
+    this.indexCuentaContable = index;
     this.isVisualizarCuentaContable = !this.isVisualizarCuentaContable;
   }
 
   onSelectedCuentaContable(value: any): void {
-    const currentLine               = this.modeloLines[this.indexCentroCuentaContable];
+    const currentLine               = this.modeloLines[this.indexCuentaContable];
     currentLine.acctCode            = value.acctCode;
     currentLine.formatCode          = value.formatCode;
     currentLine.acctName            = value.acctName;
@@ -800,7 +843,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 11. CENTRO DE COSTO >>>
+  //#region <<< 10. CENTRO DE COSTO >>>
 
   onOpenCentroCosto(index: number): void {
     this.indexCentroCosto        = index;
@@ -822,9 +865,9 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 12. ALMACÉN >>>
+  //#region <<< 11. ALMACÉN >>>
 
-  onOpenAlmacen(value: IPurchaseRequest1, index: number): void {
+  onOpenAlmacen(value: IPurchaseRequestLinesQuery, index: number): void {
     this.indexAlmacen         = index;
     this.itemCode             = value.itemCode;
     this.isVisualizarAlmacen  = !this.isVisualizarAlmacen;
@@ -845,55 +888,9 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 13. TIPO OPERACIÓN >>>
+  //#region <<< 14. CANTIDAD >>>
 
-  onOpenTipoOperacion(index: number): void {
-    this.indexTipoOperacion        = index;
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-  }
-
-  onSelectedTipoOperacion(value: any): void {
-    const currentLine              = this.modeloLines[this.indexTipoOperacion];
-    currentLine.u_tipoOpT12        = value.code;
-    currentLine.u_tipoOpT12Nam     = value.fullDescription;
-    this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  onClickCloseTipoOperacion(): void {
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-
-  //#endregion
-
-
-
-  //#region <<< 14. TIPO COMPRA >>>
-
-  onOpenTipoCompra(index: number): void {
-    this.indexTipoCompra = index;
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-
-  onClickSelectedTipoCompra(value: any): void {
-    const currentLine             = this.modeloLines[this.indexTipoCompra];
-    currentLine.u_FF_TIP_COM      = value.fldValue;
-    currentLine.u_FF_TIP_COM_NAM  = value.fullDescr;
-    this.isVisualizarTipoCompra   = !this.isVisualizarTipoCompra;
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
-  }
-
-  onClickCloseTipoCompra(): void {
-    this.isVisualizarTipoCompra = !this.isVisualizarTipoCompra;
-  }
-
-  //#endregion
-
-
-
-  //#region <<< 15. CANTIDAD >>>
-
-  onChangeQuantity(value: IPurchaseRequest1, index: number): void {
+  onChangeQuantity(value: IPurchaseRequestLinesQuery, index: number): void {
     if (value.record === 1) {
       this.updateQuantityNew(value, index);
     } else {
@@ -903,7 +900,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
-  private updateQuantityNew(value: IPurchaseRequest1, index: number): void {
+  private updateQuantityNew(value: IPurchaseRequestLinesQuery, index: number): void {
     if (value.itemCode === '') {
       this.modeloLines[index].quantity = 0;
       this.modeloLines[index].openQty = 0;
@@ -915,7 +912,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     this.modeloLines[index].openQty = quantity;
   }
 
-  private updateQuantityExisting(value: IPurchaseRequest1, index: number): void {
+  private updateQuantityExisting(value: IPurchaseRequestLinesQuery, index: number): void {
     const modelomodeloLinesOriginal = this.modeloLinesOriginal.find(d => d.lineNum === value.lineNum && d.docEntry === value.docEntry);
 
     if (!modelomodeloLinesOriginal) return;
@@ -931,7 +928,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 16. REQUESTER / HEADER LOGIC >>>
+  //#region <<< 15. REQUESTER / HEADER LOGIC >>>
 
   onChangeReqType(): void {
     const reqTypeValue = this.modeloFormReq.get('reqType')?.value?.value;
@@ -1030,7 +1027,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
 
 
-  //#region <<< 17. SAVE >>>
+  //#region <<< 16. SAVE >>>
 
   onClickSave(): void {
     this.swaCustomService.swaConfirmation(
@@ -1075,25 +1072,18 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
       return false;
     };
 
-    /** helpers */
-    const u   = this.utilService;
-    const p   = (v:any)=>u.normalizePrimitive(v);
-    const val = (v:any)=>v?.value ?? v;
-
     /** combinar forms */
     const f = this.mergeForms();
 
-    const isItemDoc = val(f.docType) === 'I';
-
     /** 🔹 VALIDACIONES HEADER */
     const headerValidations = [
-      { cond: !val(f.reqName), msg: 'Seleccione el nombre del solicitante.' },
-      { cond: f.notify && !p(f.email)?.trim(), msg: 'Ingrese un correo electrónico válido.' },
+      { cond: !this.h.v(f.reqName), msg: 'Seleccione el nombre del solicitante.' },
+      { cond: f.notify && !this.h.p(f.email)?.trim(), msg: 'Ingrese un correo electrónico válido.' },
       { cond: !f.docDate, msg: 'Ingrese la fecha del documento.' },
       { cond: !f.docDueDate, msg: 'Ingrese la fecha de vencimiento del documento.' },
       { cond: !f.taxDate, msg: 'Ingrese la fecha fiscal del documento.' },
       { cond: !f.reqDate, msg: 'Ingrese la fecha de requerimiento.' },
-      { cond: !val(f.employeeInfo), msg: 'Seleccione el propietario de la solicitud.' }
+      { cond: !this.h.v(f.employeeInfo), msg: 'Seleccione el propietario de la solicitud.' }
     ];
 
     for (const v of headerValidations) {
@@ -1110,7 +1100,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
         { cond: !line?.u_tipoOpT12, msg: 'Seleccione el tipo de operación en el detalle.' },
         { cond: !line?.u_FF_TIP_COM, msg: 'Seleccione el tipo de compra en el detalle.' },
 
-        ...(isItemDoc ? [
+        ...(this.isItem ? [
           { cond: !line.whsCode, msg: 'Seleccione el almacén en el detalle.' },
           { cond: !line.unitMsr, msg: 'La unidad medida es obligatoria. Definir en datos maestros del artículo. Pestaña "Datos de compras".' },
           { cond: !line.quantity || line.quantity <= 0, msg: 'La cantidad debe ser mayor que CERO (0).' }
@@ -1134,51 +1124,37 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     };
   }
 
-  private mapLinesUpdate(): PurchaseRequest1UpdateModel[] {
-    /** helpers para evitar repetición */
-    const u = this.utilService;
-    const p = (v:any)=>u.normalizePrimitive(v);
-    const n = (v:any)=>u.normalizeNumber(v);
-    const d = (v:any)=>u.normalizeDateOrToday(v);
-
+  private mapLinesUpdate(): PurchaseRequestLinesUpdateModel[] {
     const allLines = [...this.modeloLines, ...this.modeloLinesEliminar];
 
     return allLines.map(line => ({
 
-      docEntry    : n(line.docEntry),
-      lineNum     : n(line.lineNum),
-      lineStatus  : p(line.lineStatus),
+      docEntry    : this.h.n(line.docEntry),
+      lineNum     : this.h.n(line.lineNum),
+      lineStatus  : this.h.p(line.lineStatus),
 
-      itemCode    : p(line.itemCode),
-      dscription  : p(line.dscription),
+      itemCode    : this.h.p(line.itemCode),
+      dscription  : this.h.p(line.dscription),
 
-      lineVendor  : p(line.lineVendor),
-      pqtReqDate  : d(line.pqtReqDate),
+      lineVendor  : this.h.p(line.lineVendor),
+      pqtReqDate  : this.h.d(line.pqtReqDate),
 
-      acctCode    : p(line.acctCode),
-      ocrCode     : p(line.ocrCode),
+      acctCode    : this.h.p(line.acctCode),
+      ocrCode     : this.h.p(line.ocrCode),
 
-      whsCode     : p(line.whsCode),
+      whsCode     : this.h.p(line.whsCode),
 
-      unitMsr     : p(line.unitMsr),
-      quantity    : n(line.quantity),
+      unitMsr     : this.h.p(line.unitMsr),
+      quantity    : this.h.n(line.quantity),
 
-      u_tipoOpT12 : p(line.u_tipoOpT12),
-      u_FF_TIP_COM: p(line.u_FF_TIP_COM),
+      u_tipoOpT12 : this.h.p(line.u_tipoOpT12),
+      u_FF_TIP_COM: this.h.p(line.u_FF_TIP_COM),
 
-      record      : n(line.record)
+      record      : this.h.n(line.record)
     }));
   }
 
   private buildModelToSave(): PurchaseRequestUpdateModel {
-    /** helpers para evitar repetición */
-    const u         = this.utilService;
-    const p         = (v:any)=>u.normalizePrimitive(v);
-    const d         = (v:any)=>u.normalizeDateOrToday(v);
-    const val       = (v:any)=>v?.value ?? v;
-    const label     = (v:any)=>v?.label ?? v ?? '';
-
-    /** combinar tod  os los formularios */
     const f         = this.mergeForms();
 
     const userId    = this.userContextService.getIdUsuario();
@@ -1192,31 +1168,44 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
 
       docEntry    : this.docEntry,
 
-      docDate     : d(f.docDate),
-      docDueDate  : d(f.docDueDate),
-      taxDate     : d(f.taxDate),
-      reqDate     : d(f.reqDate),
+      docDate     : this.h.d(f.docDate),
+      docDueDate  : this.h.d(f.docDueDate),
+      taxDate     : this.h.d(f.taxDate),
+      reqDate     : this.h.d(f.reqDate),
 
-      docType     : val(f.docType),
+      docType     : this.h.v(f.docType),
 
-      reqType     : val(f.reqType),
-      requester   : val(f.reqName),
-      reqName     : label(f.reqName),
+      reqType     : this.h.v(f.reqType),
+      requester   : this.h.v(f.reqName),
+      reqName     : this.h.l(f.reqName),
 
-      branch      : val(f.branch),
-      department  : val(f.department),
+      branch      : this.h.v(f.branch),
+      department  : this.h.v(f.department),
 
       notify      : notify,
-      email       : p(f.email),
+      email       : this.h.p(f.email),
 
-      ownerCode   : val(f.employeeInfo),
+      ownerCode   : this.h.v(f.employeeInfo),
 
-      comments    : p(f.comments),
+      comments    : this.h.p(f.comments),
 
       u_UsrUpdate : userId,
 
       lines
     };
+  }
+
+  //#endregion
+
+
+
+  //#region <<< 17. DUPLICATE >>>
+
+  onClickDuplicate(): void {
+    // respaldo para refresh
+    sessionStorage.setItem('SolicitudCompraDuplicate',JSON.stringify(this.docEntry));
+
+    this.router.navigate(['/main/modulo-com/panel-solicitud-compra-create'], { state: { mode: 'duplicate', docEntry: this.docEntry } });
   }
 
   //#endregion
@@ -1240,13 +1229,13 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     .pipe(
       takeUntil(this.destroy$),
       switchMap(params => {
-        this.id = +params['id'];
+        this.docEntry = +params['id'];
 
         // 🔥 aquí sí se activa de forma confiable
         this.isDisplay = true;
 
         return this.purchaseRequestService
-          .getByDocEntry(this.id)
+          .getByDocEntry(this.docEntry)
           .pipe(
             finalize(() => {
               this.isDisplay = false;
@@ -1255,7 +1244,7 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
       })
     )
     .subscribe({
-      next: (data: IPurchaseRequest) => {
+      next: (data: IPurchaseRequestQuery) => {
         this.modeloLinesOriginal = structuredClone(data.lines);
 
         const normalizedLines = data.lines.map(line => ({
@@ -1281,114 +1270,108 @@ export class PanelSolicitudCompraEditComponent implements OnInit, OnDestroy, Aft
     });
   }
 
-  private setFormValues(value: IPurchaseRequest): void {
-    // Activar flag de carga inicial para evitar que onChange events
-    // modifiquen el modeloLines durante la carga
+  private setFormValues(value: IPurchaseRequestQuery): void {
     this.isLoadingInitialData = true;
 
-    // =========================================================================
-    // PRIMER BLOQUE: Cargar formularios y propiedades del componente
-    // =========================================================================
+    this.setHeaderState(value);
+    this.setRequesterList(value);
+    this.setRequerimientoForm(value);
+    this.setDocumentoForm(value);
+    this.setContenidoForm(value);
+    this.setPieForm(value);
+    this.setLines(value);
 
-    // Asignar propiedades del componente
-    this.isLocked                 = value.docStatus !== 'O';
-    this.docEntry                 = value.docEntry;
-
-
-    // Buscar y asignar valores como SelectItem para los dropdowns de Almacenes
-    if(value.reqType === 17){
-      this.requesterList = this.employeesInfoList.map(item => ({
-        label: item.label,
-        value: item.value
-      }));
-    }
-
-    const reqType                 = this.reqTypesList.find(item => item.value === value.reqType);
-    const reqName                 = this.requesterList.find(item => item.value === value.requester);
-    const branch                  = this.branchesList.find(item => item.value === value.branch);
-    const department              = this.departmentsList.find(item => item.value === value.department);
-
-    // Actualizar formulario de Requerimiento
-    this.modeloFormReq.patchValue(
-      {
-        reqType                   : reqType || null,
-        reqName                   : reqName || null,
-        branch                    : branch || null,
-        department                : department || null,
-        notify                    : value.notify === 'Y' ? true : false,
-        email                     : this.utilService.normalizePrimitive(value.email)
-      },
-      { emitEvent: false }
-    );
-
-    // Actualizar formulario de Documento
-    this.modeloFormDoc.patchValue(
-      {
-        docNum                    : value.docNum,
-        docStatus                 : value.docStatus === 'O' ? 'Abierto' : 'Cerrado',
-        docDate                   : value.docDate ? new Date(value.docDate) : null,
-        docDueDate                : value.docDueDate ? new Date(value.docDueDate) : null,
-        taxDate                   : value.taxDate ? new Date(value.taxDate) : null,
-        reqDate                   : value.reqDate ? new Date(value.reqDate) : null,
-      },
-      { emitEvent: false }
-    );
-
-    const docType                 = this.docTypesList.find(item => item.value === value.docType);
-
-    // Actualizar formulario de Contenido
-    this.modeloFormCon.patchValue(
-      {
-        docType                  : docType || null,
-      },
-      { emitEvent: false }
-    );
-
-    // Buscar y asignar valor como SelectItem para empleado
-    const employee                = this.employeesInfoList.find(item => item.value === value.ownerCode);
-
-    // Actualizar formulario Pie
-    this.modeloFormPie.patchValue(
-      {
-        employeeInfo              : employee || null,
-        comments                  : this.utilService.normalizePrimitive(value.comments)
-      },
-      { emitEvent: false }
-    );
-
-    // =========================================================================
-    // SEGUNDO BLOQUE: Cargar modeloLines después de que los formularios estén actualizados
-    // =========================================================================
-    // Esto garantiza que los eventos onChange no sobrescriban los valores originales del modeloLines
-    this.onBuildColumn();
-    this.modeloLines = (value.lines || []).map(linea => this.utilService.mapLine(linea));
-    this.updateHasValidLines();
     this.isLoadingInitialData = false;
 
-    // =========================
-    // SNAPSHOT ORIGINAL (CLAVE)
-    // =========================
+    this.setInitialSnapshot();
+    this.markFormsAsPristine();
+
+    this.watchChanges();
+    this.detectRealChanges();
+  }
+
+  private setHeaderState(value: IPurchaseRequestQuery): void {
+    this.isLocked = value.docStatus !== 'O';
+    this.docEntry = value.docEntry;
+  }
+
+  private setRequesterList(value: IPurchaseRequestQuery): void {
+    if (value.reqType !== 17) return;
+
+    this.requesterList = this.employeesInfoList.map(item => ({
+      label: item.label,
+      value: item.value
+    }));
+  }
+
+  private setRequerimientoForm(value: IPurchaseRequestQuery): void {
+    const reqType    = this.h.findItem(this.reqTypesList, value.reqType);
+    const reqName    = this.h.findItem(this.requesterList, value.requester);
+    const branch     = this.h.findItem(this.branchesList, value.branch);
+    const department = this.h.findItem(this.departmentsList, value.department);
+
+    this.h.patch(this.modeloFormReq, {
+      reqType,
+      reqName,
+      branch,
+      department,
+      notify: value.notify === 'Y',
+      email : this.h.p(value.email)
+    });
+  }
+
+  private setDocumentoForm(value: IPurchaseRequestQuery): void {
+    this.h.patch(this.modeloFormDoc, {
+      docNum   : value.docNum,
+      docStatus: value.docStatus === 'O' ? 'Abierto' : 'Cerrado',
+      docDate  : this.h.d(value.docDate),
+      docDueDate: this.h.d(value.docDueDate),
+      taxDate  : this.h.d(value.taxDate),
+      reqDate  : this.h.d(value.reqDate)
+    });
+  }
+
+  private setContenidoForm(value: IPurchaseRequestQuery): void {
+    const docType = this.h.findItem(this.docTypesList, value.docType);
+
+    this.h.patch(this.modeloFormCon, {
+      docType
+    });
+  }
+
+  private setPieForm(value: IPurchaseRequestQuery): void {
+    const employee = this.h.findItem(this.employeesInfoList, value.ownerCode);
+
+    this.h.patch(this.modeloFormPie, {
+      employeeInfo: employee,
+      comments    : this.h.p(value.comments)
+    });
+  }
+
+  private setLines(value: IPurchaseRequestQuery): void {
+    this.buildColumns();
+
+    this.modeloLines = (value.lines || [])
+      .map(linea => this.utilService.mapLine(linea));
+
+    this.updateHasValidLines();
+  }
+
+  private setInitialSnapshot(): void {
     this.initialSnapshot = {
-      req: this.modeloFormReq.getRawValue(),
-      doc: this.modeloFormDoc.getRawValue(),
-      pie: this.modeloFormPie.getRawValue(),
+      req  : this.modeloFormReq.getRawValue(),
+      doc  : this.modeloFormDoc.getRawValue(),
+      pie  : this.modeloFormPie.getRawValue(),
       lines: structuredClone(this.modeloLines)
     };
+  }
 
-    // Marcar pristine
-    this.modeloFormReq.markAsPristine();
-    this.modeloFormDoc.markAsPristine();
-    this.modeloFormPie.markAsPristine();
-
-    // =========================
-    // ESCUCHAR CAMBIOS DE FORMULARIOS
-    // =========================
-    this.watchChanges();
-
-    // =========================
-    // ESTADO INICIAL BOTÓN
-    // =========================
-    this.detectRealChanges();
+  private markFormsAsPristine(): void {
+    [
+      this.modeloFormReq,
+      this.modeloFormDoc,
+      this.modeloFormPie
+    ].forEach(f => f.markAsPristine());
   }
 
   //#endregion

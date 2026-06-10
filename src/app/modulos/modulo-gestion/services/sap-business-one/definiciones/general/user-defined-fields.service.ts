@@ -7,7 +7,7 @@ import { IUserDefinedFields } from 'src/app/modulos/modulo-gestion/interfaces/sa
 
 
 @Injectable({providedIn: 'root'})
-export class CamposDefinidoUsuarioService {
+export class UserDefinedFieldsService {
   constructor
   (
     private http: HttpClient

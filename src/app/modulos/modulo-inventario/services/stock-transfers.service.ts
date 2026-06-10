@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment.prod';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
-import { IStockTransfers } from '../interfaces/stock-transfers.interface';
+import { IStockTransfers, IStockTransfersQuery } from '../interfaces/stock-transfers.interface';
 import { StockTransfersCreateModel, StockTransfersFilterModel, StockTransfersUpdateModel } from '../models/stock-transfers.model';
 
 
@@ -22,15 +22,15 @@ export class StockTransfersService {
     params = params.append('endDate', this.datePipe.transform(value.endDate, 'yyyy-MM-dd'));
     params = params.append('docStatus', value.docStatus);
     params = params.append('searchText', value.searchText);
-    return this.http.get<IStockTransfers[]>(`${environment.url_api_fib}StockTransfers/GetListByFilter/`,{params: params});
+    return this.http.get<IStockTransfersQuery[]>(`${environment.url_api_fib}StockTransfers/GetListByFilter/`,{params: params});
   }
 
   getByDocEntry(id: number) {
     return this.http.get<IStockTransfers>(`${environment.url_api_fib}StockTransfers/GetByDocEntry/${id}`);
   }
 
-  getFormatoPdfByDocEntry(id: number) {
-    return this.http.get(`${environment.url_api_fib}StockTransfers/GetFormatoPdfByDocEntry/${id}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
+  getFormatoPdfByDocEntry(docEntry: number) {
+    return this.http.get(`${environment.url_api_fib}StockTransfers/GetFormatoPdfByDocEntry/${docEntry}`, {responseType: 'blob',  observe: 'response', reportProgress: true });
   }
 
   setCreate(value: StockTransfersCreateModel) {

@@ -4,8 +4,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { GlobalsConstantsForm } from 'src/app/constants/globals-constants-form';
 
 import { FilterRequestModel } from 'src/app/models/filter-request.model';
-import { ITaxGroups } from 'src/app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/impuesto-sap.iterface';
-import { TaxGroupsService } from 'src/app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/impuesto-sap.service';
+import { ITaxGroups } from '@app/modulos/modulo-gestion/interfaces/sap-business-one/definiciones/finanzas/tax-groups.iterface';
+import { TaxGroupsService } from '@app/modulos/modulo-gestion/services/sap-business-one/definiciones/finanzas/tax-groups.service';
 
 
 

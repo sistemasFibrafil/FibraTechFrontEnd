@@ -91,7 +91,7 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
         'numeroDocumento' : new FormControl('', Validators.compose([Validators.required])),
         'numeroTelefono' : new FormControl(''),
         'userSap' : new FormControl('', Validators.compose([Validators.required])),
-        'salesEmployees'    : new FormControl('', Validators.compose([Validators.required])),
+        'salesPersons'    : new FormControl('', Validators.compose([Validators.required])),
         'activo' : new FormControl(true, Validators.compose([Validators.required])),
         'usuario' : new FormControl({value: '', disabled: true}, Validators.compose([Validators.required, Validators.maxLength(20), Validators.minLength(2)])),
         'password' : new FormControl('', Validators.compose([Validators.maxLength(15), Validators.minLength(6)])),
@@ -165,34 +165,53 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
   }
 
   private setFormValues(value: UsuarioModel): void {
-    this.modeloForm.controls['apellidoPaterno'].setValue(value.apellidoPaterno);
-      this.modeloForm.controls['apellidoMaterno'].setValue(value.apellidoMaterno);
-      this.modeloForm.controls['nombre'].setValue(value.nombre);
-      this.modeloForm.controls['numeroDocumento'].setValue(value.nroDocumento);
-      this.modeloForm.controls['numeroTelefono'].setValue(value.nroTelefono);
+    const h = this.getHelpers();
 
-      const userSapItem = this.userSapList?.find(s => String(s.value) === String(value.idUserSap));
-      if (userSapItem) {
-        this.modeloForm.controls['userSap'].setValue(userSapItem);
-      }
+    this.setUserForm(value, h);
+    this.setViewState(value);
+  }
 
-      this.modeloForm.controls['activo'].setValue(value.activo);
-      this.modeloForm.controls['usuario'].setValue(value.usuario);
-      this.modeloForm.controls['password'].setValue(this.cifrarDataService.decrypt(value.clave));
-      this.modeloForm.controls['email'].setValue(value.email);
+  private getHelpers() {
+    const {
+      normalizePrimitive: n,
+      findSelectItem: findItem,
+      patchForm: patch
+    } = this.utilService;
 
-      const perfilItem = this.perfilList?.find(s => String(s.value) === String(value.idPerfil));
-      if (perfilItem) {
-        this.modeloForm.controls['perfil'].setValue(perfilItem);
-      }
+    return { n, findItem, patch };
+  }
 
-      this.modeloForm.controls['foto'].setValue(value.imagen);
-      this.sellersPermitString = value.imagen;
-      this.modeloForm.controls['dark'].setValue(value.themeDark);
-      this.modeloForm.controls['menu'].setValue(value.typeMenu);
-      this.modeloForm.controls['theme'].setValue(value.themeColor);
+  private setUserForm(value: UsuarioModel, h: any): void {
+    const userSapItem      = h.findItem(this.userSapList, value.idUserSap);
+    const perfilItem       = h.findItem(this.perfilList, value.idPerfil);
+    const salesPersonsItem = h.findItem(this.salesPersonsList, value.slpCode);
 
-      this.isHabilitarView = false;
+    h.patch(this.modeloForm, {
+      apellidoPaterno : h.n(value.apellidoPaterno),
+      apellidoMaterno : h.n(value.apellidoMaterno),
+      nombre          : h.n(value.nombre),
+      numeroDocumento : h.n(value.nroDocumento),
+      numeroTelefono  : h.n(value.nroTelefono),
+
+      userSap         : userSapItem,
+      salesPersons    : salesPersonsItem,
+      activo          : value.activo,
+      usuario         : h.n(value.usuario),
+      password        : this.cifrarDataService.decrypt(value.clave),
+      email           : h.n(value.email),
+
+      perfil          : perfilItem,
+      foto            : h.n(value.imagen),
+      dark            : value.themeDark,
+      menu            : h.n(value.typeMenu),
+      theme           : h.n(value.themeColor)
+    });
+  }
+
+  private setViewState(value: UsuarioModel): void {
+    this.idUsuario = value.idUsuario;
+    this.sellersPermitString = value.imagen;
+    this.isHabilitarView = false;
   }
 
   onBasicUpload(event: any) {
@@ -230,42 +249,48 @@ export class PersonaUpdateComponent implements OnInit, OnDestroy {
     this.sellersPermitString = this.modelo.imagen;
   }
 
-  onClickSave() {
-    this.modelo.apellidoPaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoPaterno'].value);
-    this.modelo.apellidoMaterno = this.utilService.convertirMayuscula(this.modeloForm.controls['apellidoMaterno'].value);
-    this.modelo.nombre = this.utilService.convertirMayuscula(this.modeloForm.controls['nombre'].value);
-    this.modelo.nroDocumento = this.modeloForm.controls['numeroDocumento'].value.toString();
-    this.modelo.nroTelefono = this.modeloForm.controls['numeroTelefono'].value.toString();
+  onClickSave(): void {
+    const f = this.modeloForm.getRawValue();
 
-    if (this.modeloForm.controls['userSap'].value) {
-      let itemUserSap = this.modeloForm.controls['userSap'].value;
-      this.modelo.idUserSap = itemUserSap.value;
-    }
+    const u = this.utilService;
+    const p = (v: any) => u.normalizePrimitive(v);
+    const n = (v:any)=>u.normalizeNumber(v);
+    const val = (v: any) => v?.value ?? v;
+    const may = (v: any) => u.convertirMayuscula(p(v));
 
-    this.modelo.activo = this.modeloForm.controls['activo'].value;
-    this.modelo.imagen = this.modeloForm.controls['foto'].value;
-    this.modelo.usuario = this.utilService.convertirMayuscula(this.modeloForm.controls['usuario'].value);
+    this.modelo = {
+      idUsuario       : this.idUsuario,
+      apellidoPaterno : may(f.apellidoPaterno),
+      apellidoMaterno : may(f.apellidoMaterno),
+      nombre          : may(f.nombre),
+      nroDocumento    : p(f.numeroDocumento).toString(),
+      nroTelefono     : p(f.numeroTelefono).toString(),
 
-    this.modelo.clave = this.cifrarDataService.encrypt(this.modeloForm.controls['password'].value);
+      idUserSap       : n(val(f.userSap)),
+      slpCode         : n(val(f.salesPersons)),
 
-    this.modelo.email = this.utilService.convertirMayuscula(this.modeloForm.controls['email'].value);
+      activo          : f.activo,
+      imagen          : f.foto,
+      usuario         : may(f.usuario),
+      clave           : this.cifrarDataService.encrypt(p(f.password)),
+      email           : may(f.email),
 
-    if (this.modeloForm.controls['perfil'].value) {
-      let itemPerfil = this.modeloForm.controls['perfil'].value;
-      this.modelo.idPerfil = itemPerfil.value;
-    }
-    this.modelo.imagen = this.modeloForm.controls['foto'].value;
-    this.modelo.themeDark = Boolean(this.modeloForm.controls['dark'].value);
-    this.modelo.typeMenu = this.modeloForm.controls['menu'].value;
-    this.modelo.themeColor = this.modeloForm.controls['theme'].value;
+      idPerfil        : n(val(f.perfil)),
 
-    this.subscription = new Subscription();
+      themeDark       : Boolean(f.dark),
+      typeMenu        : f.menu,
+      themeColor      : f.theme,
+    };
+
     this.subscription = this.usuarioService.setUpdate(this.modelo)
-    .subscribe(() =>  {
-      this.swaCustomService.swaMsgExito(null);
-      this.back(); },
-      (error) => {
+    .subscribe({
+      next: () => {
+        this.swaCustomService.swaMsgExito(null);
+        this.back();
+      },
+      error: (error) => {
         this.swaCustomService.swaMsgError(error.error.resultadoDescripcion);
+      }
     });
   }
 

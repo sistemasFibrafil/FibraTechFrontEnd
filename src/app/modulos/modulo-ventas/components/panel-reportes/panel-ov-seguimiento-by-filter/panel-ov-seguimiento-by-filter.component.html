@@ -15,7 +15,7 @@
           <p-multiSelect [options]="businessPartnerGroupSapList" [(ngModel)]="businessPartnerGroupSelected" formControlName="msBusinessPartnerGroup" defaultLabel="Seleccione el Grupo de Cliente" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
         </div>
         <div class="col-12 md:col-4">
-          <p-multiSelect [options]="salesEmployeeList" [(ngModel)]="salesEmployeeSelected" formControlName="msSalesEmployee" defaultLabel="Seleccione el Vendedor" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
+          <p-multiSelect [options]="salesPersonsList" [(ngModel)]="salesPersonsSelected" formControlName="msSalesEmployee" defaultLabel="Seleccione el Vendedor" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
         </div>
         <div class="col-12 md:col-4">
           <p-multiSelect [options]="documentTypeList" [(ngModel)]="documentTypeSelected" formControlName="msDocumentType" defaultLabel="Seleccione el Tipo de Documento" selectedItemsLabel="{0} regitros seleccionadas"></p-multiSelect>
@@ -47,16 +47,18 @@
   <!-- Grilla de Datos     -->
   <p-panel header="Lista de {{subtitulo}}">
     <p-table
-      [value]="reporteList"
-      [columns]="columnas"
-      [paginator]="true"
-      [rowHover]="true"
-      [autoLayout]="true"
-      [responsive]="true"
-      [rows]="globalConstants.sizePage"
-      styleClass="{{globalConstants.cStyleTableGridLines}}"
-      [showCurrentPageReport]="true"
-      currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
+        [value]="reporteList"
+        [columns]="columnas"
+        [rows]="globalConstants.sizePage"
+        [rowHover]="true"
+        [paginator]="true"
+        [autoLayout]="true"
+        selectionMode="single"
+        [resizableColumns]="true"
+        responsiveLayout="scroll"
+        [showCurrentPageReport]="true"
+        styleClass="{{globalConstants.cStyleTableGridLines}}"
+        currentPageReportTemplate="{{globalConstants.currentPageReportTemplate}}">
       <!-- Header -->
       <ng-template pTemplate="header" let-columns>
         <tr>
@@ -83,12 +85,6 @@
           </td>
           <td class="custom-td-fecha">
             <span class="p-column-title">Fecha de Contabilización: </span> {{modelo.docDate | date: 'dd/MM/yyyy'}}
-          </td>
-          <td class="custom-td-fecha">
-            <span class="p-column-title">Fecha de Emisión: </span> {{modelo.taxDate | date: 'dd/MM/yyyy'}}
-          </td>
-          <td class="custom-td-fecha">
-            <span class="p-column-title">Fecha de Entrega: </span> {{modelo.docDueDate | date: 'dd/MM/yyyy'}}
           </td>
           <td class="custom-td-20">
             <span class="p-column-title">Estado: </span>
