@@ -159,7 +159,6 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
   salesPersonsList                              : SelectItem[] = [];
   agencyAddressList                             : SelectItem[] = [];
   printModelTypesList                           : SelectItem[] = [];
-  operationsTypesList                           : SelectItem[] = [];
   paymentsTermsTypesList                        : SelectItem[] = [];
 
 
@@ -405,11 +404,7 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
 
       salesPersons: this.salesPersonsService
         .getList()
-        .pipe(catchError(() => of([] as ISalesPersons[]))),
-
-      operationsTypes: this.operationsTypesService
-        .getList()
-        .pipe(catchError(() => of([] as IOperationsTypes[])))
+        .pipe(catchError(() => of([] as ISalesPersons[])))
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -428,11 +423,6 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
         this.salesPersonsList = (res.salesPersons || []).map(item => ({
           label: item.slpName,
           value: item.slpCode
-        }));
-
-        this.operationsTypesList = (res.operationsTypes || []).map(item => ({
-          label: item.fullDescr,
-          value: item.code
         }));
 
         this.paymentsTermsTypesList = (res.groups || []).map(item => ({
@@ -1519,13 +1509,14 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
     const isMainCurrency =
       currCode.toUpperCase() === this.h.p(this.mainCurncy).toUpperCase();
 
-    const rate = isMainCurrency
-      ? this.h.n(this.sysRate)
-      : this.h.n(f.docRate);
+    // Solo validar TC cuando la moneda NO es la moneda local
+    if (!isMainCurrency) {
+      const rate = this.h.n(f.docRate);
 
-    if (rate === 0) {
-      this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
-      return false;
+      if (rate === 0) {
+        this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
+        return false;
+      }
     }
 
     return true;
@@ -2305,7 +2296,6 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
             'No puede continuar. La línea no tiene artículo.'
           );
 
-          //this.focusQuantity(currentIndex);
           this.focusInput('quantity', currentIndex);
           return;
         }
@@ -2321,14 +2311,7 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) {
-
-            this.swaCustomService.swaMsgInfo(
-              'No existen más líneas para asignar cantidades.'
-            );
-
-            return;
-          }
+          if (!nextLine) return;
 
           const nextItemCode = String(nextLine.itemCode ?? '').trim();
 
@@ -2338,7 +2321,6 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
               'No puede continuar. La siguiente línea no tiene artículo.'
             );
 
-            //this.focusQuantity(currentIndex);
             this.focusInput('quantity', currentIndex);
             return;
           }
@@ -2449,10 +2431,7 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) {
-            this.swaCustomService.swaMsgInfo('No existen más líneas para asignar precios.');
-            return;
-          }
+          if (!nextLine) return;
 
           if (!this.validateLineForPrice(nextLine, nextIndex)) {
             this.focusInput('priceBefDi', currentIndex);
@@ -2489,7 +2468,7 @@ export class PanelOrdenVentaCreateComponent implements OnInit, OnDestroy {
     line.vatPrcnt             = value.rate;
     line.isTaxCodeValidated   = true;
     line.validatedTaxCode     = value.code;
-    
+
     this.isVisualizarImpuesto = !this.isVisualizarImpuesto;
 
     this.calculateTotalLine(this.modeloLines[this.indexImpuesto], this.indexImpuesto);

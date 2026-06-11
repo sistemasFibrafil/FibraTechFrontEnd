@@ -342,9 +342,10 @@
                                 autocomplete="off"
                                 maxlength="23"
                                 [(ngModel)]="modelo.priceBefDi"
-                                (keydown.enter)="onEnterPrice($event, modelo, ri)"
+                                (ngModelChange)="onChangePrice(modelo,ri)"
                                 (paste)="onPastePrices($event, ri)"
                                 (blur)="onBlurPrice(modelo, ri)"
+                                (keydown.enter)="onEnterPrice($event, modelo, ri)"
                                 (keypress)="utilService.aceptaSoloNumeros($event, modelo.priceBefDi)">
                             </div>
                           </ng-template>
@@ -777,7 +778,7 @@
     </form>
   </p-panel>
   <ng-template pTemplate="footer">
-    <p-button [disabled]="!modeloFormMod.valid" label="{{globalConstants.cImprimir}}" icon="{{globalConstants.icoImpExcel}}" styleClass="p-button-success" (onClick)="onClickPrint()"></p-button>
+    <p-button [disabled]="!modeloFormMod.valid" label="{{globalConstants.cImprimir}}" icon="{{globalConstants.icoImpExcel}}" styleClass="p-button-success" (onClick)="onClickModelPrint()"></p-button>
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickModelPrintClose()"></p-button>
   </ng-template>
 </p-dialog>
@@ -808,6 +809,13 @@
   <app-busqueda-impuesto  (eventoAceptar)="onClickSelectedImpuesto($event)"></app-busqueda-impuesto>
   <ng-template pTemplate="footer">
     <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseImpuesto()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog *ngIf="isVisualizarTipoOperacion" header="Tipo de operación" [(visible)]="isVisualizarTipoOperacion" [modal]="true" [style]="{width: '50vw'}" [maximizable]="true">
+  <app-busqueda-tipo-operacion  (eventoAceptar)="onClickSelectedTipoOperacion($event)"></app-busqueda-tipo-operacion>
+  <ng-template pTemplate="footer">
+    <p-button label="{{globalConstants.cCerrar}}" icon="{{globalConstants.icoCerrar}}" styleClass="p-button-danger" (onClick)="onClickCloseTipoOperacion()"></p-button>
   </ng-template>
 </p-dialog>
 

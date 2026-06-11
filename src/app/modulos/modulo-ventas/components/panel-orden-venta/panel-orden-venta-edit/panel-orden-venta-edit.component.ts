@@ -155,7 +155,6 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
   salesPersonsList                              : SelectItem[] = [];
   agencyAddressList                             : SelectItem[] = [];
   printModelTypesList                           : SelectItem[] = [];
-  operationsTypesList                           : SelectItem[] = [];
   paymentsTermsTypesList                        : SelectItem[] = [];
 
 
@@ -272,8 +271,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.buildTableAttachmentsOptions();
 
     // 5️⃣ Inicializar líneas
-    this.addLine(0);
-    this.addLineAttachments(0);
+    this.onAddLine(0);
+    this.onAddLineAttachments(0);
   }
 
   private buildForms(): void {
@@ -398,11 +397,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
       salesPersons: this.salesPersonsService
         .getList()
-        .pipe(catchError(() => of([] as ISalesPersons[]))),
-
-      operationsTypes: this.operationsTypesService
-        .getList()
-        .pipe(catchError(() => of([] as IOperationsTypes[])))
+        .pipe(catchError(() => of([] as ISalesPersons[])))
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -416,11 +411,6 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         this.salesPersonsList = (res.salesPersons || []).map(item => ({
           label: item.slpName,
           value: item.slpCode
-        }));
-
-        this.operationsTypesList = (res.operationsTypes || []).map(item => ({
-          label: item.fullDescr,
-          value: item.code
         }));
 
         this.paymentsTermsTypesList = (res.groups || []).map(item => ({
@@ -624,15 +614,14 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 4. TABLE / CONTEXT MENU >>>
-  
-  onClickModelPrintOpen(): void {
+  //#region <<< 5. PRINT EVENTS >>>
+
+  private onClickModelPrintOpen(): void {
     this.isVisualizarPrintModal = !this.isVisualizarPrintModal;
   }
 
-  onClickPrint(): void {
+  onClickModelPrint(): void {
     const f = this.modeloFormMod.getRawValue();
-
     const type = this.h.p(this.h.v(f.printModelTypes));
 
     const actions: Record<string, () => void> = {
@@ -655,40 +644,40 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.isDisplayGenerandoVisor = true;
 
     request$
-    .pipe(
-      takeUntil(this.destroy$),
-      finalize(() => this.isDisplayGenerandoVisor = false)
-    )
-    .subscribe({
-      next: (resp: any) => {
-        if (resp.type === HttpEventType.Response) {
-          this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
-          this.isDisplayVisor = true;
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isDisplayGenerandoVisor = false)
+      )
+      .subscribe({
+        next: (resp: any) => {
+          if (resp.type === HttpEventType.Response) {
+            this.isDataBlob = new Blob([resp.body], { type: resp.body.type });
+            this.isDisplayVisor = true;
+          }
+        },
+        error: (e) => {
+          this.utilService.handleErrorSingle(e, errorContext, this.swaCustomService);
         }
-      },
-      error: (e) => {
-        this.utilService.handleErrorSingle(e, errorContext, this.swaCustomService);
-      }
-    });
+      });
   }
 
   private onClickPrintNational(): void {
     this.printDocument(
-      this.ordersService.getPrintNationalDocEntry(this.docEntry),
+      this.draftsService.getPrintNationalDocEntry(this.docEntry),
       'onClickPrintNational'
     );
   }
 
   private onClickPrintExportPlanta(): void {
     this.printDocument(
-      this.ordersService.getPrintExportPlantaDocEntry(this.docEntry),
+      this.draftsService.getPrintExportPlantaDocEntry(this.docEntry),
       'onClickPrintExportPlanta'
     );
   }
 
   private onClickPrintExportCliente(): void {
     this.printDocument(
-      this.ordersService.getPrintExportClienteDocEntry(this.docEntry),
+      this.draftsService.getPrintExportClienteDocEntry(this.docEntry),
       'onClickPrintExportCliente'
     );
   }
@@ -697,44 +686,39 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.isVisualizarPrintModal = !this.isVisualizarPrintModal;
   }
 
-  /** Actualiza la línea seleccionada cuando el usuario hace clic en una fila */
-  onSelectedItem(modelo: IOrdenVenta1Query) {
+  //#endregion
+
+
+
+  //#region <<< 6. TABLE LINE EVENTS >>>
+
+  onSelectedItem(modelo: IOrdenVenta1Query): void {
     this.modeloLinesSelected = modelo;
     this.updateMenuVisibility();
   }
 
   onClickAddLineAbove(): void {
-    /** Agrega una nueva línea vacía después de la fila seleccionada */
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    this.addLineAbove(index);
+    this.onAddLineAbove(index);
   }
 
   onClickAddLineBelow(): void {
-    /** Agrega una nueva línea vacía después de la fila seleccionada */
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
-    this.addLineBelow(index);
+    this.onAddLineBelow(index);
   }
 
   onClickDelete(): void {
-    /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
-    // Existe en la base de datos
-    if (this.modeloLinesSelected.record === 2) {
-      this.modeloLinesSelected.record = 3;
-      this.modeloLinesEliminate.push(this.modeloLinesSelected);
-    }
-
     const index = this.modeloLines.indexOf(this.modeloLinesSelected);
+
     if (index > -1) {
       this.modeloLines.splice(index, 1);
     }
 
     if (this.modeloLines.length === 0) {
-      this.addLine(0);
-      return;
+      this.onAddLine(0);
     }
 
     this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private hasData(line: any): boolean {
@@ -753,38 +737,38 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     const hasEmptyLines = this.hasEmptyLine();
     const hasLines      = this.modeloLines.length > 0;
 
-    const addLineOption1    = this.splitButtonItems.find(x => x.value === '1');
-    const addLineOption2    = this.splitButtonItems.find(x => x.value === '2');
-    const deleteLineOption  = this.splitButtonItems.find(x => x.value === '3');
+    const addAboveOption = this.splitButtonItems.find(x => x.value === '1');
+    const addBelowOption = this.splitButtonItems.find(x => x.value === '2');
+    const deleteOption   = this.splitButtonItems.find(x => x.value === '3');
 
-    if (addLineOption1) addLineOption1.visible = !hasEmptyLines;
-    if (addLineOption2) addLineOption2.visible = !hasEmptyLines;
-    if (deleteLineOption) deleteLineOption.visible = hasLines;
+    if (addAboveOption) addAboveOption.visible = !hasEmptyLines;
+    if (addBelowOption) addBelowOption.visible = !hasEmptyLines;
+    if (deleteOption)   deleteOption.visible = hasLines;
   }
 
+  //#endregion
 
-  onSelectedItemAttachments(modelo: IAttachments2LinesQuery) {
+
+
+  //#region <<< 7. ATTACHMENT TABLE EVENTS >>>
+
+  onSelectedItemAttachments(modelo: IAttachments2LinesQuery): void {
     this.modeloLinesAttachmentsSelected = modelo;
     this.updateMenuAttachmentsVisibility();
   }
 
   onClickAddLineAttachments(): void {
-    /** Agrega una nueva línea vacía después de la fila seleccionada */
-    const index = this.modeloLinesAttachments.indexOf(this.modeloLinesAttachmentsSelected);
-    const insertIndex = index + 1;
-    this.addLineAttachments(insertIndex);
+    const index = this.modeloLinesAttachments.indexOf(
+      this.modeloLinesAttachmentsSelected
+    );
 
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
+    this.onAddLineAttachments(index + 1);
   }
 
   onClickDeleteAttachments(): void {
-    /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
-
-    // No existe ne la base de datos
     if (this.modeloLinesAttachmentsSelected.record === 1) {
       const fileName = this.modeloLinesAttachmentsSelected.fileName;
       const fileExt  = this.modeloLinesAttachmentsSelected.fileExt;
-
       const fullName = `${fileName}.${fileExt}`;
 
       this.uploadedFiles = this.uploadedFiles.filter(file => {
@@ -793,56 +777,54 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Existe en la base de datos
     if (this.modeloLinesAttachmentsSelected.record === 2) {
-      const deletedLine = {
-        ...this.modeloLinesAttachmentsSelected,
-        record: 3
-      };
-
-      this.modeloLinesAttachmentsEliminate.push(deletedLine);
+      this.modeloLinesAttachmentsSelected.record = 3;
+      this.modeloLinesAttachmentsEliminate.push(
+        this.modeloLinesAttachmentsSelected
+      );
     }
 
-    /** Elimina la línea seleccionada; agrega una vacía si quedan sin líneas */
-    const index = this.modeloLinesAttachments.indexOf(this.modeloLinesAttachmentsSelected);
+    const index = this.modeloLinesAttachments.indexOf(
+      this.modeloLinesAttachmentsSelected
+    );
+
     if (index > -1) {
       this.modeloLinesAttachments.splice(index, 1);
     }
 
     if (this.modeloLinesAttachments.length === 0) {
-      this.addLineAttachments(0);
+      this.onAddLineAttachments(0);
     }
-
-    this.updateHasValidLinesAttachments();
-    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private hasDataAttachments(line: any): boolean {
     const p = (v: any) => this.utilService.normalizePrimitive(v);
 
-    return !!p(line.trgtPath)
+    return !!p(line.trgtPath);
   }
 
   private hasEmptyLineAttachments(): boolean {
-    return this.modeloLinesAttachments.some(line => !this.hasDataAttachments(line));
+    return this.modeloLinesAttachments.some(line =>
+      !this.hasDataAttachments(line)
+    );
   }
 
   private updateMenuAttachmentsVisibility(): void {
     const hasEmptyLines = this.hasEmptyLineAttachments();
     const hasLines      = this.modeloLinesAttachments.length > 0;
 
-    const addLineOption1    = this.splitButtonAttachmentItems.find(x => x.value === '1');
-    const deleteLineOption  = this.splitButtonAttachmentItems.find(x => x.value === '2');
+    const addOption    = this.splitButtonAttachmentItems.find(x => x.value === '1');
+    const deleteOption = this.splitButtonAttachmentItems.find(x => x.value === '2');
 
-    if (addLineOption1) addLineOption1.visible = !hasEmptyLines;
-    if (deleteLineOption) deleteLineOption.visible = hasLines;
+    if (addOption)    addOption.visible = !hasEmptyLines;
+    if (deleteOption) deleteOption.visible = hasLines;
   }
 
   //#endregion
 
 
 
-  //#region <<< 5. LINES (CORE) >>>
+  //#region <<< 8. LINES (CORE) >>>
 
   private insertLine(index: number): void {
     const newLine: IOrdenVenta1Query = this.createEmptyLine();
@@ -855,18 +837,17 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     this.reindexLines();
     this.updateHasValidLines();
-    this.detectRealChanges(); // 🔥 obligatorio
   }
 
-  addLineAbove(index: number): void {
+  private onAddLineAbove(index: number): void {
     this.insertLine(index); // 👆 encima
   }
 
-  addLineBelow(index: number): void {
+  private onAddLineBelow(index: number): void {
     this.insertLine(index + 1); // 👇 debajo
   }
 
-  private addLine(index: number): void {
+  private onAddLine(index: number): void {
     this.insertLine(index); // mismo comportamiento que antes
   }
 
@@ -878,7 +859,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
   }
 
   private createEmptyLine(): IOrdenVenta1Query {
-    return {
+    return this.utilService.mapLine({
       docEntry                  : 0,
       lineNum                   : 0,
       lineStatus                : 'O',
@@ -910,19 +891,15 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
       isItemCodeValidated       : false,
       validatedItemCode         : '',
-
       isWhsCodeValidated        : false,
       validatedWhsCode          : '',
-
       isTaxCodeValidated        : false,
       validatedTaxCode          : '',
-
       isFormatCodeValidated     : false,
       validatedFormatCode       : '',
-
       isOperationTypeValidated  : false,
       validatedOperationType    : '',
-    } as any;
+    }) as any;
   }
 
   private updateHasValidLines(): void {
@@ -931,7 +908,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       !this.hasEmptyLine();
   }
 
-  private addLineAttachments(index: number): void {
+  private onAddLineAttachments(index: number): void {
     const newLine: IAttachments2LinesQuery = {
       absEntry          : 0,
       trgtPath          : '',
@@ -963,7 +940,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 6. CURRENCY / TIPO CAMBIO >>>
+  //#region <<< 9. CURRENCY / TIPO CAMBIO >>>
 
   private fetchTipoCambioRate(currCode: any): Observable<IExchangeRates | null> {
     const docDate: Date = this.modeloFormDoc?.controls['docDate']?.value;
@@ -1010,37 +987,6 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     );
   }
 
-  private valTipoCambio() {
-    const selected  : any     = this.modeloFormSoc.controls['currencies']?.value;
-    const rate      : number  = Number(this.modeloFormSoc.controls['docRate'].value) || 0;
-
-    if (!selected)
-    {
-      this.swaCustomService.swaMsgInfo('Seleccione la moneda.');
-      return false;
-    }
-
-    const currCode = selected?.value ?? null;
-
-    if (!currCode) return false;
-
-    // Si la moneda es la misma que la moneda principal, el tipo de cambio se debe validar contra sysRate
-    if (currCode && currCode.toUpperCase() === String(this.mainCurncy || '').trim().toUpperCase()) {
-      if (this.sysRate === 0) {
-        this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
-        return false;
-      }
-    }
-
-    // Si la moneda es diferente a la moneda principal, el tipo de cambio se debe validar contra rate
-    if (rate === 0) {
-      this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
-      return false;
-    }
-
-    return true;
-  }
-
   private refreshAfterCurrencyChange(): void {
     this.loadTipoCambio(this.currencies)
     .pipe(takeUntil(this.destroy$))
@@ -1066,7 +1012,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 7. ADDRESS / LOGÍSTICA >>>
+  //#region <<< 10. ADDRESS / LOGÍSTICA >>>
 
   private wireShipAddressControl(): void {
     this.modeloFormLog.get('shipAddress')?.valueChanges
@@ -1173,7 +1119,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 8. TAX / IMPUESTOS >>>
+  //#region <<< 11. TAX / IMPUESTOS >>>
 
   private loadTaxGroup(cardCode: string, address: string): Observable<ITaxGroups | null> {
     const formConValues = this.modeloFormSal.getRawValue();
@@ -1218,7 +1164,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 9. AGENCY >>>
+  //#region <<< 12. AGENCY >>>
 
   onClickCleanAgencia(): void {
     Object.keys(this.modeloFormAge.controls).forEach(key => {
@@ -1340,7 +1286,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 10. CODIGO DE ARTÍCULO >>>
+  //#region <<< 13. CODIGO DE ARTÍCULO >>>
 
   private validateDocumentBaseData(): boolean {
     const f = this.modeloFormSoc.getRawValue();
@@ -1360,13 +1306,14 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     const isMainCurrency =
       currCode.toUpperCase() === this.h.p(this.mainCurncy).toUpperCase();
 
-    const rate = isMainCurrency
-      ? this.h.n(this.sysRate)
-      : this.h.n(f.docRate);
+    // Solo validar TC cuando la moneda NO es la moneda local
+    if (!isMainCurrency) {
+      const rate = this.h.n(f.docRate);
 
-    if (rate === 0) {
-      this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
-      return false;
+      if (rate === 0) {
+        this.swaCustomService.swaMsgInfo('Ingrese el tipo de cambio.');
+        return false;
+      }
     }
 
     return true;
@@ -1581,6 +1528,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     event.preventDefault();
 
     this.isPastingItemCodes = true;
+    let changed = false;
 
     try {
       let currentIndex = rowIndex;
@@ -1596,8 +1544,11 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         if (!exists) {
           this.clearLineKeepItemCode(currentIndex, itemCode);
           this.focusInput('itemCode', currentIndex);
-          return;
+          changed = true;
+          break;
         }
+
+        changed = true;
 
         this.reindexLines();
         this.updateHasValidLines();
@@ -1615,6 +1566,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.isPastingItemCodes = false;
+
+      if (changed) {
+        this.detectRealChanges(); // 🔥 OBLIGATORIO
+      }
     }
   }
 
@@ -1622,7 +1577,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 10. DESCRIPCIÓN DE ARTÍCULO >>>
+  //#region <<< 14. DESCRIPCIÓN DE ARTÍCULO >>>
 
   onChangeDescriptions(value: IOrdenVenta1Query) {
     if (!this.validateDocumentBaseData()) {
@@ -1702,6 +1657,9 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       this.reindexLines();
       this.updateHasValidLines();
       this.calculateTotals();
+
+      this.detectRealChanges(); // 🔥 OBLIGATORIO
+
     } finally {
       this.isPastingDescriptions = false;
     }
@@ -1710,7 +1668,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 11. CUENTA CONTABLE >>>
+  //#region <<< 15. CUENTA CONTABLE >>>
 
   onClickOpenCuentaContable(index: number): void {
     this.indexCentroCuentaContable  = index;
@@ -1786,6 +1744,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.reindexLines();
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private getChartOfAccountsByFormatCodeAsync(formatCode: string, index: number): Promise<boolean> {
@@ -1832,6 +1792,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   async onPasteFormatCodes(event: ClipboardEvent, rowIndex: number): Promise<void> {
@@ -1847,6 +1809,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     event.preventDefault();
 
     this.isPastingFormatCodes = true;
+    let changed = false;
 
     try {
       let currentIndex = rowIndex;
@@ -1855,14 +1818,14 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         const formatCode = formatCodes[i];
         const line = this.modeloLines[currentIndex];
 
-        if (!line) return;
+        if (!line) break;
 
         const dscription = String(line.dscription ?? '').trim();
 
         if (!dscription) {
           this.swaCustomService.swaMsgInfo('No puede asignar cuenta contable a una línea sin descripción.');
           this.focusInput('formatCode', currentIndex);
-          return;
+          break;
         }
 
         (line as any).formatCode = formatCode;
@@ -1873,8 +1836,11 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         if (!exists) {
           this.updateHasValidLines();
           this.focusInput('formatCode', currentIndex);
-          return;
+          changed = true;
+          break;
         }
+
+        changed = true;
 
         this.reindexLines();
         this.updateHasValidLines();
@@ -1886,14 +1852,14 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) return;
+          if (!nextLine) break;
 
           const nextDscription = String(nextLine.dscription ?? '').trim();
 
           if (!nextDscription) {
             this.swaCustomService.swaMsgInfo('No puede continuar. La siguiente línea no tiene descripción.');
             this.focusInput('formatCode', currentIndex);
-            return;
+            break;
           }
 
           currentIndex = nextIndex;
@@ -1904,6 +1870,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.isPastingFormatCodes = false;
+
+      if (changed) {
+        this.detectRealChanges(); // 🔥 OBLIGATORIO
+      }
     }
   }
 
@@ -1911,7 +1881,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 12. ALMACÉN >>>
+  //#region <<< 16. ALMACÉN >>>
 
   onClickOpenAlmacen(index: number) {
     this.indexAlmacen = index;
@@ -1941,10 +1911,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
   // COPIAR Y PEGAR
   //======================================================================================
   onWhsCodeChange(modelo: IOrdenVenta1Query): void {
-  const whsCode = String(modelo.whsCode ?? '').trim();
-  const validatedWhsCode = String((modelo as any).validatedWhsCode ?? '').trim();
+    const whsCode = String(modelo.whsCode ?? '').trim();
+    const validatedWhsCode = String((modelo as any).validatedWhsCode ?? '').trim();
 
-  (modelo as any).isWhsCodeValidated = whsCode === validatedWhsCode;
+    (modelo as any).isWhsCodeValidated = whsCode === validatedWhsCode;
   }
 
   async onEnterWhsCode(event: KeyboardEvent, modelo: IOrdenVenta1Query, index: number): Promise<void> {
@@ -1974,7 +1944,6 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     if (!exists) {
       this.clearLineKeepWhsCode(index, whsCode);
-      //this.focusWhsCode(index);
       this.focusInput('whsCode', index);
       return;
     }
@@ -1982,6 +1951,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.reindexLines();
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private clearLineKeepWhsCode(index: number, whsCode: string): void {
@@ -1994,6 +1965,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private getWarehouseByCodeAsync(whsCode: string, index: number): Promise<boolean> {
@@ -2037,6 +2010,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     event.preventDefault();
 
     this.isPastingWhsCodes = true;
+    let changed = false;
 
     try {
       let currentIndex = rowIndex;
@@ -2045,26 +2019,28 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         const whsCode = whsCodes[i];
         const line = this.modeloLines[currentIndex];
 
-        if (!line) return;
+        if (!line) break;
 
         const itemCode = String(line.itemCode ?? '').trim();
 
         if (!itemCode) {
           this.swaCustomService.swaMsgInfo('No puede asignar almacén a una línea sin artículo.');
           this.focusInput('whsCode', currentIndex);
-          return;
+          break;
         }
 
         line.whsCode = whsCode;
-        this.focusInput('whsCode', currentIndex);
 
         const exists = await this.getWarehouseByCodeAsync(whsCode, currentIndex);
 
         if (!exists) {
           this.updateHasValidLines();
           this.focusInput('whsCode', currentIndex);
-          return;
+          changed = true;
+          break;
         }
+
+        changed = true;
 
         this.reindexLines();
         this.updateHasValidLines();
@@ -2076,14 +2052,14 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) return;
+          if (!nextLine) break;
 
           const nextItemCode = String(nextLine.itemCode ?? '').trim();
 
           if (!nextItemCode) {
             this.swaCustomService.swaMsgInfo('No puede continuar. La siguiente línea no tiene artículo.');
             this.focusInput('whsCode', currentIndex);
-            return;
+            break;
           }
 
           currentIndex = nextIndex;
@@ -2094,6 +2070,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.isPastingWhsCodes = false;
+
+      if (changed) {
+        this.detectRealChanges(); // 🔥 OBLIGATORIO
+      }
     }
   }
 
@@ -2101,7 +2081,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 19. CANTIDAD >>>
+  //#region <<< 17. CANTIDAD >>>
 
   onChangeQuantity(value: IOrdenVenta1Query, index: number)
   {
@@ -2134,6 +2114,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     this.calculateTotalLine(modelo, index);
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   async onPasteQuantities(event: ClipboardEvent, rowIndex: number): Promise<void> {
@@ -2174,7 +2156,6 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
             'No puede continuar. La línea no tiene artículo.'
           );
 
-          //this.focusQuantity(currentIndex);
           this.focusInput('quantity', currentIndex);
           return;
         }
@@ -2190,14 +2171,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) {
-
-            this.swaCustomService.swaMsgInfo(
-              'No existen más líneas para asignar cantidades.'
-            );
-
-            return;
-          }
+          if (!nextLine) return;
 
           const nextItemCode = String(nextLine.itemCode ?? '').trim();
 
@@ -2207,7 +2181,6 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
               'No puede continuar. La siguiente línea no tiene artículo.'
             );
 
-            //this.focusQuantity(currentIndex);
             this.focusInput('quantity', currentIndex);
             return;
           }
@@ -2220,6 +2193,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
       this.calculateTotals();
 
+      this.detectRealChanges(); // 🔥 OBLIGATORIO
+
     }
     finally {
       this.isPastingQuantities = false;
@@ -2230,7 +2205,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 20. PRECIO >>>
+  //#region <<< 18. PRECIO >>>
 
   onChangePrice(value: IOrdenVenta1Query, index: number)
   {
@@ -2260,6 +2235,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     this.calculateTotalLine(modelo, index);
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private validateLineForPrice(modelo: IOrdenVenta1Query, index: number): boolean {
@@ -2321,10 +2298,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) {
-            this.swaCustomService.swaMsgInfo('No existen más líneas para asignar precios.');
-            return;
-          }
+          if (!nextLine) return;
 
           if (!this.validateLineForPrice(nextLine, nextIndex)) {
             this.focusInput('priceBefDi', currentIndex);
@@ -2338,6 +2312,9 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       }
 
       this.calculateTotals();
+
+      this.detectRealChanges(); // 🔥 OBLIGATORIO
+
     } finally {
       this.isPastingPrices = false;
     }
@@ -2347,7 +2324,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 13. IMPUESTO >>>
+  //#region <<< 19. IMPUESTO >>>
 
   onClickOpenImpuesto(index: number) {
     this.indexImpuesto = index;
@@ -2419,6 +2396,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.updateHasValidLines();
     this.calculateTotalLine(this.modeloLines[index], index);
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private clearLineKeepTaxCode(index: number, taxCode: string): void {
@@ -2433,6 +2412,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.calculateTotalLine(this.modeloLines[index], index);
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private getTaxByCodeAsync(taxCode: string, index: number): Promise<boolean> {
@@ -2480,6 +2461,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     event.preventDefault();
 
     this.isPastingTaxCodes = true;
+    let changed = false;
 
     try {
       let currentIndex = rowIndex;
@@ -2488,10 +2470,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         const taxCode = taxCodes[i];
         const line = this.modeloLines[currentIndex];
 
-        if (!line) return;
+        if (!line) break;
 
         if (!this.validateLineForTax(line, currentIndex)) {
-          return;
+          break;
         }
 
         line.taxCode = taxCode;
@@ -2502,8 +2484,11 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         if (!exists) {
           this.updateHasValidLines();
           this.focusInput('taxCode', currentIndex);
-          return;
+          changed = true;
+          break;
         }
+
+        changed = true;
 
         this.reindexLines();
         this.updateHasValidLines();
@@ -2516,10 +2501,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) return;
+          if (!nextLine) break;
 
           if (!this.validateLineForTax(nextLine, nextIndex)) {
-            return;
+            break;
           }
 
           currentIndex = nextIndex;
@@ -2530,6 +2515,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.isPastingTaxCodes = false;
+
+      if (changed) {
+        this.detectRealChanges(); // 🔥 OBLIGATORIO
+      }
     }
   }
 
@@ -2557,7 +2546,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 22. TIPO DE OPERACIÓN >>>
+  //#region <<< 20. TIPO DE OPERACIÓN >>>
 
   onClickOpenTipoOperacion(index: number) {
     this.indexTipoOperacion = index;
@@ -2573,6 +2562,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     line.validatedOperationType   = value.fullDescr;
 
     this.isVisualizarTipoOperacion = !this.isVisualizarTipoOperacion;
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   onClickCloseTipoOperacion()
@@ -2635,6 +2626,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.reindexLines();
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   private validateOperationTypeLine(modelo: IOrdenVenta1Query): boolean {
@@ -2701,6 +2694,8 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
     this.updateHasValidLines();
     this.calculateTotals();
+
+    this.detectRealChanges(); // 🔥 OBLIGATORIO
   }
 
   async onPasteOperationTypes(event: ClipboardEvent, rowIndex: number): Promise<void> {
@@ -2716,6 +2711,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     event.preventDefault();
 
     this.isPastingOperationTypes = true;
+    let changed = false;
 
     try {
       let currentIndex = rowIndex;
@@ -2724,11 +2720,11 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         const code = codes[i];
         const line = this.modeloLines[currentIndex];
 
-        if (!line) return;
+        if (!line) break;
 
         if (!this.validateOperationTypeLine(line)) {
           this.focusInput('u_tipoOpT12Nam', currentIndex);
-          return;
+          break;
         }
 
         (line as any).u_tipoOpT12Nam = code;
@@ -2739,8 +2735,11 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
         if (!data) {
           this.clearLineKeepOperationType(currentIndex);
           this.focusInput('u_tipoOpT12Nam', currentIndex);
-          return;
+          changed = true;
+          break;
         }
+
+        changed = true;
 
         this.reindexLines();
         this.updateHasValidLines();
@@ -2752,7 +2751,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
           const nextIndex = currentIndex + 1;
           const nextLine = this.modeloLines[nextIndex];
 
-          if (!nextLine) return;
+          if (!nextLine) break;
 
           currentIndex = nextIndex;
           this.focusInput('u_tipoOpT12Nam', currentIndex);
@@ -2762,6 +2761,10 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
       }
     } finally {
       this.isPastingOperationTypes = false;
+
+      if (changed) {
+        this.detectRealChanges(); // 🔥 OBLIGATORIO
+      }
     }
   }
 
@@ -2769,7 +2772,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 15. CALCULOS EN LÍNEAS >>>
+  //#region <<< 21. CALCULOS EN LÍNEAS >>>
 
   onChangeDiscPrcnt(value: IOrdenVenta1Query, index: number)
   {
@@ -2995,7 +2998,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 16. IMPORT FILES >>>
+  //#region <<< 22. IMPORT FILES >>>
 
   private mapToOrderLineAttachments(file: any): any {
     const p = (v: any) => this.utilService.normalizePrimitive(v);
@@ -3106,7 +3109,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 17. LOAD DATA (EDICIÓN) >>>
+  //#region <<< 24. LOAD DATA (EDICIÓN) >>>
 
   private loadData(): Observable<IOrdersQuery | null> {
     return combineLatest([
@@ -3342,7 +3345,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
     this.modeloLinesAttachments = value.attachments2?.lines ?? [];
 
     if (this.modeloLinesAttachments.length === 0) {
-      this.addLineAttachments(0);
+      this.onAddLineAttachments(0);
     }
 
     this.updateHasValidLines();
@@ -3380,7 +3383,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 18. SAVE >>>
+  //#region <<< 25. SAVE >>>
 
   onClickSave() {
     this.swaCustomService.swaConfirmation(
@@ -3653,7 +3656,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 19. NAVIGATION >>>
+  //#region <<< 26. NAVIGATION >>>
 
   onClickBack() {
     this.router.navigate(['/main/modulo-ven/panel-orden-venta-list']);
@@ -3663,7 +3666,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 20. OBSERVABLES / WATCHERS >>>
+  //#region <<< 27. OBSERVABLES / WATCHERS >>>
 
   private watchChanges(): void {
     if (this.isWatchingChanges) return;
@@ -3688,7 +3691,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 21. ACTIONS / COMMANDS >>>
+  //#region <<< 28. ACTIONS / COMMANDS >>>
 
   public detectRealChanges(): void {
     // =========================
@@ -3838,7 +3841,7 @@ export class PanelOrdenVentaEditComponent implements OnInit, OnDestroy {
 
 
 
-  //#region <<< 22. ACTIONS / COMMANDS >>>
+  //#region <<< 29. ACTIONS / COMMANDS >>>
 
   onClickToCopyReserveInvoice() {
     this.isDisplay = true;

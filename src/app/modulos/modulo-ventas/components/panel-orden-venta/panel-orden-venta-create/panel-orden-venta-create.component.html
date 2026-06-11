@@ -304,9 +304,10 @@
                             autocomplete="off"
                             maxlength="23"
                             [(ngModel)]="modelo.priceBefDi"
-                            (keydown.enter)="onEnterPrice($event, modelo, ri)"
+                            (ngModelChange)="onChangePrice(modelo,ri)"
                             (paste)="onPastePrices($event, ri)"
                             (blur)="onBlurPrice(modelo, ri)"
+                            (keydown.enter)="onEnterPrice($event, modelo, ri)"
                             (keypress)="utilService.aceptaSoloNumeros($event, modelo.priceBefDi)">
                         </ng-template>
 
